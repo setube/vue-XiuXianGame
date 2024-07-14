@@ -123,10 +123,7 @@
                     attack: 0
                 },
                 // 按钮
-                actions: [
-                    { text: '修炼', handler: this.cultivate },
-                    { text: '探索', handler: this.explore }
-                ],
+                actions: [],
                 storyText: '',
                 ismonster: false
             };
@@ -138,12 +135,23 @@
             this.startGame();
         },
         methods: {
+            // 删档
+            deleteData () {
+                this.$confirm('你确定要删除存档吗?建议数据出问题的时候再删除', '数据删除提示', {
+                    cancelButtonText: '我点错了',
+                    confirmButtonText: '确定以及肯定'
+                }).then(() => {
+                    localStorage.removeItem('vuex');
+                    location.reload();
+                }).catch(() => { });
+            },
             // 初始化游戏
             startGame () {
                 if (!this.player.cultivation) this.storyText = '欢迎来到《文字修仙游戏》，你的修仙之旅开始了。';
                 this.actions = [
-                    { text: '修炼', handler: this.cultivate },
-                    { text: '探索', handler: this.explore }
+                    { text: '开始修炼', handler: this.cultivate },
+                    { text: '开始探索', handler: this.explore },
+                    { text: '删档重练', handler: this.deleteData },
                 ];
                 // 初始化玩家当前血量
                 this.player.health = this.player.maxHealth;
@@ -176,8 +184,8 @@
                     this.storyText = '你已经达到了当前等级的修为上限，需要突破到下一个等级。';
                 }
                 this.actions = [
-                    { text: '修炼', handler: this.cultivate },
-                    { text: '探索', handler: this.explore }
+                    { text: '继续修炼', handler: this.cultivate },
+                    { text: '开始探索', handler: this.explore }
                 ];
             },
             // 探索逻辑
@@ -208,8 +216,8 @@
                 this.ismonster = true;
                 this.storyText = `你遇到了<span class="el-tag el-tag--danger">${this.monster.name}</span>`;
                 this.actions = [
-                    { text: '发起攻击', handler: () => this.fightMonster(this.monster) },
-                    { text: '立马逃跑', handler: this.runAway }
+                    { text: '干他娘的', handler: () => this.fightMonster(this.monster) },
+                    { text: '提桶跑路', handler: this.runAway }
                 ];
             },
             openMonsterInfo () {
@@ -296,8 +304,8 @@
                 } else {
                     this.storyText = `你攻击了${monster.name}，造成了${playerHarm}点伤害。${monster.name}攻击了你，造成了${monsterHarm}点伤害。`;
                     this.actions = [
-                        { text: '发起攻击', handler: () => this.fightMonster(monster) },
-                        { text: '立马逃跑', handler: () => this.runAway(monster) }
+                        { text: '干他娘的', handler: () => this.fightMonster(monster) },
+                        { text: '提桶跑路', handler: () => this.runAway(monster) }
                     ];
                 }
             },

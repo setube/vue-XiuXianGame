@@ -473,6 +473,10 @@
                             ];
                         } else {
                             this.storyText = `你击败了${monster.name}获得了${exp}点修为`;
+                            this.actions = [
+                                { text: '继续修炼', handler: this.cultivate },
+                                { text: '继续探索', handler: this.explore },
+                            ]
                         }
                         // 增加修为
                         this.player.cultivation += exp;

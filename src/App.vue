@@ -200,8 +200,8 @@
                         this.player.level++;
                         // 增加攻击
                         this.player.attack += 5;
-                        // 初始化血量
-                        this.player.health = 100;
+                        // 更新血量
+                        this.player.health = this.player.maxHealth;
                         // 增加玩家法力
                         this.player.mana = this.player.maxMana;
                         // 增加玩家总修为

@@ -14,12 +14,14 @@
                 <h1>Vue 文字修仙游戏</h1>
                 <div class="story">
                     <p v-html="storyText" v-if="ismonster" @click="openMonsterInfo"></p>
+                    <p v-else-if="isequipment" @click="openEquipmentInfo" v-html="storyText"></p>
                     <p v-else v-html="storyText"></p>
                 </div>
                 <div class="attributes">
                     <div class="attribute-box">
                         <div class="tag attribute">境界: {{ levelName }}</div>
-                        <div class="tag attribute">修为: {{ player.cultivation }}/{{ player.maxCultivation }}</div>
+                        <div class="tag attribute" v-if="player.cultivation >= 100000 || player.maxCultivation >= 100000">修为: 登峰造极</div>
+                        <div class="tag attribute" v-else>修为: {{ player.cultivation }}/{{ player.maxCultivation}}</div>
                         <div class="tag attribute">气血: {{ player.health || 0 }}/{{ player.maxHealth || 0 }}</div>
                         <div class="tag attribute">法力: {{ player.mana }}/{{ player.maxMana }}</div>
                         <div class="tag attribute">攻击: {{ player.attack }}</div>
@@ -131,6 +133,7 @@
                 },
                 storyText: '',
                 ismonster: false,
+                isequipment: false,
                 // 回合数
                 guashaRounds: 10,
                 equipmentType: {
@@ -138,7 +141,8 @@
                     armor: '护甲',
                     weapon: '兵器',
                     accessory: '灵宝'
-                }
+                },
+                openEquipItemInfo: null
             };
         },
         watch: {
@@ -279,11 +283,10 @@
                 const time = this.getMinuteDifference(this.player.offline);
                 // 赠送离线挂机修为
                 if (time >= 1) {
-                    // 总修为的千分之一乘离线分钟数
                     let maxExp = Math.floor(this.player.maxCultivation / 1000);
-                    maxExp = maxExp ? maxExp * time : 1;
+                    maxExp = maxExp == 0 ? 1 * time : maxExp * time
                     // 增加修为
-                    this.player.cultivation += maxExp
+                    this.player.cultivation += maxExp;
                     this.$message({
                         message: `你已神魂游离太虚${time}分钟, 获得了${maxExp}修为`,
                         type: 'success'
@@ -308,7 +311,7 @@
                     this.player.mana = this.player.maxMana;
                     // 增加玩家总修为
                     this.player.maxCultivation = Math.floor(100 * Math.pow(2, this.player.level));
-                    this.storyText = `恭喜你突破了！当前等级：${this.player.level}，修为：${this.player.cultivation}/${this.player.maxCultivation}`;
+                    this.storyText = `恭喜你突破了！当前等级：${this.levelNames[this.player.level]}，修为：${this.player.cultivation}/${this.player.maxCultivation}`;
                     this.$store.commit('setPlayer', this.player);
                 }
             },
@@ -331,6 +334,7 @@
             },
             // 探索逻辑
             explore () {
+                this.guashaRounds = 10;
                 // 遇到怪物
                 if (equip.getRandomInt(0, 1)) this.encounterMonster();
                 // 发现道具
@@ -433,7 +437,9 @@
                     this.guashaRounds--;
                     // 野怪气血小于等于0
                     if (monster.health <= 0) {
-                        const exp = Math.floor(this.player.maxCultivation / equip.getRandomInt(1, 10));
+                        let exp = Math.floor(this.player.maxCultivation / equip.getRandomInt(1, 1000));
+                        exp = exp ? exp : 1;
+
                         if (equip.getRandomInt(0, 1)) {
                             const names = [
                                 '九转还魂丹',
@@ -496,7 +502,7 @@
                     }
                 } else {
                     this.guashaRounds = 10;
-                    this.storyText = '回合结束, 你输了。';
+                    this.storyText = `回合结束, 你未战胜${monster.name}你输了。`;
                     this.actions = [
                         { text: '回到家里', handler: this.startGame }
                     ];
@@ -506,6 +512,7 @@
             },
             // 逃跑
             runAway () {
+                this.guashaRounds = 10;
                 const Random = equip.getRandomInt(0, 1);
                 this.storyText = Random ? '逃跑失败，请继续战斗。' : '你选择了逃跑，安全返回了修炼地点。';
                 this.actions = Random ? [
@@ -533,7 +540,9 @@
                 else if (randomInt == 3) equipItem = equip.equip_Accessorys(this.player.level);
                 // 法器
                 else if (randomInt == 4) equipItem = equip.equip_Sutras(this.player.level);
-                this.storyText = equipItem?.name ? `你发现了一个宝箱，打开后获得了${level[equipItem.level]}${equipItem.name}(${this.equipmentType[equipItem.type]})。` : '你发现了一个宝箱，打开后箱子里是空的。';
+                this.storyText = equipItem?.name ? `你发现了一个宝箱，打开后获得了<span class="el-tag el-tag--${equipItem.quality}">${level[equipItem.quality]}${equipItem.name}(${this.equipmentType[equipItem.type]})</span>` : '你发现了一个宝箱，打开后箱子里是空的。';
+                this.openEquipItemInfo = equipItem;
+                this.isequipment = equipItem?.name
                 // 玩家获得道具
                 if (equipItem?.name) this.player.inventory.push(equipItem);
                 this.actions = [
@@ -612,6 +621,37 @@
                     message: `<div class="monsterinfo">
                         <div class="monsterinfo-box">
                             <p>类型: ${genre[type] ?? '未知'}</p>
+                            <p>等级: ${equipment.level ? this.levelNames[equipment.level] : '未知'}</p>
+                            <p>品质: ${level[equipment.quality] ?? '未知'}</p>
+                            <p>气血: ${equipment.health}</p>
+                            <p>攻击: ${equipment.attack}</p>
+                            <p>防御: ${equipment.defense}</p>
+                        </div>
+                    </div>`,
+                    dangerouslyUseHTMLString: true
+                }).catch(() => { });
+            },
+            // 发现的装备信息
+            openEquipmentInfo () {
+                const equipment = this.openEquipItemInfo;
+                if (!equipment) return;
+                const level = {
+                    info: '下品',
+                    danger: '极品',
+                    success: '中品',
+                    warning: '上品'
+                };
+                const genre = {
+                    sutra: '法器',
+                    armor: '护甲',
+                    weapon: '兵器',
+                    accessory: '灵宝'
+                };
+                this.$confirm('', equipment.name, {
+                    center: true,
+                    message: `<div class="monsterinfo">
+                        <div class="monsterinfo-box">
+                            <p>类型: ${genre[equipment.type] ?? '未知'}</p>
                             <p>等级: ${equipment.level ? this.levelNames[equipment.level] : '未知'}</p>
                             <p>品质: ${level[equipment.quality] ?? '未知'}</p>
                             <p>气血: ${equipment.health}</p>

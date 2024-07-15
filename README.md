@@ -5,10 +5,10 @@
 ![预览图](https://i0.hdslb.com/bfs/article/0fede2227e2ceb653410444992f212138941412.png@1e_1c.webp)
 
 # 安装依赖
-npm i
+npm install
 
 # 编译项目
-npm build
+npm run build
 
 # 运行项目
 npm run serve

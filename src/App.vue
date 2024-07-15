@@ -20,7 +20,7 @@
                 <div class="attributes">
                     <div class="attribute-box">
                         <div class="tag attribute">境界: {{ levelName }}</div>
-                        <div class="tag attribute" v-if="player.cultivation >= 100000 || player.maxCultivation >= 100000">修为: 登峰造极</div>
+                        <div class="tag attribute" v-if="player.cultivation >= 1000000 || player.maxCultivation >= 1000000">修为: 登峰造极</div>
                         <div class="tag attribute" v-else>修为: {{ player.cultivation }}/{{ player.maxCultivation}}</div>
                         <div class="tag attribute">气血: {{ player.health || 0 }}/{{ player.maxHealth || 0 }}</div>
                         <div class="tag attribute">法力: {{ player.mana }}/{{ player.maxMana }}</div>
@@ -124,13 +124,18 @@
                 loading: false,
                 actions: [],
                 levelName: '筑基',
-                levelNames: {
-                    1: '筑基', 2: '开光', 3: '胎息', 4: '辟谷',
-                    5: '金丹', 6: '元婴', 7: '出窍', 8: '分神',
-                    9: '合体', 10: '大乘', 11: '渡劫', 12: '地仙',
-                    13: '天仙', 14: '金仙', 15: '大罗金仙', 16: '九天玄仙',
-                    17: '仙君', 18: '仙帝'
-                },
+                levelNames: [
+                    '筑基', '开光', '胎息', '辟谷',
+                    '金丹', '元婴', '出窍', '分神',
+                    '合体', '大乘', '渡劫', '地仙',
+                    '天仙', '金仙', '大罗金仙', '九天玄仙',
+                    '仙君', '仙帝', '仙尊', '仙祖',
+                    '圣仙', '至仙', '无上仙', '道仙',
+                    '鸿蒙仙', '混沌仙', '天尊', '始祖天尊',
+                    '无上天尊', '大道天尊', '永恒仙尊', '宇宙仙祖',
+                    '虚空道祖', '超脱者', '至高神', '创世神',
+                    '纪元之主', '无上主宰', '鸿蒙主宰', '混沌主宰'
+                ],
                 storyText: '',
                 ismonster: false,
                 isequipment: false,
@@ -182,9 +187,8 @@
                 }
             },
             'player.level': function (val) {
-                const level = val >= 18 ? 18 : val;
                 this.player.level = val;
-                this.levelName = this.levelNames[level];
+                this.levelName = this.levelNames[val];
             },
             actions (val) {
                 this.actions = val;
@@ -255,6 +259,7 @@
             getMinuteDifference (specifiedTimestamp) {
                 // 获取当前时间戳（秒数）
                 const currentTimestamp = Math.floor(Date.now() / 1000);
+                specifiedTimestamp = specifiedTimestamp == 0 ? currentTimestamp : specifiedTimestamp;
                 // 计算时间差（分钟数）
                 const timeDifferenceInSeconds = Math.abs(currentTimestamp - specifiedTimestamp);
                 const timeDifferenceInMinutes = Math.floor(timeDifferenceInSeconds / 60);

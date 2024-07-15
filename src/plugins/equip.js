@@ -4,20 +4,21 @@ const equips = {
         const random = Math.floor(Math.random() * totalProbability);
         let cumulativeProbability = 0;
 
-        for (const [level, { names, probability }] of Object.entries(weaponTypes)) {
+        for (const [quality, { names, probability }] of Object.entries(weaponTypes)) {
             cumulativeProbability += probability;
             if (random < cumulativeProbability) {
                 const baseEquip = {
                     name: names[Math.floor(Math.random() * names.length)],
                     type,
-                    level,
+                    level: lv,
                     attack: ['weapon', 'accessory', 'sutra'].includes(type) ? this.equip_Attack(lv) : 0,
                     health: ['armor', 'accessory', 'sutra'].includes(type) ? this.equip_Health(lv) : 0,
+                    quality,
                     defense: ['accessory', 'sutra'].includes(type) ? this.equip_Attack(lv) : 0,
                 };
                 // 根据品质调整属性值
                 const qualityMultiplier = { info: 1, success: 1.5, warning: 3, danger: 10 };
-                const multiplier = qualityMultiplier[level];
+                const multiplier = qualityMultiplier[quality];
 
                 baseEquip.attack = Math.floor(baseEquip.attack * multiplier);
                 baseEquip.health = Math.floor(baseEquip.health * multiplier);

@@ -9,43 +9,68 @@
                 </svg>
             </a>
         </div>
-        <div class="game-container">
-            <h1>Vue 文字修仙游戏</h1>
-            <div class="story">
-                <p v-html="storyText" v-if="ismonster" @click="openMonsterInfo"></p>
-                <p v-else>{{ storyText }}</p>
-            </div>
-            <div class="attributes">
-                <div class="attribute-box">
-                    <el-tag class="attribute">等级: {{ player.level }}</el-tag>
-                    <el-tag class="attribute">修为: {{ player.cultivation }}/{{ player.maxCultivation }}</el-tag>
-                    <el-tag class="attribute">血量: {{ player.health }}/{{ player.maxHealth }}</el-tag>
-                    <el-tag class="attribute">法力: {{ player.mana }}/{{ player.maxMana }}</el-tag>
-                    <el-tag class="attribute">攻击: {{ player.attack }}</el-tag>
-                    <el-tag class="attribute">防御: {{ player.defense }}</el-tag>
+        <div class="game-container" v-loading="loading">
+            <div class="game-box" v-show="!loading">
+                <h1>Vue 文字修仙游戏</h1>
+                <div class="story">
+                    <p v-html="storyText" v-if="ismonster" @click="openMonsterInfo"></p>
+                    <p v-else>{{ storyText }}</p>
+                </div>
+                <div class="attributes">
+                    <div class="attribute-box">
+                        <div class="tag attribute">等级: {{ player.level }}</div>
+                        <div class="tag attribute">修为: {{ player.cultivation }}/{{ player.maxCultivation }}</div>
+                        <div class="tag attribute">血量: {{ player.health }}/{{ player.maxHealth }}</div>
+                        <div class="tag attribute">法力: {{ player.mana }}/{{ player.maxMana }}</div>
+                        <div class="tag attribute">攻击: {{ player.attack }}</div>
+                        <div class="tag attribute">防御: {{ player.defense }}</div>
+                    </div>
+                </div>
+                <div class="equip-box">
+                    <div class="tag equip-item">
+                        <span class="equip">
+                            <span>武器: </span>
+                            <el-tag v-if="player.equipment.weapon?.name" :type="player.equipment.weapon?.quality" :closable="player.equipment.weapon?.name ? true : false" @close="equipmentClose('weapon')" @click="equipmentInfo('weapon')">{{ player.equipment.weapon?.name || '无'}}</el-tag>
+                            <span v-else>无</span>
+                        </span>
+                        <span class="equip">
+                            <span>护甲: </span>
+                            <el-tag v-if="player.equipment.armor?.name" :type="player.equipment.armor?.quality" :closable="player.equipment.armor?.name ? true : false" @close="equipmentClose('armor')" @click="equipmentInfo('armor')">{{ player.equipment.armor?.name || '无'}}</el-tag>
+                            <span v-else>无</span>
+                        </span>
+                    </div>
+                    <div class="tag equip-item">
+                        <span class="equip">
+                            <span>饰品: </span>
+                            <el-tag v-if="player.equipment.accessory?.name" :type="player.equipment.accessory?.quality" :closable="player.equipment.accessory?.name ? true : false" @close="equipmentClose('accessory')" @click="equipmentInfo('accessory')">{{ player.equipment.accessory?.name || '无'}}</el-tag>
+                            <span v-else>无</span>
+                        </span>
+                        <span class="equip">
+                            <span>法宝: </span>
+                            <el-tag v-if="player.equipment.sutra?.name" :type="player.equipment.sutra?.quality" :closable="player.equipment.sutra?.name ? true : false" @close="equipmentClose('sutra')" @click="equipmentInfo('sutra')">{{ player.equipment.sutra?.name}}</el-tag>
+                            <span v-else>无</span>
+                        </span>
+                    </div>
+                    <div class="tag inventory-box" v-if="player.inventory.length > 0">
+                        <span>背包: </span>
+                        <el-tag class="inventory-item" :type="item?.quality" v-for="(item, index) in player.inventory" :key="index" closable @close="inventoryClose(index)" @click="inventory(index, item.type)">{{item?.name}}</el-tag>
+                    </div>
+                    <div class="tag inventory-box" v-else>背包: 空</div>
+                </div>
+                <div class="actions">
+                    <el-button :type="action.type ? action.type : ''" v-for="(action, index) in actions" :key="index" @click="action.handler">{{ action.text }}</el-button>
                 </div>
             </div>
-            <div class="backpack-box">
-                <el-tag class="backpack">
-                    武器: <el-tag :type="player.equipment.weapon?.level" :closable="player.equipment.weapon?.name ? true : false" @close="equipmentClose('weapon')" @click="equipmentInfo('weapon')">{{ player.equipment.weapon?.name || '无'}}</el-tag>
-                    护甲: <el-tag :type="player.equipment.armor?.level" :closable="player.equipment.armor?.name ? true : false" @close="equipmentClose('armor')" @click="equipmentInfo('armor')">{{ player.equipment.armor?.name || '无'}}</el-tag>
-                    饰品: <el-tag :type="player.equipment.accessory?.level" :closable="player.equipment.accessory?.name ? true : false" @close="equipmentClose('accessory')" @click="equipmentInfo('accessory')">{{ player.equipment.accessory?.name || '无'}}</el-tag>
-                    法宝: <el-tag :type="player.equipment.sutra?.level" :closable="player.equipment.sutra?.name ? true : false" @close="equipmentClose('sutra')" @click="equipmentInfo('sutra')">{{ player.equipment.sutra?.name || '无'}}</el-tag>
-                </el-tag>
-                <el-tag class="inventory-box" v-if="player.inventory.length > 0">
-                    背包: <el-tag class="inventory-item" :type="item?.level" v-for="(item, index) in player.inventory" :key="index" closable @close="inventoryClose(index)" @click="inventory(index, item.type)">{{item?.name}}</el-tag>
-                </el-tag>
-                <el-tag v-else>背包: 空</el-tag>
-            </div>
-            <div class="actions">
-                <el-button v-for="(action, index) in actions" :key="index" @click="action.handler">{{ action.text }}</el-button>
-            </div>
         </div>
+        <div class="wm_bg_1"></div>
+        <div class="wm_bg_2"></div>
     </div>
 </template>
 
 <script>
+    // 怪物
     import monster from '@/plugins/monster';
+    // 装备
     import equip from '@/plugins/equip';
 
     export default {
@@ -72,41 +97,13 @@
                     // 装备
                     equipment: {
                         // 法宝
-                        sutra: {
-                            name: '',
-                            type: '',
-                            level: '',
-                            attack: 0,
-                            health: 0,
-                            defense: 0,
-                        },
+                        sutra: null,
                         // 护甲
-                        armor: {
-                            name: '',
-                            type: '',
-                            level: '',
-                            attack: 0,
-                            health: 0,
-                            defense: 0,
-                        },
+                        armor: null,
                         // 武器
-                        weapon: {
-                            name: '',
-                            type: '',
-                            level: '',
-                            attack: 0,
-                            health: 0,
-                            defense: 0,
-                        },
+                        weapon: null,
                         // 饰品
-                        accessory: {
-                            name: '',
-                            type: '',
-                            level: '',
-                            attack: 0,
-                            health: 0,
-                            defense: 0,
-                        }
+                        accessory: null
                     },
                     // 当前修为
                     cultivation: 0,
@@ -122,27 +119,57 @@
                     // 攻击
                     attack: 0
                 },
-                // 按钮
+                loading: false,
                 actions: [],
                 storyText: '',
                 ismonster: false
             };
         },
-        mounted () {
-            if (this.$store.state.player) {
-                this.player = this.$store.state.player;
+        watch: {
+            actions (val) {
+                this.actions = val;
+                this.loading = true;
+                setTimeout(() => {
+                    this.loading = false;
+                }, 1000);
             }
+        },
+        mounted () {
+            // 判断本地有没有玩家存档数据
+            if (this.$store.state.player) this.player = this.$store.state.player;
+            // 初始化游戏
             this.startGame();
         },
         methods: {
             // 删档
-            deleteData () {
-                this.$confirm('你确定要删除存档吗?建议数据出问题的时候再删除', '数据删除提示', {
+            deleteData (type) {
+                this.$confirm(type ? '你确定要清空包括身上和背包里的所有道具吗?' : '你确定要删除存档吗?建议数据出问题的时候再删除', type ? '道具清空提示' : '数据删除提示', {
+                    center: true,
                     cancelButtonText: '我点错了',
                     confirmButtonText: '确定以及肯定'
                 }).then(() => {
-                    localStorage.removeItem('vuex');
-                    location.reload();
+                    if (type) {
+                        // 清空背包道具
+                        this.player.inventory = [];
+                        const item = this.player.equipment;
+                        Object.keys(item).forEach((key) => {
+                            const health = item[key]?.health ?? 0;
+                            const attack = item[key]?.attack ?? 0;
+                            const defense = item[key]?.defense ?? 0;
+                            this.player.health -= health;
+                            this.player.attack -= attack;
+                            this.player.defense -= defense;
+                            this.player.maxHealth -= health;
+                            // 清空身上装备
+                            item[key] = null;
+                        });
+                        this.$store.commit('setPlayer', this.player);
+                    } else {
+                        // 清空存档
+                        localStorage.removeItem('vuex');
+                        // 刷新页面
+                        location.reload();
+                    }
                 }).catch(() => { });
             },
             // 初始化游戏
@@ -151,10 +178,12 @@
                 this.actions = [
                     { text: '开始修炼', handler: this.cultivate },
                     { text: '开始探索', handler: this.explore },
-                    { text: '删档重练', handler: this.deleteData },
+                    { text: '清空道具', type: 'warning', handler: () => this.deleteData(1) },
+                    { text: '删档重练', type: 'danger', handler: () => this.deleteData(0) },
                 ];
                 // 初始化玩家当前血量
                 this.player.health = this.player.maxHealth;
+                // 更新玩家存档
                 this.$store.commit('setPlayer', this.player);
             },
             // 修炼逻辑
@@ -164,7 +193,7 @@
                 if (this.player.cultivation < this.player.maxCultivation) {
                     // 增加当前修为
                     this.player.cultivation += 10;
-                    this.storyText = `你开始冥想，吸收周围的灵气。修为提升了！当前修为：${this.player.cultivation}/${this.player.maxCultivation}`;
+                    this.storyText = `你开始冥想，吸收周围的灵气。修为提升了！`;
                     // 如果当前修为大于等于总修为
                     if (this.player.cultivation >= this.player.maxCultivation) {
                         // 增加等级
@@ -190,13 +219,10 @@
             },
             // 探索逻辑
             explore () {
-                if (Math.random() < 0.5) {
-                    // 遇到怪物
-                    this.encounterMonster();
-                } else {
-                    // 发现道具
-                    this.findTreasure();
-                }
+                // 遇到怪物
+                if (equip.getRandomInt(0, 1)) this.encounterMonster();
+                // 发现道具
+                else this.findTreasure();
             },
             // 遇怪逻辑
             encounterMonster () {
@@ -220,34 +246,37 @@
                     { text: '提桶跑路', handler: this.runAway }
                 ];
             },
+            // 怪物信息
             openMonsterInfo () {
                 this.$alert('', this.monster.name, {
+                    center: true,
                     message: `<div class="monsterinfo">
-                        <p>等级: ${this.player.level}</p>
-                        <p>血量: ${this.monster.health}</p>
-                        <p>攻击: ${this.monster.attack}</p>
-                        <p>防御: ${this.monster.defense}</p>
+                        <div class="monsterinfo-box">
+                            <p>等级: ${this.player.level}</p>
+                            <p>血量: ${this.monster.health}</p>
+                            <p>攻击: ${this.monster.attack}</p>
+                            <p>防御: ${this.monster.defense}</p>
+                        </div>
                     </div>`,
                     confirmButtonText: '知道了',
-                    dangerouslyUseHTMLString: true,
+                    dangerouslyUseHTMLString: true
                 });
             },
-            // 战斗
+            // 战斗逻辑
             fightMonster (monster) {
                 this.ismonster = true;
                 // 野怪伤害计算
                 const monsterAttack = monster.attack; // 野怪攻击
                 const playerDefense = this.player.defense; // 玩家防御
-                const monsterHarm = Math.max(0, Math.floor(monsterAttack - playerDefense)); // 野怪伤害
+                const monsterHarm = Math.max(0, Math.floor(monsterAttack - playerDefense)) ?? 1; // 野怪伤害
                 this.player.health -= monsterHarm; // 扣除玩家血量
 
                 // 玩家伤害计算
                 const playerAttack = this.player.attack; // 玩家攻击
                 const monsterDefense = monster.defense; // 野怪防御
-                const playerHarm = Math.max(0, Math.floor(playerAttack - monsterDefense)); // 野怪伤害
+                const playerHarm = Math.max(0, Math.floor(playerAttack - monsterDefense)) ?? 1; // 野怪伤害
                 monster.health -= playerHarm; // 扣除野怪血量
                 this.player.mana--; //扣除玩家法力
-                this.$store.commit('setPlayer', this.player);
                 if (!this.player.mana) {
                     this.storyText = '你的法力已经用光了, 请回家升级补充法力';
                     this.actions = [
@@ -257,109 +286,105 @@
                 }
                 // 野怪血量小于等于0
                 if (monster.health <= 0) {
-                    const names = [
-                        '九转还魂丹',
-                        '太上老君仙丹',
-                        '蟠桃玉露丸',
-                        '瑶池金丹',
-                        '龙凤呈祥丹',
-                        '万年灵芝丸',
-                        '玄冰碧火丹',
-                        '天罡地煞丹',
-                        '麒麟血玉丹',
-                        '幽冥黄泉丹'
-                    ];
-                    const name = names[Math.floor(Math.random() * names.length)];
-                    this.storyText = `你击败了${monster.name}获得了一些修为和一颗${name}。`;
-                    this.player.cultivation += 10;
-                    this.actions = [
-                        {
-                            text: `食用灵丹`, handler: () => {
-                                const lv = this.player.level;
-                                let RandomInt = 0;
-                                if (lv >= 1 || lv <= 5) {
-                                    RandomInt = equip.getRandomInt(10, 50) * lv;
-                                } else if (lv >= 6 || lv <= 10) {
-                                    RandomInt = equip.getRandomInt(100, 150) * lv;
-                                } else {
-                                    RandomInt = equip.getRandomInt(150, 300) * lv;
+                    const exp = Math.floor(this.player.maxCultivation / equip.getRandomInt(1, 10));
+                    if (equip.getRandomInt(0, 1)) {
+                        const names = [
+                            '九转还魂丹',
+                            '太上老君仙丹',
+                            '蟠桃玉露丸',
+                            '瑶池金丹',
+                            '龙凤呈祥丹',
+                            '万年灵芝丸',
+                            '玄冰碧火丹',
+                            '天罡地煞丹',
+                            '麒麟血玉丹',
+                            '幽冥黄泉丹'
+                        ];
+                        const name = names[Math.floor(Math.random() * names.length)];
+                        this.storyText = `你击败了${monster.name}获得了${exp}点修为和一颗${name}。`;
+                        this.actions = [
+                            {
+                                text: `食用灵丹`, handler: () => {
+                                    const lv = this.player.level;
+                                    let RandomInt = 0;
+                                    if (lv >= 1 || lv <= 5) {
+                                        RandomInt = equip.getRandomInt(10, 50) * lv;
+                                    } else if (lv >= 6 || lv <= 10) {
+                                        RandomInt = equip.getRandomInt(100, 150) * lv;
+                                    } else {
+                                        RandomInt = equip.getRandomInt(150, 300) * lv;
+                                    }
+                                    this.player.mana += RandomInt;
+                                    this.player.maxMana += RandomInt;
+                                    this.storyText = `食用${name}后你增加了${RandomInt}点法力`;
+                                    this.actions = [
+                                        { text: '继续修炼', handler: this.cultivate },
+                                        { text: '继续探索', handler: this.explore },
+                                    ]
                                 }
-                                this.player.mana += RandomInt;
-                                this.player.maxMana += RandomInt;
-                                this.storyText = `食用${name}后你增加了${RandomInt}点法力`;
-                                this.actions = [
-                                    { text: '继续探索', handler: this.explore },
-                                    { text: '继续修炼', handler: this.cultivate }
-                                ]
                             }
-                        }
-                    ];
-                    // 玩家血量小于等于0
-                } else if (this.player.health <= 0) {
-                    this.storyText = '你被击败了。';
-                    this.actions = [
-                        { text: '回到家里', handler: this.startGame }
-                    ];
-                    // 继续攻击
+                        ];
+                    } else {
+                        this.storyText = `你击败了${monster.name}获得了${exp}点修为`;
+                    }
+                    // 增加修为
+                    this.player.cultivation += exp;
                 } else {
-                    this.storyText = `你攻击了${monster.name}，造成了${playerHarm}点伤害。${monster.name}攻击了你，造成了${monsterHarm}点伤害。`;
-                    this.actions = [
+                    const isEnd = this.player.health <= 0;
+                    this.storyText = isEnd ? '弱。' : `你攻击了${monster.name}，造成了${playerHarm}点伤害。${monster.name}攻击了你，造成了${monsterHarm}点伤害。`;
+                    this.actions = isEnd ? [
+                        { text: '回到家里', handler: this.startGame }
+                    ] : [
                         { text: '干他娘的', handler: () => this.fightMonster(monster) },
                         { text: '提桶跑路', handler: () => this.runAway(monster) }
                     ];
                 }
+                // 更新玩家存档
+                this.$store.commit('setPlayer', this.player);
             },
             // 逃跑
             runAway () {
-                if (Math.random() < 0.5) {
-                    this.storyText = '逃跑失败，请继续战斗。';
-                    this.actions = [
-                        { text: '发起攻击', handler: () => this.fightMonster(this.monster) }
-                    ];
-                } else {
-                    this.storyText = '你选择了逃跑，安全返回了修炼地点。';
-                    this.actions = [
-                        { text: '继续修炼', handler: this.cultivate },
-                        { text: '继续探索', handler: this.explore }
-                    ];
-                }
+                const Random = equip.getRandomInt(0, 1);
+                this.storyText = Random ? '逃跑失败，请继续战斗。' : '你选择了逃跑，安全返回了修炼地点。';
+                this.actions = Random ? [
+                    { text: '发起攻击', handler: () => this.fightMonster(this.monster) }
+                ] : [
+                    { text: '继续修炼', handler: this.cultivate },
+                    { text: '继续探索', handler: this.explore }
+                ];
             },
             // 发现道具
             findTreasure () {
                 const randomInt = equip.getRandomInt(1, 4);
                 let equipItem = null;
-                if (randomInt == 1) {
-                    // 武器
-                    equipItem = equip.equip_Weapons(this.player.level);
-                } else if (randomInt == 2) {
-                    // 护甲
-                    equipItem = equip.equip_Armors(this.player.level);
-                } else if (randomInt == 3) {
-                    // 饰品
-                    equipItem = equip.equip_Accessorys(this.player.level);
-                } else if (randomInt == 4) {
-                    // 法宝
-                    equipItem = equip.equip_Sutras(this.player.level);
-                }
-
+                // 武器
+                if (randomInt == 1) equipItem = equip.equip_Weapons(this.player.level);
+                // 护甲
+                else if (randomInt == 2) equipItem = equip.equip_Armors(this.player.level);
+                // 饰品
+                else if (randomInt == 3) equipItem = equip.equip_Accessorys(this.player.level);
+                // 法宝
+                else if (randomInt == 4) equipItem = equip.equip_Sutras(this.player.level);
                 this.storyText = equipItem?.name ? `你发现了一个宝箱，打开后获得了${equipItem.name}。` : '你发现了一个宝箱，打开后箱子里是空的。';
                 // 玩家获得道具
-                if (equipItem?.name) {
-                    this.player.inventory.push(equipItem);
-                }
+                if (equipItem?.name) this.player.inventory.push(equipItem);
                 this.actions = [
                     { text: '继续修炼', handler: this.cultivate },
                     { text: '继续探索', handler: this.explore }
                 ];
+                // 更新玩家存档
                 this.$store.commit('setPlayer', this.player);
             },
             // 删除道具
             inventoryClose (index) {
                 this.$confirm(`你确定要丢弃${this.player.inventory[index].name}吗?`, '道具丢弃通知', {
+                    center: true,
                     cancelButtonText: '取消',
                     confirmButtonText: '确定'
                 }).then(() => {
+                    // 删除道具
                     this.player.inventory.splice(index, 1);
+                    // 更新玩家存档
                     this.$store.commit('setPlayer', this.player);
                 }).catch(() => { });
             },
@@ -371,85 +396,105 @@
                     success: 'B',
                     warning: 'A'
                 };
-                this.$confirm('', this.player.inventory[index].name, {
+                const genre = {
+                    sutra: '法宝',
+                    armor: '护甲',
+                    weapon: '武器',
+                    accessory: '饰品'
+                };
+                const inventory = this.player.inventory[index];
+                this.$confirm('', inventory.name, {
+                    center: true,
                     message: `<div class="monsterinfo">
-                        <p>等级: ${level[this.player.inventory[index].level]}</p>
-                        <p>血量: ${this.player.inventory[index].health}</p>
-                        <p>攻击: ${this.player.inventory[index].attack}</p>
-                        <p>防御: ${this.player.inventory[index].defense}</p>
+                        <div class="monsterinfo-box">
+                            <p>类型: ${genre[type] ?? '未知'}</p>
+                            <p>等级: ${inventory.level ?? '未知'}</p>
+                            <p>品质: ${level[inventory.quality] ?? '未知'}</p>
+                            <p>血量: ${inventory.health}</p>
+                            <p>攻击: ${inventory.attack}</p>
+                            <p>防御: ${inventory.defense}</p>
+                        </div>
                     </div>`,
                     cancelButtonText: '知道了',
                     confirmButtonText: '立即装备',
-                    dangerouslyUseHTMLString: true,
+                    dangerouslyUseHTMLString: true
                 }).then(() => {
+                    // 穿装备
                     this.equipItem(index, type);
                 }).catch(() => { });
             },
             // 装备信息
             equipmentInfo (type) {
                 const equipment = this.player.equipment[type];
+                if (!equipment) return;
                 const level = {
                     info: 'C',
                     danger: 'S',
                     success: 'B',
                     warning: 'A'
                 };
-                this.$alert('', equipment.name, {
+                const genre = {
+                    sutra: '法宝',
+                    armor: '护甲',
+                    weapon: '武器',
+                    accessory: '饰品'
+                };
+                this.$confirm('', equipment.name, {
+                    center: true,
                     message: `<div class="monsterinfo">
-                        <p>等级: ${level[equipment.level]}</p>
-                        <p>血量: ${equipment.health}</p>
-                        <p>攻击: ${equipment.attack}</p>
-                        <p>防御: ${equipment.defense}</p>
+                        <div class="monsterinfo-box">
+                            <p>类型: ${genre[type] ?? '未知'}</p>
+                            <p>等级: ${equipment.level ?? '未知'}</p>
+                            <p>品质: ${level[equipment.quality] ?? '未知'}</p>
+                            <p>血量: ${equipment.health}</p>
+                            <p>攻击: ${equipment.attack}</p>
+                            <p>防御: ${equipment.defense}</p>
+                        </div>
                     </div>`,
-                    dangerouslyUseHTMLString: true,
+                    dangerouslyUseHTMLString: true
                 }).catch(() => { });
             },
             // 穿装备
             equipItem (index, type) {
+                const inventory = this.player.inventory;
                 // 如果当前类型的装备已经穿戴，则将其放回背包
                 if (this.player.equipment[type]) {
-                    let currentEquippedItem = this.player.equipment[type];
-
+                    const equipment = this.player.equipment[type];
                     // 更新玩家属性，移除当前穿戴装备的属性加成
-                    this.player.health -= currentEquippedItem.health;
-                    this.player.attack -= currentEquippedItem.attack;
-                    this.player.defense -= currentEquippedItem.defense;
-                    this.player.maxHealth -= currentEquippedItem.health;
-
+                    this.player.health -= equipment.health;
+                    this.player.attack -= equipment.attack;
+                    this.player.defense -= equipment.defense;
+                    this.player.maxHealth -= equipment.health;
                     // 将当前装备放回背包
-                    this.player.inventory.push(currentEquippedItem);
+                    inventory.push(equipment);
                 }
-
                 // 装备新装备
-                this.player.equipment[type] = this.player.inventory[index];
-                this.player.health += this.player.inventory[index].health;
-                this.player.attack += this.player.inventory[index].attack;
-                this.player.defense += this.player.inventory[index].defense;
-                this.player.maxHealth += this.player.inventory[index].health;
-
+                this.player.equipment[type] = inventory[index];
+                this.player.health += inventory[index].health;
+                this.player.attack += inventory[index].attack;
+                this.player.defense += inventory[index].defense;
+                this.player.maxHealth += inventory[index].health;
                 // 从背包中移除新装备
-                this.player.inventory.splice(index, 1);
-                this.player.inventory.forEach((item, index) => {
-                    if (!item.name) this.player.inventory.splice(index, 1);
+                inventory.splice(index, 1);
+                inventory.forEach((item, index) => {
+                    if (!item.name) inventory.splice(index, 1);
                 })
-                // 更新玩家信息
+                // 更新玩家存档
                 this.$store.commit('setPlayer', this.player);
             },
             // 卸装备
             equipmentClose (type) {
                 const { inventory, equipment } = this.player;
-                // 扣除血量
+                // 更新玩家属性，移除当前穿戴装备的属性加成
                 this.player.health -= equipment[type].health;
-                // 扣除攻击力
                 this.player.attack -= equipment[type].attack;
-                // 扣除防御
                 this.player.defense -= equipment[type].defense;
-                // 扣除最大血量
                 this.player.maxHealth -= equipment[type].health;
-                // 添加到背包
+                // 添加装备到背包里
                 inventory.push(equipment[type]);
                 // 清空身上当前类型的装备
                 equipment[type] = null;
+                // 更新玩家存档
                 this.$store.commit('setPlayer', this.player);
             }
         }
@@ -472,7 +517,9 @@
     }
 
     .game-container {
+        min-width: 520px;
         max-width: 600px;
+        min-height: 444px;
         margin: 0 auto;
         padding: 20px;
         background-color: #fff;
@@ -481,26 +528,50 @@
         text-align: center;
     }
 
+    .tag {
+        height: 32px;
+        padding: 0 10px;
+        line-height: 30px;
+        font-size: 12px;
+        border-width: 1px;
+        border-style: solid;
+        border-radius: 4px;
+        box-sizing: border-box;
+        white-space: nowrap;
+        display: inline-block;
+    }
+
     .attributes {
         display: flex;
         justify-content: center;
     }
+
 
     .attribute {
         width: calc(50% - 8px);
         margin: 4px;
     }
 
-    .backpack-box {
+    .attribute-box {
+        display: flex;
+        flex-wrap: wrap;
+    }
+
+    .equip-box {
+        padding: 0 4px;
         margin-top: 4px;
         display: flex;
         flex-direction: column;
     }
 
-    .backpack {
+    .equip-item {
         margin-bottom: 8px;
         height: 40px;
         line-height: 38px;
+    }
+
+    .equip {
+        margin-left: 10px;
     }
 
     .inventory-box {
@@ -517,10 +588,74 @@
     .actions {
         margin: 1rem 0;
     }
+
+    .wm_bg_1,
+    .wm_bg_2 {
+        position: fixed;
+        top: 0;
+        left: 0;
+        z-index: -1;
+        width: 100%;
+        height: 100%;
+        background-size: 100% auto;
+        transition: all .3s ease-out;
+    }
+
+    .wm_bg_1 {
+        background: url(@/assets/wm_bg_1.png) top;
+    }
+
+    .wm_bg_2 {
+        background: url(@/assets/wm_bg_2.png) top;
+    }
+
+    @media only screen and (max-width: 750px) {
+        .game-container {
+            min-height: 574px;
+            min-width: 356px;
+        }
+
+        .actions {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .actions * {
+            margin-top: 10px;
+        }
+
+        .actions *:nth-child(1) {
+            margin-left: 10px;
+        }
+    }
 </style>
 
 <style>
-    .el-message-box {
-        width: 300px;
+    .monsterinfo {
+        display: flex;
+        justify-content: center;
+    }
+
+    .monsterinfo-box {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .monsterinfo p {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        margin: 0;
+    }
+
+    .monsterinfo p:first-child {
+        justify-content: flex-start;
+    }
+
+    @media only screen and (max-width: 750px) {
+        .el-message-box {
+            width: 300px !important;
+        }
     }
 </style>

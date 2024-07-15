@@ -28,41 +28,13 @@ export default new Vuex.Store(
                 // 装备
                 equipment: {
                     // 法宝
-                    sutra: {
-                        name: '',
-                        type: '',
-                        level: '',
-                        attack: 0,
-                        health: 0,
-                        defense: 0,
-                    },
+                    sutra: null,
                     // 护甲
-                    armor: {
-                        name: '',
-                        type: '',
-                        level: '',
-                        attack: 0,
-                        health: 0,
-                        defense: 0,
-                    },
+                    armor: null,
                     // 武器
-                    weapon: {
-                        name: '',
-                        type: '',
-                        level: '',
-                        attack: 0,
-                        health: 0,
-                        defense: 0,
-                    },
+                    weapon: null,
                     // 饰品
-                    accessory: {
-                        name: '',
-                        type: '',
-                        level: '',
-                        attack: 0,
-                        health: 0,
-                        defense: 0,
-                    }
+                    accessory: null
                 },
                 // 当前修为
                 cultivation: 0,

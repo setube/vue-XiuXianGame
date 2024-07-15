@@ -36,6 +36,8 @@ export default new Vuex.Store(
                     // 饰品
                     accessory: null
                 },
+                // 离线时间戳
+                offline: 0,
                 // 当前修为
                 cultivation: 0,
                 // 下个等级所需修为

@@ -1,7 +1,7 @@
 ---
 name: BUG反馈
 about: 尽可能精确描述遇到的问题
-title: "[BUG]"
+title: "[BUG反馈]"
 labels: ''
 assignees: ''
 

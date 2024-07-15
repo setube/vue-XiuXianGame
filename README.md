@@ -2,7 +2,7 @@
 本项目基于Vue.js开发
 
 # 项目预览
-![预览图](https://i0.hdslb.com/bfs/article/e2112cacef0826010a661564775aa66a8941412.png@1e_1c.webp)
+![预览图](https://i0.hdslb.com/bfs/article/0fede2227e2ceb653410444992f212138941412.png@1e_1c.webp)
 
 # 安装依赖
 npm i

@@ -1,72 +1,177 @@
 <template>
-    <div class="game-container-wrapper" draggable="true">
-        <div class="github-corner">
-            <a href="https://github.com/setube/vue-XiuXianGame" aria-label="View source on GitHub">
-                <svg width="80" height="80" viewBox="0 0 250 250" style="fill:#151513; color:#fff; position: absolute; top: 0; border: 0; right: 0; z-index: 2;" aria-hidden="true">
-                    <path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z" />
-                    <path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" />
-                    <path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" />
-                </svg>
-            </a>
-        </div>
-        <div class="game-container" v-loading="loading">
-            <div class="game-box" v-show="!loading">
-                <h1>Vue 文字修仙游戏</h1>
-                <div class="story">
-                    <p v-html="storyText" v-if="ismonster" @click="openMonsterInfo"></p>
-                    <p v-else-if="isequipment" @click="openEquipmentInfo" v-html="storyText"></p>
-                    <p v-else v-html="storyText"></p>
-                </div>
-                <div class="attributes">
-                    <div class="attribute-box">
-                        <div class="tag attribute">境界: {{ levelNames[player.level] }} {{player.level}}</div>
-                        <div class="tag attribute" v-if="player.cultivation >= 1000000 || player.maxCultivation >= 1000000">修为: 登峰造极</div>
-                        <div class="tag attribute" v-else>修为: {{ player.cultivation }}/{{ player.maxCultivation}}</div>
-                        <div class="tag attribute">气血: {{ player.health || 0 }}/{{ player.maxHealth || 0 }}</div>
-                        <div class="tag attribute">法力: {{ player.mana }}/{{ player.maxMana }}</div>
-                        <div class="tag attribute">攻击: {{ player.attack }}</div>
-                        <div class="tag attribute">防御: {{ player.defense }}</div>
-                    </div>
-                </div>
-                <div class="equip-box">
-                    <div class="tag equip-item">
-                        <span class="equip">
-                            <span>兵器: </span>
-                            <el-tag v-if="player.equipment.weapon?.name" :type="player.equipment.weapon?.quality" :closable="player.equipment.weapon?.name ? true : false" @close="equipmentClose('weapon')" @click="equipmentInfo('weapon')">{{ player.equipment.weapon?.name || '无'}}</el-tag>
-                            <span v-else>无</span>
-                        </span>
-                        <span class="equip">
-                            <span>护甲: </span>
-                            <el-tag v-if="player.equipment.armor?.name" :type="player.equipment.armor?.quality" :closable="player.equipment.armor?.name ? true : false" @close="equipmentClose('armor')" @click="equipmentInfo('armor')">{{ player.equipment.armor?.name || '无'}}</el-tag>
-                            <span v-else>无</span>
-                        </span>
-                    </div>
-                    <div class="tag equip-item">
-                        <span class="equip">
-                            <span>灵宝: </span>
-                            <el-tag v-if="player.equipment.accessory?.name" :type="player.equipment.accessory?.quality" :closable="player.equipment.accessory?.name ? true : false" @close="equipmentClose('accessory')" @click="equipmentInfo('accessory')">{{ player.equipment.accessory?.name || '无'}}</el-tag>
-                            <span v-else>无</span>
-                        </span>
-                        <span class="equip">
-                            <span>法器: </span>
-                            <el-tag v-if="player.equipment.sutra?.name" :type="player.equipment.sutra?.quality" :closable="player.equipment.sutra?.name ? true : false" @close="equipmentClose('sutra')" @click="equipmentInfo('sutra')">{{ player.equipment.sutra?.name}}</el-tag>
-                            <span v-else>无</span>
-                        </span>
-                    </div>
-                    <div class="tag inventory-box" v-if="player.inventory.length > 0">
-                        <span>背包: </span>
-                        <el-tag class="inventory-item" :type="item?.quality" v-for="(item, index) in player.inventory" :key="index" closable @close="inventoryClose(index)" @click="inventory(index, item.type)">{{item?.name}}({{equipmentType[item.type]}})</el-tag>
-                    </div>
-                    <div class="tag inventory-box" v-else>背包: 空</div>
-                </div>
-                <div class="actions">
-                    <el-button :type="action.type ? action.type : ''" v-for="(action, index) in actions" :key="index" @click="action.handler">{{ action.text }}</el-button>
-                </div>
-            </div>
-        </div>
-        <div class="wm_bg_1"></div>
-        <div class="wm_bg_2"></div>
+  <div
+    class="game-container-wrapper"
+    draggable="true"
+  >
+    <div class="github-corner">
+      <a
+        href="https://github.com/setube/vue-XiuXianGame"
+        aria-label="View source on GitHub"
+      >
+        <svg
+          width="80"
+          height="80"
+          viewBox="0 0 250 250"
+          style="fill:#151513; color:#fff; position: absolute; top: 0; border: 0; right: 0; z-index: 2;"
+          aria-hidden="true"
+        >
+          <path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z" />
+          <path
+            d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2"
+            fill="currentColor"
+            style="transform-origin: 130px 106px;"
+          />
+          <path
+            d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z"
+            fill="currentColor"
+          />
+        </svg>
+      </a>
     </div>
+    <div
+      class="game-container"
+      v-loading="loading"
+    >
+      <div
+        class="game-box"
+        v-show="!loading"
+      >
+        <h1>Vue 文字修仙游戏</h1>
+        <div class="story">
+          <p
+            v-html="storyText"
+            v-if="ismonster"
+            @click="openMonsterInfo"
+          />
+          <p
+            v-else-if="isequipment"
+            @click="openEquipmentInfo"
+            v-html="storyText"
+          />
+          <p
+            v-else
+            v-html="storyText"
+          />
+        </div>
+        <div class="attributes">
+          <div class="attribute-box">
+            <div class="tag attribute">
+              境界: {{ player.level >= 40 ? levelNames[levelNames.length - 1] : levelNames[player.level] }}
+            </div>
+            <div
+              class="tag attribute"
+              v-if="player.cultivation >= 1000000 || player.maxCultivation >= 1000000"
+            >
+              修为: 登峰造极
+            </div>
+            <div
+              class="tag attribute"
+              v-else
+            >
+              修为: {{ player.cultivation }}/{{ player.maxCultivation }}
+            </div>
+            <div class="tag attribute">
+              气血: {{ player.health || 0 }}/{{ player.maxHealth || 0 }}
+            </div>
+            <div class="tag attribute">
+              法力: {{ player.mana }}/{{ player.maxMana }}
+            </div>
+            <div class="tag attribute">
+              攻击: {{ player.attack }}
+            </div>
+            <div class="tag attribute">
+              防御: {{ player.defense }}
+            </div>
+          </div>
+        </div>
+        <div class="equip-box">
+          <div class="tag equip-item">
+            <span class="equip">
+              <span>兵器: </span>
+              <el-tag
+                v-if="player.equipment.weapon?.name"
+                :type="player.equipment.weapon?.quality"
+                :closable="player.equipment.weapon?.name ? true : false"
+                @close="equipmentClose('weapon')"
+                @click="equipmentInfo('weapon')"
+              >{{ player.equipment.weapon?.name || '无' }}</el-tag>
+              <span v-else>无</span>
+            </span>
+            <span class="equip">
+              <span>护甲: </span>
+              <el-tag
+                v-if="player.equipment.armor?.name"
+                :type="player.equipment.armor?.quality"
+                :closable="player.equipment.armor?.name ? true : false"
+                @close="equipmentClose('armor')"
+                @click="equipmentInfo('armor')"
+              >{{ player.equipment.armor?.name || '无' }}</el-tag>
+              <span v-else>无</span>
+            </span>
+          </div>
+          <div class="tag equip-item">
+            <span class="equip">
+              <span>灵宝: </span>
+              <el-tag
+                v-if="player.equipment.accessory?.name"
+                :type="player.equipment.accessory?.quality"
+                :closable="player.equipment.accessory?.name ? true : false"
+                @close="equipmentClose('accessory')"
+                @click="equipmentInfo('accessory')"
+              >{{ player.equipment.accessory?.name || '无' }}</el-tag>
+              <span v-else>无</span>
+            </span>
+            <span class="equip">
+              <span>法器: </span>
+              <el-tag
+                v-if="player.equipment.sutra?.name"
+                :type="player.equipment.sutra?.quality"
+                :closable="player.equipment.sutra?.name ? true : false"
+                @close="equipmentClose('sutra')"
+                @click="equipmentInfo('sutra')"
+              >{{ player.equipment.sutra?.name }}</el-tag>
+              <span v-else>无</span>
+            </span>
+          </div>
+          <div
+            class="tag inventory-box"
+            v-if="player.inventory.length > 0"
+          >
+            <span>背包: </span>
+            <el-tag
+              class="inventory-item"
+              :type="item?.quality"
+              v-for="(item, index) in player.inventory"
+              :key="index"
+              closable
+              @close="inventoryClose(index)"
+              @click="inventory(index, item.type)"
+            >
+              {{ item?.name }}({{ equipmentType[item.type] }})
+            </el-tag>
+          </div>
+          <div
+            class="tag inventory-box"
+            v-else
+          >
+            背包: 空
+          </div>
+        </div>
+        <div class="actions">
+          <el-button
+            :type="action.type ? action.type : ''"
+            v-for="(action, index) in actions"
+            :key="index"
+            @click="action.handler"
+          >
+            {{ action.text }}
+          </el-button>
+        </div>
+      </div>
+    </div>
+    <div class="wm_bg_1" />
+    <div class="wm_bg_2" />
+  </div>
 </template>
 
 <script>
@@ -124,7 +229,7 @@
                 loading: false,
                 actions: [],
                 levelNames: [
-                    '筑基', '开光', '胎息', '辟谷',
+                    '凡人', '筑基', '开光', '胎息', '辟谷',
                     '金丹', '元婴', '出窍', '分神',
                     '合体', '大乘', '渡劫', '地仙',
                     '天仙', '金仙', '大罗金仙', '九天玄仙',
@@ -311,7 +416,7 @@
                     this.player.mana = this.player.maxMana;
                     // 增加玩家总修为
                     this.player.maxCultivation = Math.floor(100 * Math.pow(2, this.player.level));
-                    this.storyText = `恭喜你突破了！当前等级：${this.levelNames[this.player.level]}，修为：${this.player.cultivation}/${this.player.maxCultivation}`;
+                    this.storyText = `恭喜你突破了！当前等级：${this.player.level >= 40 ? this.levelNames[this.levelNames.length - 1] : this.levelNames[this.player.level]}，修为：${this.player.cultivation}/${this.player.maxCultivation}`;
                     this.$store.commit('setPlayer', this.player);
                 }
             },
@@ -368,7 +473,7 @@
                     center: true,
                     message: `<div class="monsterinfo">
                         <div class="monsterinfo-box">
-                            <p>境界: ${this.levelNames[this.player.level]}</p>
+                            <p>境界: ${this.player.level >= 40 ? this.levelNames[this.levelNames.length - 1] : this.levelNames[this.player.level]}</p>
                             <p>气血: ${this.monster.health}</p>
                             <p>攻击: ${this.monster.attack}</p>
                             <p>防御: ${this.monster.defense}</p>
@@ -585,7 +690,7 @@
                     message: `<div class="monsterinfo">
                         <div class="monsterinfo-box">
                             <p>类型: ${genre[type] ?? '未知'}</p>
-                            <p>等级: ${inventory.level ? this.levelNames[inventory.level] : '未知'}</p>
+                            <p>等级: ${this.player.level >= 40 ? this.levelNames[this.levelNames.length - 1] : this.levelNames[inventory.level]}</p>
                             <p>品质: ${level[inventory.quality] ?? '未知'}</p>
                             <p>气血: ${inventory.health}</p>
                             <p>攻击: ${inventory.attack}</p>
@@ -621,7 +726,7 @@
                     message: `<div class="monsterinfo">
                         <div class="monsterinfo-box">
                             <p>类型: ${genre[type] ?? '未知'}</p>
-                            <p>等级: ${equipment.level ? this.levelNames[equipment.level] : '未知'}</p>
+                            <p>等级: ${this.player.level >= 40 ? this.levelNames[this.levelNames.length - 1] : this.levelNames[equipment.level]}</p>
                             <p>品质: ${level[equipment.quality] ?? '未知'}</p>
                             <p>气血: ${equipment.health}</p>
                             <p>攻击: ${equipment.attack}</p>
@@ -652,7 +757,7 @@
                     message: `<div class="monsterinfo">
                         <div class="monsterinfo-box">
                             <p>类型: ${genre[equipment.type] ?? '未知'}</p>
-                            <p>等级: ${equipment.level ? this.levelNames[equipment.level] : '未知'}</p>
+                            <p>等级: ${this.player.level >= 40 ? this.levelNames[this.levelNames.length - 1] : this.levelNames[equipment.level]}</p>
                             <p>品质: ${level[equipment.quality] ?? '未知'}</p>
                             <p>气血: ${equipment.health}</p>
                             <p>攻击: ${equipment.attack}</p>

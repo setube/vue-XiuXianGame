@@ -19,7 +19,7 @@
                 </div>
                 <div class="attributes">
                     <div class="attribute-box">
-                        <div class="tag attribute">境界: {{ levelName }}</div>
+                        <div class="tag attribute">境界: {{ levelNames[player.level] }} {{player.level}}</div>
                         <div class="tag attribute" v-if="player.cultivation >= 1000000 || player.maxCultivation >= 1000000">修为: 登峰造极</div>
                         <div class="tag attribute" v-else>修为: {{ player.cultivation }}/{{ player.maxCultivation}}</div>
                         <div class="tag attribute">气血: {{ player.health || 0 }}/{{ player.maxHealth || 0 }}</div>
@@ -83,7 +83,7 @@
                     // 当前法力
                     mana: 50,
                     // 等级
-                    level: 1,
+                    level: 0,
                     // 攻击
                     attack: 10,
                     // 当前气血
@@ -123,7 +123,6 @@
                 },
                 loading: false,
                 actions: [],
-                levelName: '筑基',
                 levelNames: [
                     '筑基', '开光', '胎息', '辟谷',
                     '金丹', '元婴', '出窍', '分神',
@@ -185,10 +184,6 @@
                 } else {
                     this.player.maxHealth = val;
                 }
-            },
-            'player.level': function (val) {
-                this.player.level = val;
-                this.levelName = this.levelNames[val];
             },
             actions (val) {
                 this.actions = val;
@@ -348,7 +343,7 @@
             // 遇怪逻辑
             encounterMonster () {
                 // 玩家等级
-                const level = this.player.level;
+                const level = this.player.level == 0 ? 1 : this.player.level;
                 // 野怪属性
                 this.monster = {
                     // 名称

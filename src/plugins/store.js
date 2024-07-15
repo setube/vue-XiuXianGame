@@ -12,7 +12,7 @@ export default new Vuex.Store(
                 // 当前法力
                 mana: 50,
                 // 等级
-                level: 1,
+                level: 0,
                 // 攻击
                 attack: 10,
                 // 当前血量

@@ -1,5 +1,6 @@
 const equips = {
     drawPrize (lv, type, weaponTypes) {
+        lv = lv == 0 ? 1 : lv;
         const totalProbability = Object.values(weaponTypes).reduce((acc, { probability }) => acc + probability, 0);
         const random = Math.floor(Math.random() * totalProbability);
         let cumulativeProbability = 0;
@@ -17,7 +18,7 @@ const equips = {
                     defense: ['accessory', 'sutra'].includes(type) ? this.equip_Attack(lv) : 0,
                 };
                 // 根据品质调整属性值
-                const qualityMultiplier = { info: 1, success: 1.5, warning: 3, danger: 10 };
+                const qualityMultiplier = { info: 1, success: 1.5, warning: 3, danger: 5 };
                 const multiplier = qualityMultiplier[quality];
 
                 baseEquip.attack = Math.floor(baseEquip.attack * multiplier);
@@ -261,21 +262,25 @@ const equips = {
         return this.drawPrize(lv, 'sutra', weaponTypes);
     },
     equip_Attack (lv) {
-        if (lv >= 1 || lv <= 5) {
+        if (lv >= 0 || lv <= 9) {
             return this.getRandomInt(10, 50) * lv;
-        } else if (lv >= 6 || lv <= 10) {
+        } else if (lv >= 10 || lv <= 19) {
             return this.getRandomInt(50, 100) * lv;
-        } else {
+        } else if (lv >= 20 || lv <= 29) {
             return this.getRandomInt(100, 500) * lv;
+        } else {
+            return this.getRandomInt(500, 1000) * lv;
         }
     },
     equip_Health (lv) {
-        if (lv >= 1 || lv <= 5) {
+        if (lv >= 0 || lv <= 9) {
             return this.getRandomInt(100, 500) * lv;
-        } else if (lv >= 6 || lv <= 10) {
+        } else if (lv >= 10 || lv <= 19) {
             return this.getRandomInt(500, 1000) * lv;
-        } else {
+        } else if (lv >= 20 || lv <= 29) {
             return this.getRandomInt(1000, 5000) * lv;
+        } else {
+            return this.getRandomInt(5000, 10000) * lv;
         }
     },
     // equip_Defense (lv) {

@@ -1,6 +1,9 @@
 # Vue 修仙文字游戏
 本项目基于Vue.js开发
 
+# 官方QQ群
+920930589
+https://qm.qq.com/q/iifNs5qukg
 # 项目预览
 ![预览图](https://i0.hdslb.com/bfs/article/0fede2227e2ceb653410444992f212138941412.png@1e_1c.webp)
 

@@ -13,10 +13,14 @@ export default new Vuex.Store(
                 mana: 50,
                 // 等级
                 level: 0,
+                // 闪避
+                dodge: 0,
                 // 攻击
                 attack: 10,
                 // 当前血量
                 health: 100,
+                // 暴击率
+                critical: 0,
                 // 防御
                 defense: 10,
                 // 总法力

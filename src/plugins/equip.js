@@ -1,6 +1,12 @@
 const equips = {
-    drawPrize (lv, type, weaponTypes) {
+    drawPrize (lv, type, names_a, names_b, names_c, names_d) {
         lv = lv == 0 ? 1 : lv;
+        const weaponTypes = {
+            info: { names: names_a, probability: 70 },
+            success: { names: names_b, probability: 25 },
+            warning: { names: names_c, probability: 4.5 },
+            danger: { names: names_d, probability: 0.5 }
+        };
         const totalProbability = Object.values(weaponTypes).reduce((acc, { probability }) => acc + probability, 0);
         const random = Math.floor(Math.random() * totalProbability);
         let cumulativeProbability = 0;
@@ -12,19 +18,22 @@ const equips = {
                     name: names[Math.floor(Math.random() * names.length)],
                     type,
                     level: lv,
+                    dodge: ['accessory', 'sutra'].includes(type) ? this.equip_Criticalhitrate(lv) : 0,
                     attack: ['weapon', 'accessory', 'sutra'].includes(type) ? this.equip_Attack(lv) : 0,
                     health: ['armor', 'accessory', 'sutra'].includes(type) ? this.equip_Health(lv) : 0,
                     quality,
                     defense: ['accessory', 'sutra'].includes(type) ? this.equip_Attack(lv) : 0,
+                    critical: ['weapon', 'accessory', 'sutra'].includes(type) ? this.equip_Criticalhitrate(lv) : 0,
                 };
                 // 根据品质调整属性值
-                const qualityMultiplier = { info: 1, success: 1.5, warning: 3, danger: 5 };
+                const qualityMultiplier = { info: 1, success: 1.5, warning: 2, danger: 5 };
                 const multiplier = qualityMultiplier[quality];
 
+                baseEquip.dodge = parseFloat((baseEquip.dodge * multiplier).toFixed(4));
                 baseEquip.attack = Math.floor(baseEquip.attack * multiplier);
                 baseEquip.health = Math.floor(baseEquip.health * multiplier);
                 baseEquip.defense = Math.floor(baseEquip.defense * multiplier);
-
+                baseEquip.critical = parseFloat((baseEquip.critical * multiplier).toFixed(4));
                 return baseEquip;
             }
         }
@@ -78,14 +87,7 @@ const equips = {
             '炽血星辰杖',
             '红莲业火轮'
         ];
-
-        const weaponTypes = {
-            info: { names: names_a, probability: 60 },
-            success: { names: names_b, probability: 30 },
-            warning: { names: names_c, probability: 9 },
-            danger: { names: names_d, probability: 1 }
-        };
-        return this.drawPrize(lv, 'weapon', weaponTypes);
+        return this.drawPrize(lv, 'weapon', names_a, names_b, names_c, names_d);
     },
     equip_Armors (lv) {
         const names_a = [
@@ -137,13 +139,7 @@ const equips = {
             '红莲业火锦衣'
         ];
 
-        const weaponTypes = {
-            info: { names: names_a, probability: 60 },
-            success: { names: names_b, probability: 30 },
-            warning: { names: names_c, probability: 9 },
-            danger: { names: names_d, probability: 1 }
-        };
-        return this.drawPrize(lv, 'armor', weaponTypes);
+        return this.drawPrize(lv, 'armor', names_a, names_b, names_c, names_d);
     },
     equip_Accessorys (lv) {
         const names_a = [
@@ -195,13 +191,7 @@ const equips = {
             '火凤涅槃珠链'
         ];
 
-        const weaponTypes = {
-            info: { names: names_a, probability: 60 },
-            success: { names: names_b, probability: 30 },
-            warning: { names: names_c, probability: 9 },
-            danger: { names: names_d, probability: 1 }
-        };
-        return this.drawPrize(lv, 'accessory', weaponTypes);
+        return this.drawPrize(lv, 'accessory', names_a, names_b, names_c, names_d);
     },
     equip_Sutras (lv) {
         const names_a = [
@@ -253,13 +243,7 @@ const equips = {
             '九转炎灵祭坛'
         ];
 
-        const weaponTypes = {
-            info: { names: names_a, probability: 60 },
-            success: { names: names_b, probability: 30 },
-            warning: { names: names_c, probability: 9 },
-            danger: { names: names_d, probability: 1 }
-        };
-        return this.drawPrize(lv, 'sutra', weaponTypes);
+        return this.drawPrize(lv, 'sutra', names_a, names_b, names_c, names_d);
     },
     equip_Attack (lv) {
         if (lv >= 0 || lv <= 9) {
@@ -283,6 +267,17 @@ const equips = {
             return this.getRandomInt(5000, 10000) * lv;
         }
     },
+    equip_Criticalhitrate (lv) {
+        if (lv >= 0 || lv <= 9) {
+            return this.getRandomFloatInRange(0.001, 0.005) * lv;
+        } else if (lv >= 10 || lv <= 19) {
+            return this.getRandomFloatInRange(0.005, 0.01) * lv;
+        } else if (lv >= 20 || lv <= 29) {
+            return this.getRandomFloatInRange(0.01, 0.05) * lv;
+        } else {
+            return this.getRandomFloatInRange(0.05, 0.1) * lv;
+        }
+    },
     // equip_Defense (lv) {
     //     if (lv >= 1 || lv <= 5) {
     //         return this.getRandomInt(15, 150) * lv;
@@ -296,6 +291,9 @@ const equips = {
         min = Math.ceil(min);
         max = Math.floor(max);
         return Math.floor(Math.random() * (max - min + 1)) + min;
+    },
+    getRandomFloatInRange(min, max) {
+        return Math.random() * (max - min) + min;
     }
 };
 export default equips;

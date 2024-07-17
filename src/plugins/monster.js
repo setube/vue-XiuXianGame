@@ -91,10 +91,24 @@ const monsters = {
             return this.getRandomInt(500, 1000) * lv;
         }
     },
+    monster_Criticalhitrate (lv) {
+        if (lv >= 0 || lv <= 9) {
+            return this.getRandomFloatInRange(0.001, 0.01) * lv;
+        } else if (lv >= 10 || lv <= 19) {
+            return this.getRandomFloatInRange(0.01, 0.05) * lv;
+        } else if (lv >= 20 || lv <= 29) {
+            return this.getRandomFloatInRange(0.05, 0.1) * lv;
+        } else {
+            return this.getRandomFloatInRange(0.1, 0.5) * lv;
+        }
+    },
     getRandomInt (min, max) {
         min = Math.ceil(min); // 确保最小值是整数  
         max = Math.floor(max); // 确保最大值是整数  
         return Math.floor(Math.random() * (max - min + 1)) + min; // 生成一个介于min和max之间的随机整数  
+    },
+    getRandomFloatInRange(min, max) {
+        return Math.random() * (max - min) + min;
     }
 };
 export default monsters;

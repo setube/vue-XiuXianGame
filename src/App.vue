@@ -186,7 +186,13 @@
                     // 气血
                     health: 0,
                     // 攻击
-                    attack: 0
+                    attack: 0,
+                    // 防御
+                    defense: 0,
+                    // 闪避率
+                    dodge: 0,
+                    // 暴击
+                    critical: 0
                 },
                 loading: false,
                 actions: [],
@@ -287,12 +293,16 @@
             // 判断本地有没有玩家存档数据 
             if (localStorage.vuex) {
                 const vuex = JSON.parse(localStorage.vuex);
-                const decrypted = CryptoJS.AES.decrypt(vuex.player, 'YourEncryptionKe', {
-                    iv: 'YourEncryptionKe',
-                    mode: CryptoJS.mode.CBC,
-                    padding: CryptoJS.pad.Pkcs7
-                }).toString(CryptoJS.enc.Utf8);
-                this.player = JSON.parse(decrypted);
+                if (typeof vuex.player == 'string') {
+                    const decrypted = CryptoJS.AES.decrypt(vuex.player, 'YourEncryptionKe', {
+                        iv: 'YourEncryptionKe',
+                        mode: CryptoJS.mode.CBC,
+                        padding: CryptoJS.pad.Pkcs7
+                    }).toString(CryptoJS.enc.Utf8);
+                    this.player = JSON.parse(decrypted);
+                } else {
+                    this.player = vuex.player;
+                }
             }
             // 初始化游戏
             this.startGame();
@@ -410,6 +420,10 @@
                         // 增加玩家总修为
                         this.player.maxCultivation = Math.floor(100 * Math.pow(2, this.player.level));
                         this.storyText = `恭喜你突破了！当前境界：${this.player.level >= 40 ? this.levelNames[this.levelNames.length - 1] : this.levelNames[this.player.level]}`;
+                        this.actions = [
+                            { text: '继续修炼', handler: this.cultivate },
+                            { text: '探索秘境', handler: this.explore }
+                        ];
                         this.$store.commit('setPlayer', this.player);
                     } else {
                         // 当前修为
@@ -434,13 +448,17 @@
                     const exp = Math.floor(this.player.maxCultivation / equip.getRandomInt(10, 30));
                     this.breakThrough(exp);
                     this.storyText = `你开始冥想，吸收周围的灵气。修为提升了！`;
+                    this.actions = [
+                        { text: '继续修炼', handler: this.cultivate },
+                        { text: '探索秘境', handler: this.explore }
+                    ];
                 } else {
                     this.storyText = '你已经达到了当前境界的修为上限，需要突破到下一个等级。';
+                    this.actions = [
+                        { text: '突破境界', handler: () => this.breakThrough(1) },
+                        { text: '探索秘境', handler: this.explore }
+                    ];
                 }
-                this.actions = [
-                    { text: '继续修炼', handler: this.cultivate },
-                    { text: '探索秘境', handler: this.explore }
-                ];
             },
             // 探索逻辑
             explore () {
@@ -472,7 +490,7 @@
                 this.ismonster = true;
                 this.storyText = `你遇到了<span class="el-tag el-tag--danger">${this.monster.name}</span>`;
                 this.actions = [
-                    { text: '发起战斗', handler: () => this.fightMonster(this.monster) },
+                    { text: '发起战斗', handler: this.fightMonster },
                     { text: '立马撤退', handler: this.runAway }
                 ];
             },
@@ -495,15 +513,15 @@
                 }).catch(() => { });
             },
             // 打坐休息
-            rest (monster) {
+            rest () {
                 // 打坐扣除回合数
                 if (this.guashaRounds > 1) {
                     this.guashaRounds--;
                     if (this.player.mana >= this.player.maxMana && this.player.health >= this.player.maxHealth) {
                         this.storyText = `${this.guashaRounds}回合 / 10回合<br>你的法力和气血恢复完毕`;
                         this.actions = [
-                            { text: '继续干他', handler: () => this.fightMonster(monster) },
-                            { text: '立马撤退', handler: () => this.runAway(monster) }
+                            { text: '继续干他', handler: this.fightMonster },
+                            { text: '立马撤退', handler: this.runAway }
                         ];
                     } else {
                         // 打坐回蓝
@@ -520,29 +538,29 @@
                         }
                         this.storyText = `${this.guashaRounds}回合 / 10回合<br>你恢复了${maxHealth}点气血和${maxMana}点法力`;
                         this.actions = [
-                            { text: '继续干他', handler: () => this.fightMonster(monster) },
-                            { text: '继续打坐', handler: () => this.rest(monster) },
-                            { text: '立马撤退', handler: () => this.runAway(monster) }
+                            { text: '继续干他', handler: this.fightMonster },
+                            { text: '继续打坐', handler: this.rest },
+                            { text: '立马撤退', handler: this.runAway }
                         ];
                     }
                 } else {
                     this.guashaRounds = 10;
-                    this.storyText = `回合结束, 你未战胜${monster.name}你输了。`;
+                    this.storyText = `回合结束, 你未战胜${this.monster.name}你输了。`;
                     this.actions = [
                         { text: '回到家里', handler: this.startGame }
                     ];
                 }
             },
             // 战斗逻辑
-            fightMonster (monster) {
+            fightMonster () {
                 // 野怪伤害计算
-                const monsterAttack = monster.attack; // 野怪攻击
+                const monsterAttack = this.monster.attack; // 野怪攻击
                 const playerDefense = this.player.defense; // 玩家防御
                 let monsterHarm = Math.max(0, Math.floor(monsterAttack - playerDefense)); // 野怪伤害
                 monsterHarm = monsterHarm <= 1 ? 1 : monsterHarm; // 伤害小于1时强制破防
                 // 玩家伤害计算  
                 const playerAttack = this.player.attack; // 玩家攻击  
-                const monsterDefense = monster.defense; // 野怪防御
+                const monsterDefense = this.monster.defense; // 野怪防御
                 let playerHarm = Math.max(0, Math.floor(playerAttack - monsterDefense)); // 玩家伤害基础值
                 playerHarm = playerHarm <= 1 ? 1 : playerHarm; // 伤害小于1时强制破防
                 // 是否暴击
@@ -550,7 +568,7 @@
                 // 是否闪避
                 let isMDodge, isDodge = true;
                 // 检查野怪是否暴击  
-                if (Math.random() < monster.critical) {
+                if (Math.random() < this.monster.critical) {
                     // 野怪暴击，伤害加倍  
                     monsterHarm *= 2;
                     isMCritical = true;
@@ -567,9 +585,9 @@
                         isCritical = true;
                     }
                     // 检查野怪是否闪避  
-                    if (Math.random() > monster.dodge) {
+                    if (Math.random() > this.monster.dodge) {
                         // 野怪未闪避，扣除野怪气血  
-                        monster.health -= playerHarm;
+                        this.monster.health -= playerHarm;
                         isMDodge = false;
                     }
                 }
@@ -579,7 +597,7 @@
                     if (!this.player.mana) {
                         this.storyText = '你的法力已经用光了, 请回家升级补充法力';
                         this.actions = [
-                            { text: '打坐休息', handler: () => this.rest(monster) },
+                            { text: '打坐休息', handler: this.rest },
                             { text: '回到家里', handler: this.startGame }
                         ];
                         return;
@@ -587,16 +605,16 @@
                     // 扣除回合数
                     this.guashaRounds--;
                     // 野怪气血小于等于0
-                    if (monster.health <= 0) {
+                    if (this.monster.health <= 0) {
                         if (equip.getRandomInt(0, 1)) {
                             this.ismonster = false;
                             this.isequipment = true;
-                            this.findTreasure(`你击败了${monster.name}, `);
+                            this.findTreasure(`你击败了${this.monster.name}, `);
                         } else {
                             let exp = Math.floor(this.player.maxCultivation / equip.getRandomInt(1, 1000));
                             exp = exp ? exp : 1;
                             this.ismonster = false;
-                            this.storyText = `你击败了${monster.name}获得了${exp}点修为`;
+                            this.storyText = `你击败了${this.monster.name}获得了${exp}点修为`;
                             // 增加修为
                             this.breakThrough(exp);
                             this.actions = [
@@ -613,20 +631,20 @@
                         ];
                     } else {
                         // 玩家
-                        const dodgeText1 = isMDodge ? `你攻击了${monster.name}，对方闪避了你的攻击，你未造成伤害，剩余${monster.health}气血。` : `你攻击了${monster.name}，${isCritical ? '触发暴击' : ''}造成了${playerHarm}点伤害，剩余${monster.health}气血。`;
+                        const dodgeText1 = isMDodge ? `你攻击了${this.monster.name}，对方闪避了你的攻击，你未造成伤害，剩余${this.monster.health}气血。` : `你攻击了${this.monster.name}，${isCritical ? '触发暴击' : ''}造成了${playerHarm}点伤害，剩余${this.monster.health}气血。`;
                         // 野怪
-                        const dodgeText2 = isDodge ? `${monster.name}攻击了你，你闪避了对方的攻击，对方未造成伤害。` : `${monster.name}攻击了你，${isMCritical ? '触发暴击' : ''}造成了${monsterHarm}点伤害`;
+                        const dodgeText2 = isDodge ? `${this.monster.name}攻击了你，你闪避了对方的攻击，对方未造成伤害。` : `${this.monster.name}攻击了你，${isMCritical ? '触发暴击' : ''}造成了${monsterHarm}点伤害`;
                         this.storyText = `${this.guashaRounds}回合 / 10回合<br>${dodgeText1}<br>${dodgeText2}`;
                         this.actions = [
-                            { text: '发起战斗', handler: () => this.fightMonster(monster) },
-                            { text: '打坐休息', handler: () => this.rest(monster) },
-                            { text: '立马撤退', handler: () => this.runAway(monster) }
+                            { text: '发起战斗', handler: this.fightMonster },
+                            { text: '打坐休息', handler: this.rest },
+                            { text: '立马撤退', handler: this.runAway }
                         ];
                     }
                 } else {
                     this.guashaRounds = 10;
                     this.ismonster = false;
-                    this.storyText = `回合结束, 你未战胜${monster.name}你输了。`;
+                    this.storyText = `回合结束, 你未战胜${this.monster.name}你输了。`;
                     this.actions = [
                         { text: '回到家里', handler: this.startGame }
                     ];
@@ -640,8 +658,8 @@
                 const Random = equip.getRandomInt(0, 1);
                 this.storyText = Random ? '撤退失败，请继续战斗。' : '你选择了撤退，安全返回了修炼地点。';
                 this.actions = Random ? [
-                    { text: '发起攻击', handler: () => this.fightMonster(this.monster) },
-                    { text: '打坐休息', handler: () => this.rest(monster) },
+                    { text: '发起攻击', handler: this.fightMonster },
+                    { text: '打坐休息', handler: this.rest },
                 ] : [
                     { text: '继续修炼', handler: this.cultivate },
                     { text: '继续探索', handler: this.explore }
@@ -695,7 +713,6 @@
             // 道具信息
             inventory (id, type) {
                 const inventory = this.getObjectById(id, this.player.inventory);
-                console.log(inventory)
                 this.$confirm('', inventory.name, {
                     center: true,
                     message: `<div class="monsterinfo">

@@ -41,10 +41,10 @@
                             防御: {{ player.defense }}
                         </div>
                         <div class="tag attribute">
-                            闪避率: {{ player.dodge }}%
+                            闪避率: {{ player.dodge.toFixed(4) }}%
                         </div>
                         <div class="tag attribute">
-                            暴击率: {{ player.critical }}%
+                            暴击率: {{ player.critical.toFixed(4) }}%
                         </div>
                     </div>
                 </div>
@@ -52,19 +52,19 @@
                     <div class="tag equip-item">
                         <span class="equip">
                             <span>兵器: </span>
-                            <el-tag v-if="player.equipment.weapon?.name" :type="player.equipment.weapon?.quality" :closable="player.equipment.weapon?.name ? true : false" @close="equipmentClose('weapon')" @click="equipmentInfo('weapon')">{{ player.equipment.weapon?.name}}</el-tag>
+                            <el-tag v-if="player.equipment.weapon?.name" :type="player.equipment.weapon?.quality" :closable="player.equipment.weapon?.name ? true : false" @close="equipmentClose('weapon')" @click="equipmentInfo('weapon')">{{ player.equipment.weapon?.name }}</el-tag>
                             <span v-else>无</span>
                         </span>
                         <span class="equip">
                             <span>护甲: </span>
-                            <el-tag v-if="player.equipment.armor?.name" :type="player.equipment.armor?.quality" :closable="player.equipment.armor?.name ? true : false" @close="equipmentClose('armor')" @click="equipmentInfo('armor')">{{ player.equipment.armor?.name}}</el-tag>
+                            <el-tag v-if="player.equipment.armor?.name" :type="player.equipment.armor?.quality" :closable="player.equipment.armor?.name ? true : false" @close="equipmentClose('armor')" @click="equipmentInfo('armor')">{{ player.equipment.armor?.name }}</el-tag>
                             <span v-else>无</span>
                         </span>
                     </div>
                     <div class="tag equip-item">
                         <span class="equip">
                             <span>灵宝: </span>
-                            <el-tag v-if="player.equipment.accessory?.name" :type="player.equipment.accessory?.quality" :closable="player.equipment.accessory?.name ? true : false" @close="equipmentClose('accessory')" @click="equipmentInfo('accessory')">{{ player.equipment.accessory?.name}}</el-tag>
+                            <el-tag v-if="player.equipment.accessory?.name" :type="player.equipment.accessory?.quality" :closable="player.equipment.accessory?.name ? true : false" @close="equipmentClose('accessory')" @click="equipmentInfo('accessory')">{{ player.equipment.accessory?.name }}</el-tag>
                             <span v-else>无</span>
                         </span>
                         <span class="equip">
@@ -114,7 +114,9 @@
         </el-dialog>
         <div class="wm_bg_1" />
         <div class="wm_bg_2" />
-        <div class="bbh">当前游戏版本0.3.7</div>
+        <div class="bbh">
+            当前游戏版本0.3.8
+        </div>
     </div>
 </template>
 
@@ -305,6 +307,7 @@
                     this.player = vuex.player;
                 }
             }
+            window.player = this.player;
             // 初始化游戏
             this.startGame();
         },
@@ -316,7 +319,18 @@
                 reader.onload = (e) => {
                     try {
                         const data = JSON.parse(e.target.result);
-                        this.$store.commit('setPlayer', data.player);
+                        if (typeof data.player == 'string') {
+                            const decrypted = CryptoJS.AES.decrypt(data.player, 'YourEncryptionKe', {
+                                iv: 'YourEncryptionKe',
+                                mode: CryptoJS.mode.CBC,
+                                padding: CryptoJS.pad.Pkcs7
+                            }).toString(CryptoJS.enc.Utf8);
+                            this.player = JSON.parse(decrypted);
+                            this.$store.commit('setPlayer', this.player);
+                        } else {
+                            this.player = data.player;
+                            this.$store.commit('setPlayer', this.player);
+                        }
                         location.reload(1);
                     } catch (err) {
                         this.$message.error('数据导入失败, 错误信息:' + err);
@@ -355,6 +369,7 @@
                         this.player.inventory = [];
                         this.$store.commit('setPlayer', this.player);
                     } else {
+                        this.player = null;
                         // 清空存档
                         localStorage.removeItem('vuex');
                         // 刷新页面
@@ -388,7 +403,7 @@
                     this.player.offline = Math.floor(Date.now() / 1000);
                     // 更新玩家存档
                     this.$store.commit('setPlayer', this.player);
-                }, 1000)
+                }, 60000)
                 // 离线时长
                 const time = this.getMinuteDifference(this.player.offline);
                 // 赠送离线挂机修为
@@ -400,8 +415,6 @@
                         type: 'success'
                     });
                 }
-                // 检查装备
-                this.addIdToObjects();
                 // 更新玩家存档
                 this.$store.commit('setPlayer', this.player);
             },
@@ -554,6 +567,8 @@
             },
             // 战斗逻辑
             fightMonster () {
+                this.ismonster = false;
+                this.isequipment = false;
                 // 野怪伤害计算
                 const monsterAttack = this.monster.attack; // 野怪攻击
                 const playerDefense = this.player.defense; // 玩家防御
@@ -565,38 +580,50 @@
                 let playerHarm = Math.max(0, Math.floor(playerAttack - monsterDefense)); // 玩家伤害基础值
                 playerHarm = playerHarm <= 1 ? 1 : playerHarm; // 伤害小于1时强制破防
                 // 是否暴击
-                let isMCritical, isCritical = false;
+                let isMCritical = false, isCritical = false;
                 // 是否闪避
-                let isMDodge, isDodge = true;
+                let isMDodge = false, isDodge = false;
+
                 // 检查野怪是否暴击  
                 if (Math.random() < this.monster.critical) {
                     // 野怪暴击，伤害加倍  
                     monsterHarm *= 2;
+                    // 野怪成功暴击
                     isMCritical = true;
                 }
+
+                // 检查玩家是否暴击  
+                if (Math.random() < this.player.critical) {
+                    // 玩家暴击，伤害加倍  
+                    playerHarm *= 1.5;
+                    // 玩家成功暴击
+                    isCritical = true;
+                }
+
                 // 检查玩家是否闪避  
                 if (Math.random() > this.player.dodge) {
                     // 玩家未闪避，扣除玩家气血  
                     this.player.health -= monsterHarm;
-                    isDodge = false;
-                    // 检查玩家是否暴击  
-                    if (Math.random() < this.player.critical) {
-                        // 玩家暴击，伤害加倍  
-                        playerHarm *= 1.5;
-                        isCritical = true;
-                    }
-                    // 检查野怪是否闪避  
-                    if (Math.random() > this.monster.dodge) {
-                        // 野怪未闪避，扣除野怪气血  
-                        this.monster.health -= playerHarm;
-                        isMDodge = false;
-                    }
+                } else {
+                    // 玩家闪避成功
+                    isDodge = true;
                 }
-                this.player.health = this.player.health > 0 ? this.player.health : 0;
+
+                // 检查野怪是否闪避  
+                if (Math.random() > this.monster.dodge) {
+                    // 野怪未闪避，扣除野怪气血  
+                    this.monster.health -= playerHarm;
+                } else {
+                    // 野怪闪避成功
+                    isMDodge = true;
+                }
+
+                this.player.health = Math.max(0, this.player.health);
+                this.monster.health = Math.max(0, this.monster.health);
+
                 if (this.guashaRounds > 1) {
-                    this.ismonster = true;
-                    this.player.mana--; //扣除玩家法力
-                    if (!this.player.mana) {
+                    this.player.mana--; // 扣除玩家法力
+                    if (this.player.mana <= 0) {
                         this.storyText = '你的法力已经用光了, 请回家升级补充法力';
                         this.actions = [
                             { text: '打坐休息', handler: this.rest },
@@ -609,23 +636,19 @@
                     // 野怪气血小于等于0
                     if (this.monster.health <= 0) {
                         if (equip.getRandomInt(0, 1)) {
-                            this.ismonster = false;
-                            this.isequipment = true;
                             this.findTreasure(`你击败了${this.monster.name}, `);
                         } else {
                             let exp = Math.floor(this.player.maxCultivation / equip.getRandomInt(1, 1000));
                             exp = exp ? exp : 1;
-                            this.ismonster = false;
                             this.storyText = `你击败了${this.monster.name}获得了${exp}点修为`;
                             // 增加修为
                             this.breakThrough(exp);
                             this.actions = [
                                 { text: '继续修炼', handler: this.cultivate },
                                 { text: '继续探索', handler: this.explore },
-                            ]
+                            ];
                         }
                     } else if (this.player.health <= 0) {
-                        this.ismonster = false;
                         this.storyText = '你因为太弱被击败了。';
                         this.actions = [
                             { text: '回到家里', handler: this.startGame }
@@ -644,7 +667,6 @@
                     }
                 } else {
                     this.guashaRounds = 10;
-                    this.ismonster = false;
                     this.storyText = `回合结束, 你未战胜${this.monster.name}你输了。`;
                     this.actions = [
                         { text: '回到家里', handler: this.startGame }
@@ -655,40 +677,49 @@
             },
             // 逃跑
             runAway () {
-                this.guashaRounds = 10;
-                const Random = equip.getRandomInt(0, 1);
-                this.storyText = Random ? '撤退失败，请继续战斗。' : '你选择了撤退，安全返回了修炼地点。';
-                this.actions = Random ? [
-                    { text: '发起攻击', handler: this.fightMonster },
-                    { text: '打坐休息', handler: this.rest },
-                ] : [
-                    { text: '继续修炼', handler: this.cultivate },
-                    { text: '继续探索', handler: this.explore }
-                ];
+                this.guashaRounds--;
+                this.ismonster = false;
+                this.isequipment = false;
+                if (equip.getRandomInt(0, 1)) {
+                    this.storyText = `${this.guashaRounds}回合 / 10回合<br>撤退失败，请继续战斗。`
+                    this.actions = [
+                        { text: '发起攻击', handler: this.fightMonster },
+                        { text: '打坐休息', handler: this.rest },
+                    ];
+                } else {
+                    this.storyText = '你选择了撤退，安全返回了修炼地点。';
+                    this.guashaRounds = 10;
+                    this.actions = [
+                        { text: '继续修炼', handler: this.cultivate },
+                        { text: '继续探索', handler: this.explore }
+                    ];
+                }
             },
             // 发现道具
             findTreasure (text = '') {
-                const { level, inventory } = this.player;
+                this.ismonster = false;
+                this.isequipment = true;
                 const randomInt = equip.getRandomInt(1, 5);
                 let equipItem = null;
                 // 兵器
-                if (randomInt == 1) equipItem = equip.equip_Weapons(level);
+                if (randomInt == 1) equipItem = equip.equip_Weapons(this.player.level);
                 // 护甲
-                else if (randomInt == 2) equipItem = equip.equip_Armors(level);
+                else if (randomInt == 2) equipItem = equip.equip_Armors(this.player.level);
                 // 灵宝
-                else if (randomInt == 3) equipItem = equip.equip_Accessorys(level);
+                else if (randomInt == 3) equipItem = equip.equip_Accessorys(this.player.level);
                 // 法器
-                else if (randomInt == 4) equipItem = equip.equip_Sutras(level);
+                else if (randomInt == 4) equipItem = equip.equip_Sutras(this.player.level);
                 if (randomInt == 5) {
-                    this.storyText = '你发现了一个宝箱，打开后箱子里是空的。';
+                    this.isequipment = false;
+                    this.storyText = `${text}你发现了一个宝箱，打开后箱子里是空的。`;
                 } else {
+                    this.isequipment = true;
                     this.storyText = `${text}你发现了一个宝箱，打开后获得了<span class="el-tag el-tag--${equipItem.quality}">${this.levels[equipItem.quality]}${equipItem.name}(${this.equipmentType[equipItem.type]})</span>`;
                     this.openEquipItemInfo = equipItem;
-                    this.isequipment = equipItem?.name;
                     // 跳转背包相关页
                     this.inventoryActive = equipItem.type;
                     // 玩家获得道具
-                    if (equipItem?.name) this.addItemWithUniqueID(inventory, equipItem);
+                    if (equipItem?.name) this.player.inventory.push(equipItem);
                 }
                 this.actions = [
                     { text: '继续修炼', handler: this.cultivate },
@@ -781,11 +812,12 @@
             // 穿装备
             equipItem (id, type) {
                 const inventoryItem = this.getObjectById(id, this.player.inventory);
-                // 如果当前类型的装备已经穿戴，则将其放回背包
+                // 如果当前装备境界大于人物的境界
                 if (inventoryItem.level > this.player.level) {
                     this.$message.error('当前境界不足, 无法穿戴该装备');
                     return;
                 }
+                // 如果当前类型的装备已经穿戴，则将其放回背包
                 if (this.player.equipment[type]) {
                     const equipment = this.player.equipment[type];
                     // 更新玩家属性，移除当前穿戴装备的属性加成
@@ -796,10 +828,10 @@
                     this.player.maxHealth -= equipment.health;
                     this.player.critical -= equipment.critical;
                     // 将当前装备放回背包
-                    this.player.inventory.push(equipment);
+                    this.player.inventory.push({ ...equipment });  // 深拷贝
                 }
                 // 装备新装备
-                this.player.equipment[type] = inventoryItem;
+                this.player.equipment[type] = { ...inventoryItem };  // 深拷贝
                 this.player.dodge += inventoryItem.dodge;
                 this.player.health += inventoryItem.health;
                 this.player.attack += inventoryItem.attack;
@@ -807,10 +839,9 @@
                 this.player.maxHealth += inventoryItem.health;
                 this.player.critical += inventoryItem.critical;
                 // 从背包中移除新装备
-                this.player.inventory = this.player.inventory.filter((obj) => {
-                    if (obj.id === id) return false;
-                    return obj.name !== undefined;
-                });
+                this.player.inventory = this.player.inventory.filter(item => item.id !== id);
+                // 重置类型
+                type = '';
                 // 更新玩家存档
                 this.$store.commit('setPlayer', this.player);
             },
@@ -818,7 +849,7 @@
             equipmentClose (type) {
                 const { inventory, equipment } = this.player;
                 // 更新玩家属性，移除当前穿戴装备的属性加成
-                equipment[type].id++; // 装备ID自增
+                if (!equipment[type].id) equipment[type].id = Date.now();
                 this.player.dodge -= equipment[type].dodge;
                 this.player.health -= equipment[type].health;
                 this.player.attack -= equipment[type].attack;
@@ -833,25 +864,6 @@
                 equipment[type] = null;
                 // 更新玩家存档
                 this.$store.commit('setPlayer', this.player);
-            },
-            // 检查装备是否缺少ID
-            addIdToObjects () {
-                const { inventory } = this.player;
-                inventory.forEach((item, index) => {
-                    if (!('id' in item)) {
-                        inventory[index]['id'] = index + 1; // 可以根据实际需要给id赋值
-                    }
-                });
-            },
-            // 给装备添加ID
-            addItemWithUniqueID (items, newItem) {
-                let idExists = items.some(item => item.id === newItem.id);
-                if (idExists || items.length === 0) {
-                    let maxId = Math.max(...items.map(item => item.id), 0);
-                    newItem.id = maxId + 1;
-                }
-                items.push(newItem);
-                this.maxID = newItem.id;
             },
             // 根据装备ID给出信息
             getObjectById (id, arr) {

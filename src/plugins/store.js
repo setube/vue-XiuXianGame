@@ -1,6 +1,7 @@
 import Vue from 'vue';
 import Vuex from 'vuex';
 import persistedState from 'vuex-persistedstate';
+import CryptoJS from 'crypto-js';
 
 Vue.use(Vuex);
 
@@ -54,16 +55,19 @@ export default new Vuex.Store(
             }
         },
         plugins: [
-            persistedState(
-                {
-                    storage: window.localStorage,
-                    reducer (val) {
-                        return {
-                            player: val.player
-                        };
-                    }
+            persistedState({
+                storage: window.localStorage,
+                reducer (val) {
+                    const encryptedPlayerData = CryptoJS.AES.encrypt(JSON.stringify(val.player), 'YourEncryptionKe', {
+                        iv: 'YourEncryptionKe',
+                        mode: CryptoJS.mode.CBC,
+                        padding: CryptoJS.pad.Pkcs7
+                    });
+                    return {
+                        player: encryptedPlayerData.toString()
+                    };
                 }
-            )
+            })
         ]
     }
 );

@@ -1,233 +1,124 @@
 <template>
-  <div
-    class="game-container-wrapper"
-    draggable="true"
-  >
-    <div class="github-corner">
-      <a
-        href="https://github.com/setube/vue-XiuXianGame"
-        aria-label="View source on GitHub"
-      >
-        <svg
-          width="80"
-          height="80"
-          viewBox="0 0 250 250"
-          style="fill:#151513; color:#fff; position: absolute; top: 0; border: 0; right: 0; z-index: 2;"
-          aria-hidden="true"
-        >
-          <path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z" />
-          <path
-            d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2"
-            fill="currentColor"
-            style="transform-origin: 130px 106px;"
-          />
-          <path
-            d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z"
-            fill="currentColor"
-          />
-        </svg>
-      </a>
-    </div>
-    <div
-      class="game-container"
-      v-loading="loading"
-    >
-      <div
-        class="game-box"
-        v-if="!loading"
-      >
-        <h1>Vue 修仙文字游戏</h1>
-        <div class="story">
-          <p
-            v-html="storyText"
-            v-if="ismonster"
-            @click="openMonsterInfo"
-          />
-          <p
-            v-else-if="isequipment"
-            @click="openEquipmentInfo"
-            v-html="storyText"
-          />
-          <p
-            v-else
-            v-html="storyText"
-          />
+    <div class="game-container-wrapper" draggable="true">
+        <div class="github-corner">
+            <a href="https://github.com/setube/vue-XiuXianGame" aria-label="View source on GitHub">
+                <svg width="80" height="80" viewBox="0 0 250 250" style="fill:#151513; color:#fff; position: absolute; top: 0; border: 0; right: 0; z-index: 2;" aria-hidden="true">
+                    <path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z" />
+                    <path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" />
+                    <path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" />
+                </svg>
+            </a>
         </div>
-        <div class="attributes">
-          <div class="attribute-box">
-            <div class="tag attribute">
-              境界: {{ player.level >= 40 ? levelNames[levelNames.length - 1] : levelNames[player.level] }}
-            </div>
-            <div
-              class="tag attribute"
-              v-if="player.cultivation >= 1000000 || player.maxCultivation >= 1000000"
-            >
-              修为: 登峰造极
-            </div>
-            <div
-              class="tag attribute"
-              v-else
-            >
-              修为: {{ player.cultivation }}/{{ player.maxCultivation }}
-            </div>
-            <div class="tag attribute">
-              气血: {{ player.health || 0 }}/{{ player.maxHealth || 0 }}
-            </div>
-            <div class="tag attribute">
-              法力: {{ player.mana }}/{{ player.maxMana }}
-            </div>
-            <div class="tag attribute">
-              攻击: {{ player.attack }}
-            </div>
-            <div class="tag attribute">
-              防御: {{ player.defense }}
-            </div>
-            <div class="tag attribute">
-              闪避率: {{ player.dodge }}%
-            </div>
-            <div class="tag attribute">
-              暴击率: {{ player.critical }}%
-            </div>
-          </div>
-        </div>
-        <div class="equip-box">
-          <div class="tag equip-item">
-            <span class="equip">
-              <span>兵器: </span>
-              <el-tag
-                v-if="player.equipment.weapon?.name"
-                :type="player.equipment.weapon?.quality"
-                :closable="player.equipment.weapon?.name ? true : false"
-                @close="equipmentClose('weapon')"
-                @click="equipmentInfo('weapon')"
-              >{{ player.equipment.weapon?.name || '无' }}</el-tag>
-              <span v-else>无</span>
-            </span>
-            <span class="equip">
-              <span>护甲: </span>
-              <el-tag
-                v-if="player.equipment.armor?.name"
-                :type="player.equipment.armor?.quality"
-                :closable="player.equipment.armor?.name ? true : false"
-                @close="equipmentClose('armor')"
-                @click="equipmentInfo('armor')"
-              >{{ player.equipment.armor?.name || '无' }}</el-tag>
-              <span v-else>无</span>
-            </span>
-          </div>
-          <div class="tag equip-item">
-            <span class="equip">
-              <span>灵宝: </span>
-              <el-tag
-                v-if="player.equipment.accessory?.name"
-                :type="player.equipment.accessory?.quality"
-                :closable="player.equipment.accessory?.name ? true : false"
-                @close="equipmentClose('accessory')"
-                @click="equipmentInfo('accessory')"
-              >{{ player.equipment.accessory?.name || '无' }}</el-tag>
-              <span v-else>无</span>
-            </span>
-            <span class="equip">
-              <span>法器: </span>
-              <el-tag
-                v-if="player.equipment.sutra?.name"
-                :type="player.equipment.sutra?.quality"
-                :closable="player.equipment.sutra?.name ? true : false"
-                @close="equipmentClose('sutra')"
-                @click="equipmentInfo('sutra')"
-              >{{ player.equipment.sutra?.name }}</el-tag>
-              <span v-else>无</span>
-            </span>
-          </div>
-          <div class="tag inventory-box">
-            <el-tabs
-              v-model="inventoryActive"
-              :stretch="true"
-            >
-              <el-tab-pane
-                :label="i.name"
-                :name="i.type"
-                v-for="(i, k) in backPackItem"
-                :key="k"
-              >
-                <div class="inventory-content">
-                  <template v-for="item in player.inventory">
-                    <el-tag
-                      class="inventory-item"
-                      v-if="item.type == i.type"
-                      :key="item.id"
-                      :type="item?.quality"
-                      closable
-                      @close="inventoryClose(item)"
-                      @click="inventory(item.id, item.type)"
-                    >
-                      {{ item?.name }}
-                    </el-tag>
-                  </template>
+        <div class="game-container" v-loading="loading">
+            <div class="game-box" v-if="!loading">
+                <h1>Vue 修仙文字游戏</h1>
+                <div class="story">
+                    <p v-html="storyText" v-if="ismonster" @click="openMonsterInfo" />
+                    <p v-else-if="isequipment" @click="openEquipmentInfo" v-html="storyText" />
+                    <p v-else v-html="storyText" />
                 </div>
-              </el-tab-pane>
-            </el-tabs>
-          </div>
+                <div class="attributes">
+                    <div class="attribute-box">
+                        <div class="tag attribute">
+                            境界: {{ player.level >= 40 ? levelNames[levelNames.length - 1] : levelNames[player.level] }}
+                        </div>
+                        <div class="tag attribute" v-if="player.cultivation >= 1000000 || player.maxCultivation >= 1000000">
+                            修为: 登峰造极
+                        </div>
+                        <div class="tag attribute" v-else>
+                            修为: {{ player.cultivation }}/{{ player.maxCultivation }}
+                        </div>
+                        <div class="tag attribute">
+                            气血: {{ player.health || 0 }}/{{ player.maxHealth || 0 }}
+                        </div>
+                        <div class="tag attribute">
+                            法力: {{ player.mana }}/{{ player.maxMana }}
+                        </div>
+                        <div class="tag attribute">
+                            攻击: {{ player.attack }}
+                        </div>
+                        <div class="tag attribute">
+                            防御: {{ player.defense }}
+                        </div>
+                        <div class="tag attribute">
+                            闪避率: {{ player.dodge }}%
+                        </div>
+                        <div class="tag attribute">
+                            暴击率: {{ player.critical }}%
+                        </div>
+                    </div>
+                </div>
+                <div class="equip-box">
+                    <div class="tag equip-item">
+                        <span class="equip">
+                            <span>兵器: </span>
+                            <el-tag v-if="player.equipment.weapon?.name" :type="player.equipment.weapon?.quality" :closable="player.equipment.weapon?.name ? true : false" @close="equipmentClose('weapon')" @click="equipmentInfo('weapon')">{{ player.equipment.weapon?.name}}</el-tag>
+                            <span v-else>无</span>
+                        </span>
+                        <span class="equip">
+                            <span>护甲: </span>
+                            <el-tag v-if="player.equipment.armor?.name" :type="player.equipment.armor?.quality" :closable="player.equipment.armor?.name ? true : false" @close="equipmentClose('armor')" @click="equipmentInfo('armor')">{{ player.equipment.armor?.name}}</el-tag>
+                            <span v-else>无</span>
+                        </span>
+                    </div>
+                    <div class="tag equip-item">
+                        <span class="equip">
+                            <span>灵宝: </span>
+                            <el-tag v-if="player.equipment.accessory?.name" :type="player.equipment.accessory?.quality" :closable="player.equipment.accessory?.name ? true : false" @close="equipmentClose('accessory')" @click="equipmentInfo('accessory')">{{ player.equipment.accessory?.name}}</el-tag>
+                            <span v-else>无</span>
+                        </span>
+                        <span class="equip">
+                            <span>法器: </span>
+                            <el-tag v-if="player.equipment.sutra?.name" :type="player.equipment.sutra?.quality" :closable="player.equipment.sutra?.name ? true : false" @close="equipmentClose('sutra')" @click="equipmentInfo('sutra')">{{ player.equipment.sutra?.name }}</el-tag>
+                            <span v-else>无</span>
+                        </span>
+                    </div>
+                    <div class="tag inventory-box">
+                        <el-tabs v-model="inventoryActive" :stretch="true">
+                            <el-tab-pane :label="i.name" :name="i.type" v-for="(i, k) in backPackItem" :key="k">
+                                <div class="inventory-content">
+                                    <template v-for="item in player.inventory">
+                                        <el-tag class="inventory-item" v-if="item.type == i.type" :key="item.id" :type="item?.quality" closable @close="inventoryClose(item)" @click="inventory(item.id, item.type)">
+                                            {{ item?.name }}
+                                        </el-tag>
+                                    </template>
+                                </div>
+                            </el-tab-pane>
+                        </el-tabs>
+                    </div>
+                </div>
+                <div class="actions">
+                    <el-button :type="action.type ? action.type : ''" v-for="(action, index) in actions" :key="index" @click="action.handler">
+                        {{ action.text }}
+                    </el-button>
+                </div>
+            </div>
         </div>
-        <div class="actions">
-          <el-button
-            :type="action.type ? action.type : ''"
-            v-for="(action, index) in actions"
-            :key="index"
-            @click="action.handler"
-          >
-            {{ action.text }}
-          </el-button>
-        </div>
-      </div>
+        <el-dialog title="游戏数据管理" :visible.sync="show">
+            <div class="dialog-footer">
+                <el-button class="dialog-footer-button" @click="deleteData(1)">
+                    清空背包
+                </el-button>
+                <el-button type="info" class="dialog-footer-button" @click="exportData">
+                    导出存档
+                </el-button>
+                <el-upload action="#" class="dialog-upload" :http-request="importData" :show-file-list="false" accept="application/json">
+                    <el-button type="warning" class="dialog-footer-button">
+                        导入存档
+                    </el-button>
+                </el-upload>
+                <el-button type="danger" class="dialog-footer-button" @click="deleteData(0)">
+                    删除存档
+                </el-button>
+            </div>
+        </el-dialog>
+        <div class="wm_bg_1" />
+        <div class="wm_bg_2" />
     </div>
-    <el-dialog
-      title="游戏数据管理"
-      :visible.sync="show"
-    >
-      <div class="dialog-footer">
-        <el-button
-          class="dialog-footer-button"
-          @click="deleteData(1)"
-        >
-          清空背包
-        </el-button>
-        <el-button
-          type="info"
-          class="dialog-footer-button"
-          @click="exportData"
-        >
-          导出存档
-        </el-button>
-        <el-upload
-          action="#"
-          class="dialog-upload"
-          :http-request="importData"
-          :show-file-list="false"
-          accept="application/json"
-        >
-          <el-button
-            type="warning"
-            class="dialog-footer-button"
-          >
-            导入存档
-          </el-button>
-        </el-upload>
-        <el-button
-          type="danger"
-          class="dialog-footer-button"
-          @click="deleteData(0)"
-        >
-          删除存档
-        </el-button>
-      </div>
-    </el-dialog>
-    <div class="wm_bg_1" />
-    <div class="wm_bg_2" />
-  </div>
 </template>
 
 <script>
+    import CryptoJS from 'crypto-js';
     // 怪物
     import monster from '@/plugins/monster';
     // 装备
@@ -393,8 +284,16 @@
             }
         },
         mounted () {
-            // 判断本地有没有玩家存档数据
-            if (this.$store.state.player) this.player = this.$store.state.player;
+            // 判断本地有没有玩家存档数据 
+            if (localStorage.vuex) {
+                const vuex = JSON.parse(localStorage.vuex);
+                const decrypted = CryptoJS.AES.decrypt(vuex.player, 'YourEncryptionKe', {
+                    iv: 'YourEncryptionKe',
+                    mode: CryptoJS.mode.CBC,
+                    padding: CryptoJS.pad.Pkcs7
+                }).toString(CryptoJS.enc.Utf8);
+                this.player = JSON.parse(decrypted);
+            }
             // 初始化游戏
             this.startGame();
         },
@@ -407,7 +306,7 @@
                     try {
                         const data = JSON.parse(e.target.result);
                         this.$store.commit('setPlayer', data.player);
-                        location.reload();
+                        location.reload(1);
                     } catch (err) {
                         this.$message.error('数据导入失败, 错误信息:' + err);
                     }
@@ -448,7 +347,7 @@
                         // 清空存档
                         localStorage.removeItem('vuex');
                         // 刷新页面
-                        location.reload();
+                        location.reload(1);
                     }
                 }).catch(() => { });
             },
@@ -483,38 +382,43 @@
                 const time = this.getMinuteDifference(this.player.offline);
                 // 赠送离线挂机修为
                 if (time >= 1) {
-                    let maxExp = Math.floor(this.player.maxCultivation / 1000);
-                    maxExp = maxExp == 0 ? 1 * time : maxExp * time
                     // 增加修为
-                    this.player.cultivation += maxExp;
+                    this.breakThrough(time);
                     this.$message({
-                        message: `你已神魂游离太虚${time}分钟, 获得了${maxExp}修为`,
+                        message: `你已神魂游离太虚${time}分钟, 获得了${time}修为`,
                         type: 'success'
                     });
                 }
-                // 更新玩家修为境界
-                this.breakThrough();
                 // 检查装备
                 this.addIdToObjects();
                 // 更新玩家存档
                 this.$store.commit('setPlayer', this.player);
             },
             // 修为突破
-            breakThrough () {
-                // 如果当前修为大于等于总修为
-                if (this.player.cultivation >= this.player.maxCultivation) {
-                    // 增加等级
-                    this.player.level++;
-                    // 增加攻击
-                    this.player.attack += 5;
-                    // 更新气血
-                    this.player.health = this.player.maxHealth;
-                    // 增加玩家法力
-                    this.player.mana = this.player.maxMana;
-                    // 增加玩家总修为
-                    this.player.maxCultivation = Math.floor(100 * Math.pow(2, this.player.level));
-                    this.storyText = `恭喜你突破了！当前境界：${this.player.level >= 40 ? this.levelNames[this.levelNames.length - 1] : this.levelNames[this.player.level]}`;
-                    this.$store.commit('setPlayer', this.player);
+            breakThrough (exp) {
+                // 如果当前等级小于40当前修为大于等于总修为
+                if (this.player.level < 40) {
+                    if (this.player.cultivation >= this.player.maxCultivation) {
+                        // 增加等级
+                        this.player.level++;
+                        // 增加攻击
+                        this.player.attack += 5;
+                        // 更新气血
+                        this.player.health = this.player.maxHealth;
+                        // 增加玩家法力
+                        this.player.mana = this.player.maxMana;
+                        // 增加玩家总修为
+                        this.player.maxCultivation = Math.floor(100 * Math.pow(2, this.player.level));
+                        this.storyText = `恭喜你突破了！当前境界：${this.player.level >= 40 ? this.levelNames[this.levelNames.length - 1] : this.levelNames[this.player.level]}`;
+                        this.$store.commit('setPlayer', this.player);
+                    } else {
+                        // 当前修为
+                        this.player.cultivation += exp;
+                    }
+                } else {
+                    this.player.level = 40;
+                    this.player.maxCultivation = Math.floor(100 * Math.pow(2, 40));
+                    this.storyText = `你当前的境界已达到当前版本的顶峰, 无法再提升`;
                 }
             },
             // 修炼逻辑
@@ -528,12 +432,11 @@
                 if (this.player.cultivation < this.player.maxCultivation) {
                     // 增加当前修为
                     const exp = Math.floor(this.player.maxCultivation / equip.getRandomInt(10, 30));
-                    this.player.cultivation += exp;
+                    this.breakThrough(exp);
                     this.storyText = `你开始冥想，吸收周围的灵气。修为提升了！`;
                 } else {
                     this.storyText = '你已经达到了当前境界的修为上限，需要突破到下一个等级。';
                 }
-                this.breakThrough();
                 this.actions = [
                     { text: '继续修炼', handler: this.cultivate },
                     { text: '探索秘境', handler: this.explore }
@@ -630,12 +533,6 @@
                     ];
                 }
             },
-            // 计算 暴击率和闪避率
-            checkLotteryWin (winProbability) {
-                // 生成一个0到1之间的随机数  
-                let randomNum = Math.random();
-                return randomNum <= winProbability;
-            },
             // 战斗逻辑
             fightMonster (monster) {
                 // 野怪伤害计算
@@ -691,61 +588,26 @@
                     this.guashaRounds--;
                     // 野怪气血小于等于0
                     if (monster.health <= 0) {
-                        let exp = Math.floor(this.player.maxCultivation / equip.getRandomInt(1, 1000));
-                        exp = exp ? exp : 1;
-
                         if (equip.getRandomInt(0, 1)) {
-                            const names = [
-                                '九转还魂丹',
-                                '太上老君仙丹',
-                                '蟠桃玉露丸',
-                                '瑶池金丹',
-                                '龙凤呈祥丹',
-                                '万年灵芝丸',
-                                '玄冰碧火丹',
-                                '天罡地煞丹',
-                                '麒麟血玉丹',
-                                '幽冥黄泉丹'
-                            ];
-                            const name = names[Math.floor(Math.random() * names.length)];
-                            this.storyText = `你击败了${monster.name}获得了${exp}点修为和一颗${name}。`;
-                            this.actions = [
-                                {
-                                    text: `食用灵丹`, handler: () => {
-                                        const lv = this.player.level < 1 ? 1 : this.player.level;
-                                        let RandomInt = 0;
-                                        if (lv >= 0 || lv <= 9) {
-                                            RandomInt = equip.getRandomInt(10, 50) * lv;
-                                        } else if (lv >= 10 || lv <= 19) {
-                                            RandomInt = equip.getRandomInt(100, 150) * lv;
-                                        } else if (lv >= 20 || lv <= 29) {
-                                            RandomInt = equip.getRandomInt(150, 300) * lv;
-                                        } else {
-                                            RandomInt = equip.getRandomInt(300, 600) * lv;
-                                        }
-                                        this.player.mana += RandomInt;
-                                        this.player.maxMana += RandomInt;
-                                        this.storyText = `食用${name}后你增加了${RandomInt}点法力`;
-                                        this.actions = [
-                                            { text: '继续修炼', handler: this.cultivate },
-                                            { text: '继续探索', handler: this.explore },
-                                        ]
-                                    }
-                                }
-                            ];
+                            this.ismonster = false;
+                            this.isequipment = true;
+                            this.findTreasure(`你击败了${monster.name}, `);
                         } else {
+                            let exp = Math.floor(this.player.maxCultivation / equip.getRandomInt(1, 1000));
+                            exp = exp ? exp : 1;
+                            this.ismonster = false;
                             this.storyText = `你击败了${monster.name}获得了${exp}点修为`;
+                            // 增加修为
+                            this.breakThrough(exp);
                             this.actions = [
                                 { text: '继续修炼', handler: this.cultivate },
                                 { text: '继续探索', handler: this.explore },
                             ]
                         }
-                        // 增加修为
-                        this.player.cultivation += exp;
-                        this.breakThrough();
                     } else if (this.player.health <= 0) {
                         this.ismonster = false;
-                        this.storyText = '你死了, 弱。';
+                        this.storyText = '你因为太弱被击败了。';
+                        this.player.health = 0;
                         this.actions = [
                             { text: '回到家里', handler: this.startGame }
                         ];
@@ -763,6 +625,7 @@
                     }
                 } else {
                     this.guashaRounds = 10;
+                    this.ismonster = false;
                     this.storyText = `回合结束, 你未战胜${monster.name}你输了。`;
                     this.actions = [
                         { text: '回到家里', handler: this.startGame }
@@ -785,9 +648,9 @@
                 ];
             },
             // 发现道具
-            findTreasure () {
+            findTreasure (text = '') {
                 const { level, inventory } = this.player;
-                const randomInt = equip.getRandomInt(1, 4);
+                const randomInt = equip.getRandomInt(1, 5);
                 let equipItem = null;
                 // 兵器
                 if (randomInt == 1) equipItem = equip.equip_Weapons(level);
@@ -797,13 +660,17 @@
                 else if (randomInt == 3) equipItem = equip.equip_Accessorys(level);
                 // 法器
                 else if (randomInt == 4) equipItem = equip.equip_Sutras(level);
-                this.storyText = equipItem?.name ? `你发现了一个宝箱，打开后获得了<span class="el-tag el-tag--${equipItem.quality}">${this.levels[equipItem.quality]}${equipItem.name}(${this.equipmentType[equipItem.type]})</span>` : '你发现了一个宝箱，打开后箱子里是空的。';
-                this.openEquipItemInfo = equipItem;
-                this.isequipment = equipItem?.name;
-                // 跳转背包相关页
-                this.inventoryActive = equipItem.type;
-                // 玩家获得道具
-                if (equipItem?.name) this.addItemWithUniqueID(inventory, equipItem);
+                if (randomInt == 5) {
+                    this.storyText = '你发现了一个宝箱，打开后箱子里是空的。';
+                } else {
+                    this.storyText = `${text}你发现了一个宝箱，打开后获得了<span class="el-tag el-tag--${equipItem.quality}">${this.levels[equipItem.quality]}${equipItem.name}(${this.equipmentType[equipItem.type]})</span>`;
+                    this.openEquipItemInfo = equipItem;
+                    this.isequipment = equipItem?.name;
+                    // 跳转背包相关页
+                    this.inventoryActive = equipItem.type;
+                    // 玩家获得道具
+                    if (equipItem?.name) this.addItemWithUniqueID(inventory, equipItem);
+                }
                 this.actions = [
                     { text: '继续修炼', handler: this.cultivate },
                     { text: '继续探索', handler: this.explore }
@@ -828,6 +695,7 @@
             // 道具信息
             inventory (id, type) {
                 const inventory = this.getObjectById(id, this.player.inventory);
+                console.log(inventory)
                 this.$confirm('', inventory.name, {
                     center: true,
                     message: `<div class="monsterinfo">

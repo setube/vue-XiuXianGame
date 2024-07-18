@@ -65,7 +65,7 @@ const monsters = {
             return this.getRandomInt(300, 500) * lv;
         } else if (lv >= 20 || lv <= 29) {
             return this.getRandomInt(1000, 5000) * lv;
-        } else {
+        } else if (lv >= 30 || lv <= 40 ) {
             return this.getRandomInt(10000, 50000) * lv;
         }
     },
@@ -76,7 +76,7 @@ const monsters = {
             return this.getRandomInt(1000, 1500) * lv;
         } else if (lv >= 20 || lv <= 29) {
             return this.getRandomInt(5000, 10000) * lv;
-        } else {
+        } else if (lv >= 30 || lv <= 40 ) {
             return this.getRandomInt(50000, 100000) * lv;
         }
     },
@@ -87,7 +87,7 @@ const monsters = {
             return this.getRandomInt(15, 30) * lv;
         } else if (lv >= 20 || lv <= 29) {
             return this.getRandomInt(30, 50) * lv;
-        } else {
+        } else if (lv >= 30 || lv <= 40 ) {
             return this.getRandomInt(500, 1000) * lv;
         }
     },
@@ -98,7 +98,7 @@ const monsters = {
             return this.getRandomFloatInRange(0.01, 0.05) * lv;
         } else if (lv >= 20 || lv <= 29) {
             return this.getRandomFloatInRange(0.05, 0.1) * lv;
-        } else {
+        } else if (lv >= 30 || lv <= 40 ) {
             return this.getRandomFloatInRange(0.1, 0.5) * lv;
         }
     },

@@ -2,10 +2,10 @@ const equips = {
     drawPrize (lv, type, names_a, names_b, names_c, names_d) {
         lv = lv == 0 ? 1 : lv;
         const weaponTypes = {
-            info: { names: names_a, probability: 70 },
-            success: { names: names_b, probability: 25 },
-            warning: { names: names_c, probability: 4.5 },
-            danger: { names: names_d, probability: 0.5 }
+            info: { names: names_a, probability: 60 },
+            success: { names: names_b, probability: 30 },
+            warning: { names: names_c, probability: 7 },
+            danger: { names: names_d, probability: 3 }
         };
         const totalProbability = Object.values(weaponTypes).reduce((acc, { probability }) => acc + probability, 0);
         const random = Math.floor(Math.random() * totalProbability);
@@ -252,7 +252,7 @@ const equips = {
             return this.getRandomInt(50, 100) * lv;
         } else if (lv >= 20 || lv <= 29) {
             return this.getRandomInt(100, 500) * lv;
-        } else {
+        } else if (lv >= 30 || lv <= 40 ) {
             return this.getRandomInt(500, 1000) * lv;
         }
     },
@@ -263,7 +263,7 @@ const equips = {
             return this.getRandomInt(500, 1000) * lv;
         } else if (lv >= 20 || lv <= 29) {
             return this.getRandomInt(1000, 5000) * lv;
-        } else {
+        } else if (lv >= 30 || lv <= 40 ) {
             return this.getRandomInt(5000, 10000) * lv;
         }
     },
@@ -274,7 +274,7 @@ const equips = {
             return this.getRandomFloatInRange(0.005, 0.01) * lv;
         } else if (lv >= 20 || lv <= 29) {
             return this.getRandomFloatInRange(0.01, 0.05) * lv;
-        } else {
+        } else if (lv >= 30 || lv <= 40 ) {
             return this.getRandomFloatInRange(0.05, 0.1) * lv;
         }
     },

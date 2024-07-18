@@ -22,7 +22,7 @@
                         <div class="tag attribute">
                             境界: {{ player.level >= 40 ? levelNames[levelNames.length - 1] : levelNames[player.level] }}
                         </div>
-                        <div class="tag attribute" v-if="player.cultivation >= 1000000 || player.maxCultivation >= 1000000">
+                        <div class="tag attribute" v-if="player.level >= 40">
                             修为: 登峰造极
                         </div>
                         <div class="tag attribute" v-else>
@@ -114,6 +114,7 @@
         </el-dialog>
         <div class="wm_bg_1" />
         <div class="wm_bg_2" />
+        <div class="bbh">当前游戏版本0.3.7</div>
     </div>
 </template>
 
@@ -591,6 +592,7 @@
                         isMDodge = false;
                     }
                 }
+                this.player.health = this.player.health > 0 ? this.player.health : 0;
                 if (this.guashaRounds > 1) {
                     this.ismonster = true;
                     this.player.mana--; //扣除玩家法力
@@ -625,7 +627,6 @@
                     } else if (this.player.health <= 0) {
                         this.ismonster = false;
                         this.storyText = '你因为太弱被击败了。';
-                        this.player.health = 0;
                         this.actions = [
                             { text: '回到家里', handler: this.startGame }
                         ];
@@ -861,6 +862,15 @@
 </script>
 
 <style scoped>
+    .bbh {
+        position: fixed;
+        bottom: 10px;
+        color: #ccc;
+        font-size: 15px;
+        display: flex;
+        justify-content: center;
+    }
+
     .dialog-footer {
         display: flex;
         justify-content: center;
@@ -889,9 +899,9 @@
     }
 
     .game-container {
-        min-width: 540px;
+        min-width: 600px;
         max-width: 600px;
-        min-height: 452px;
+        min-height: 563px;
         margin: 0 auto;
         padding: 20px;
         background-color: #fff;

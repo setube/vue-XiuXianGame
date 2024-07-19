@@ -1,13 +1,14 @@
 const equips = {
-    drawPrize (lv, type, names_a, names_b, names_c, names_d) {
+    drawPrize (lv, type, names_a, names_b, names_c, names_d, names_e) {
         // 如果玩家等级为0 生成的装备等级最低为1
         lv = lv == 0 ? 1 : lv;
         // 装备的抽中概率
         const weaponTypes = {
-            info: { names: names_a, probability: 60 },
-            success: { names: names_b, probability: 30 },
-            warning: { names: names_c, probability: 7 },
-            danger: { names: names_d, probability: 3 }
+            info: { names: names_a, probability: 50 },
+            success: { names: names_b, probability: 20 },
+            primary: { names: names_c, probability: 10 },
+            warning: { names: names_d, probability: 7 },
+            danger: { names: names_e, probability: 3 }
         };
         const totalProbability = Object.values(weaponTypes).reduce((acc, { probability }) => acc + probability, 0);
         const random = Math.floor(Math.random() * totalProbability);
@@ -29,17 +30,48 @@ const equips = {
                     critical: ['weapon', 'accessory', 'sutra'].includes(type) ? this.equip_Criticalhitrate(lv) : 0, // 暴击率
                 };
                 // 根据装备品质调整装备属性值
-                const qualityMultiplier = { info: 1, success: 1.5, warning: 2, danger: 5 };
+                const qualityMultiplier = { info: 1, success: 1.5, primary:3, warning: 5, danger: 7 };
                 const multiplier = qualityMultiplier[quality];
                 // 装备属性
                 baseEquip.dodge = parseFloat((baseEquip.dodge * multiplier).toFixed(4)); // 闪避
                 baseEquip.attack = Math.floor(baseEquip.attack * multiplier); // 攻击
                 baseEquip.health = Math.floor(baseEquip.health * multiplier); // 血量
                 baseEquip.defense = Math.floor(baseEquip.defense * multiplier); // 防御
-                baseEquip.critical = parseFloat((baseEquip.critical * multiplier).toFixed(4)); //
+                baseEquip.critical = parseFloat((baseEquip.critical * multiplier).toFixed(4)); // 暴击
                 return baseEquip;
             }
         }
+    },
+    // 生成所有装备
+    generateAllEquips () {
+        const maxLevel = 40;
+        const allEquips = new Set();
+        
+        const weaponTypes = ['Weapons', 'Armors', 'Accessorys', 'Sutras'];
+        
+        weaponTypes.forEach(type => {
+            for (let i = 0; i < 10; i++) {
+                const equip = this[`equip_${type}`](maxLevel);
+                allEquips.add(JSON.stringify(equip));  // Convert object to JSON string to ensure uniqueness
+            }
+        });
+        
+        return Array.from(allEquips).map(equip => JSON.parse(equip));  // Convert JSON strings back to objects
+    },
+    displayIllustratedBook () {
+        const highestEquipments = this.generateAllEquips();
+        highestEquipments.forEach(equip => {
+            console.log(`装备名称: ${equip.name}`);
+            console.log(`装备类型: ${equip.type}`);
+            console.log(`装备等级: ${equip.level}`);
+            console.log(`装备品质: ${equip.quality}`);
+            console.log(`攻击力: ${equip.attack}`);
+            console.log(`防御力: ${equip.defense}`);
+            console.log(`血量: ${equip.health}`);
+            console.log(`闪避率: ${equip.dodge}`);
+            console.log(`暴击率: ${equip.critical}`);
+            console.log('---------------------------');
+        });
     },
     equip_Weapons (lv) {
         const names_a = [
@@ -51,14 +83,18 @@ const equips = {
             '藤蔓缠绕索', '翠竹清风扇', '生命之泉壶', '绿野仙踪笛', '森罗万象轮'
         ];
         const names_c = [
+            '寒冰破晓剑', '碧海潮生笛', '蓝玉冰魄弓', '苍穹蓝龙枪', '冰魄寒光剑',
+            '鲛人织梦扇', '深海之怒戟', '碧波凌霄杖', '幽蓝蝶舞鞭', '银河落霜刃'
+        ];
+        const names_d = [
             '金煌剑', '炽焰长枪', '琥珀流光弓', '龙鳞金斧', '破晓黄玉锤',
             '炎阳鞭', '流光扇', '战神金戟', '黄芒闪电刃', '日曜乾坤轮'
         ];
-        const names_d = [
+        const names_e = [
             '赤焰凤凰剑', '血玉红莲枪', '烈焰焚天弓', '赤霄神火戟', '火舞流云扇',
             '朱雀炎翼鞭', '赤龙焚世刃', '炎狱魔瞳镰', '炽血星辰杖', '红莲业火轮'
         ];
-        return this.drawPrize(lv, 'weapon', names_a, names_b, names_c, names_d);
+        return this.drawPrize(lv, 'weapon', names_a, names_b, names_c, names_d, names_e);
     },
     equip_Armors (lv) {
         const names_a = [
@@ -70,14 +106,18 @@ const equips = {
             '绿野仙踪羽衣', '灵蛇翠蔓软甲', '翡翠琉璃长裙', '松风竹影轻裘', '春水碧于天衣'
         ];
         const names_c = [
+            '寒冰护甲衣', '碧波守护铠', '蓝玉冰心链甲', '苍穹蓝灵披风', '深海蛟龙鳞甲',
+            '冰魄幽光战铠', '蓝蝶轻舞护腕', '银河之盾胸甲', '鲛人织梦护腿', '碧波凌波靴'
+        ];
+        const names_d = [
             '金辉流光锦袍', '琥珀流光战衣', '黄土龙纹长袍', '日炎金鳞铠甲', '秋菊金缎华服',
             '蜜蜡黄绸云裳', '凤凰涅槃黄衫', '黄沙漫天披风', '金穗流光纱裙', '辉煌金羽战袍'
         ];
-        const names_d = [
+        const names_e = [
             '烈焰红莲战甲', '赤霄火凤云裳', '朱雀焚天织锦', '赤焰龙鳞宝衣', '血色蔷薇华服',
             '丹霞流光长袍', '炎阳炽烈战袍', '炽火红莲披风', '火舞凤凰羽衣', '红莲业火锦衣'
         ];
-        return this.drawPrize(lv, 'armor', names_a, names_b, names_c, names_d);
+        return this.drawPrize(lv, 'armor', names_a, names_b, names_c, names_d, names_e);
     },
     equip_Accessorys (lv) {
         const names_a = [
@@ -89,14 +129,18 @@ const equips = {
             '松柏长青戒', '翠影轻舞项链', '绿野仙踪手环', '碧波荡漾珠链', '春回大地玉珮'
         ];
         const names_c = [
+            '碧海珊瑚簪', '冰魄幽蓝链', '深海珍珠耳环', '蓝田玉髓镯', '苍穹蓝宝坠',
+            '鲛人泪滴珠', '碧波荡漾戒', '银河之心项链', '蓝蝶飞舞手环', '深海龙鳞珮'
+        ];
+        const names_d = [
             '金辉日冕簪', '琥珀流光链', '黄粱一梦镯', '皇天后土玉佩', '蜜蜡福瑞戒',
             '秋收万颗项链', '暖阳照耀耳环', '炎黄子孙玉珮', '金色麦田手环', '盛世繁华珠链'
         ];
-        const names_d = [
+        const names_e = [
             '赤焰凤凰翎', '血珀琉璃坠', '烈焰红宝石链', '朱雀之翼耳环', '红莲业火镯',
             '丹霄火凤戒', '玛瑙赤焰项链', '炽天使之泪珮', '绯红织锦手环', '火凤涅槃珠链'
         ]
-        return this.drawPrize(lv, 'accessory', names_a, names_b, names_c, names_d);
+        return this.drawPrize(lv, 'accessory', names_a, names_b, names_c, names_d, names_e);
     },
     equip_Sutras (lv) {
         const names_a = [
@@ -108,14 +152,18 @@ const equips = {
             '绿绮琴音笛', '青鸾火凤羽扇', '翠影追魂剑', '草木皆兵符', '碧泉灵泉壶'
         ];
         const names_c = [
+            '碧波神珠', '冰魄寒玉葫', '深海龙息珠', '苍穹蓝灵珠', '鲛人织梦灯',
+            '银河落霜瓶', '蓝玉冰心镜', '寒冰净世莲', '碧波幽兰笛', '深海龙吟佩'
+        ];
+        const names_d = [
             '金蛟剪', '乾坤圈', '黄金玲珑塔', '戊己杏黄旗', '轩辕黄帝鼎',
             '镇妖伏魔镜', '落日熔金轮', '万寿无疆葫芦', '金翅大鹏羽扇', '地黄玄玉珠'
         ];
-        const names_d = [
+        const names_e = [
             '炽焰灵珠阵图', '火凤涅槃炉鼎', '红莲业火净世碑', '血玉轮回盘', '朱雀翔天翼',
             '烈焰焚天炉', '丹霄火域图', '赤龙炼魂珠', '火灵炽心镜', '九转炎灵祭坛'
         ];
-        return this.drawPrize(lv, 'sutra', names_a, names_b, names_c, names_d);
+        return this.drawPrize(lv, 'sutra', names_a, names_b, names_c, names_d, names_e);
     },
     equip_Attack (lv) {
         if (lv >= 0 || lv <= 9) {
@@ -124,7 +172,7 @@ const equips = {
             return this.getRandomInt(50, 100) * lv;
         } else if (lv >= 20 || lv <= 29) {
             return this.getRandomInt(100, 500) * lv;
-        } else if (lv >= 30 || lv <= 40 ) {
+        } else if (lv >= 30 || lv <= 40) {
             return this.getRandomInt(500, 1000) * lv;
         }
     },
@@ -135,7 +183,7 @@ const equips = {
             return this.getRandomInt(500, 1000) * lv;
         } else if (lv >= 20 || lv <= 29) {
             return this.getRandomInt(1000, 5000) * lv;
-        } else if (lv >= 30 || lv <= 40 ) {
+        } else if (lv >= 30 || lv <= 40) {
             return this.getRandomInt(5000, 10000) * lv;
         }
     },
@@ -146,7 +194,7 @@ const equips = {
             return this.getRandomFloatInRange(0.005, 0.01) * lv;
         } else if (lv >= 20 || lv <= 29) {
             return this.getRandomFloatInRange(0.01, 0.05) * lv;
-        } else if (lv >= 30 || lv <= 40 ) {
+        } else if (lv >= 30 || lv <= 40) {
             return this.getRandomFloatInRange(0.05, 0.1) * lv;
         }
     },

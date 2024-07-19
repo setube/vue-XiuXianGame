@@ -61,13 +61,13 @@ const monsters = {
     },
     monster_Criticalhitrate (lv) {
         if (lv >= 0 || lv <= 9) {
-            return this.getRandomFloatInRange(0.001, 0.01) * lv;
+            return this.getRandomFloatInRange(0.001, 0.01);
         } else if (lv >= 10 || lv <= 19) {
-            return this.getRandomFloatInRange(0.01, 0.05) * lv;
+            return this.getRandomFloatInRange(0.01, 0.05);
         } else if (lv >= 20 || lv <= 29) {
-            return this.getRandomFloatInRange(0.05, 0.1) * lv;
+            return this.getRandomFloatInRange(0.05, 0.1);
         } else if (lv >= 30 || lv <= 40) {
-            return this.getRandomFloatInRange(0.1, 0.5) * lv;
+            return this.getRandomFloatInRange(0.1, 0.5);
         }
     },
     getRandomInt (min, max) {

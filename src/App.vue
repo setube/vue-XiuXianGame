@@ -1,123 +1,277 @@
 <template>
-    <div class="game-container-wrapper" draggable="true">
-        <div class="github-corner">
-            <a href="https://github.com/setube/vue-XiuXianGame" aria-label="View source on GitHub">
-                <svg width="80" height="80" viewBox="0 0 250 250" style="fill:#151513; color:#fff; position: absolute; top: 0; border: 0; right: 0; z-index: 2;" aria-hidden="true">
-                    <path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z" />
-                    <path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" />
-                    <path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" />
-                </svg>
-            </a>
-        </div>
-        <div class="game-container" v-loading="loading">
-            <div class="game-box" v-if="!loading">
-                <h1>Vue 修仙文字游戏</h1>
-                <div class="story">
-                    <p v-html="storyText" v-if="ismonster" @click="openMonsterInfo" />
-                    <p v-else-if="isequipment" @click="openEquipmentInfo" v-html="storyText" />
-                    <p v-else v-html="storyText" />
-                </div>
-                <div class="attributes">
-                    <div class="attribute-box">
-                        <div class="tag attribute">
-                            境界: {{ player.level >= 40 ? levelNames[levelNames.length - 1] : levelNames[player.level] }}
-                        </div>
-                        <div class="tag attribute" v-if="player.level >= 40">
-                            修为: 登峰造极
-                        </div>
-                        <div class="tag attribute" v-else>
-                            修为: {{ player.cultivation }}/{{ player.maxCultivation }}
-                        </div>
-                        <div class="tag attribute">
-                            气血: {{ player.health || 0 }}/{{ player.maxHealth || 0 }}
-                        </div>
-                        <div class="tag attribute">
-                            法力: {{ player.mana }}/{{ player.maxMana }}
-                        </div>
-                        <div class="tag attribute">
-                            攻击: {{ player.attack }}
-                        </div>
-                        <div class="tag attribute">
-                            防御: {{ player.defense }}
-                        </div>
-                        <div class="tag attribute">
-                            闪避率: {{ player.dodge.toFixed(4) }}%
-                        </div>
-                        <div class="tag attribute">
-                            暴击率: {{ player.critical.toFixed(4) }}%
-                        </div>
-                    </div>
-                </div>
-                <div class="equip-box">
-                    <div class="tag equip-item">
-                        <span class="equip">
-                            <span>兵器: </span>
-                            <el-tag v-if="player.equipment.weapon?.name" :type="player.equipment.weapon?.quality" :closable="player.equipment.weapon?.name ? true : false" @close="equipmentClose('weapon')" @click="equipmentInfo('weapon')">{{ player.equipment.weapon?.name }}</el-tag>
-                            <span v-else>无</span>
-                        </span>
-                        <span class="equip">
-                            <span>护甲: </span>
-                            <el-tag v-if="player.equipment.armor?.name" :type="player.equipment.armor?.quality" :closable="player.equipment.armor?.name ? true : false" @close="equipmentClose('armor')" @click="equipmentInfo('armor')">{{ player.equipment.armor?.name }}</el-tag>
-                            <span v-else>无</span>
-                        </span>
-                    </div>
-                    <div class="tag equip-item">
-                        <span class="equip">
-                            <span>灵宝: </span>
-                            <el-tag v-if="player.equipment.accessory?.name" :type="player.equipment.accessory?.quality" :closable="player.equipment.accessory?.name ? true : false" @close="equipmentClose('accessory')" @click="equipmentInfo('accessory')">{{ player.equipment.accessory?.name }}</el-tag>
-                            <span v-else>无</span>
-                        </span>
-                        <span class="equip">
-                            <span>法器: </span>
-                            <el-tag v-if="player.equipment.sutra?.name" :type="player.equipment.sutra?.quality" :closable="player.equipment.sutra?.name ? true : false" @close="equipmentClose('sutra')" @click="equipmentInfo('sutra')">{{ player.equipment.sutra?.name }}</el-tag>
-                            <span v-else>无</span>
-                        </span>
-                    </div>
-                    <div class="tag inventory-box">
-                        <el-tabs v-model="inventoryActive" :stretch="true">
-                            <el-tab-pane :label="i.name" :name="i.type" v-for="(i, k) in backPackItem" :key="k">
-                                <div class="inventory-content">
-                                    <template v-for="item in player.inventory">
-                                        <el-tag class="inventory-item" v-if="item.type == i.type" :key="item.id" :type="item?.quality" closable @close="inventoryClose(item)" @click="inventory(item.id, item.type)">
-                                            {{ item?.name }}
-                                        </el-tag>
-                                    </template>
-                                </div>
-                            </el-tab-pane>
-                        </el-tabs>
-                    </div>
-                </div>
-                <div class="actions">
-                    <el-button :type="action.type ? action.type : ''" v-for="(action, index) in actions" :key="index" @click="action.handler">
-                        {{ action.text }}
-                    </el-button>
-                </div>
-            </div>
-        </div>
-        <el-dialog title="游戏数据管理" :visible.sync="show">
-            <div class="dialog-footer">
-                <el-button class="dialog-footer-button" @click="deleteData(1)">
-                    清空背包
-                </el-button>
-                <el-button type="info" class="dialog-footer-button" @click="exportData">
-                    导出存档
-                </el-button>
-                <el-upload action="#" class="dialog-upload" :http-request="importData" :show-file-list="false" accept="application/json">
-                    <el-button type="warning" class="dialog-footer-button">
-                        导入存档
-                    </el-button>
-                </el-upload>
-                <el-button type="danger" class="dialog-footer-button" @click="deleteData(0)">
-                    删除存档
-                </el-button>
-            </div>
-        </el-dialog>
-        <div class="wm_bg_1" />
-        <div class="wm_bg_2" />
-        <div class="bbh">
-            当前游戏版本0.3.8
-        </div>
+  <div
+    class="game-container-wrapper"
+    draggable="true"
+  >
+    <div class="github-corner">
+      <a
+        href="https://github.com/setube/vue-XiuXianGame"
+        aria-label="View source on GitHub"
+      >
+        <svg
+          width="80"
+          height="80"
+          viewBox="0 0 250 250"
+          style="fill:#151513; color:#fff; position: absolute; top: 0; border: 0; right: 0; z-index: 2;"
+          aria-hidden="true"
+        >
+          <path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z" />
+          <path
+            d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2"
+            fill="currentColor"
+            style="transform-origin: 130px 106px;"
+          />
+          <path
+            d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z"
+            fill="currentColor"
+          />
+        </svg>
+      </a>
     </div>
+    <div
+      class="game-container"
+      v-loading="loading"
+    >
+      <div
+        class="game-box"
+        v-if="!loading"
+      >
+        <h1>Vue 修仙文字游戏</h1>
+        <div v-if="isIllustrations">
+          <div class="story">
+            <p>装备图鉴</p>
+          </div>
+          <div class="tag inventory-box">
+            <el-tabs
+              v-model="illustrationsActive"
+              :stretch="true"
+            >
+              <el-tab-pane
+                :label="i.name"
+                :name="i.type"
+                v-for="(i, k) in illustrationsItems"
+                :key="k"
+              >
+                <div class="inventory-content">
+                  <template v-for="(item, index) in i.data">
+                    <el-tag
+                      class="inventory-item"
+                      v-if="item.type == i.type"
+                      :key="index"
+                      :type="item.quality"
+                      @click="illustrationsInfo(k, index)"
+                    >
+                      {{ item.name }}
+                    </el-tag>
+                  </template>
+                </div>
+              </el-tab-pane>
+            </el-tabs>
+          </div>
+          <div class="actions">
+            <el-button
+              :type="action.type ? action.type : ''"
+              v-for="(action, index) in actions"
+              :key="index"
+              @click="action.handler"
+            >
+              {{ action.text }}
+            </el-button>
+          </div>
+        </div>
+        <div v-else>
+          <div class="story">
+            <p
+              v-html="storyText"
+              v-if="ismonster"
+              @click="openMonsterInfo"
+            />
+            <p
+              v-else-if="isequipment"
+              @click="openEquipmentInfo"
+              v-html="storyText"
+            />
+            <p
+              v-else
+              v-html="storyText"
+            />
+          </div>
+          <div class="attributes">
+            <div class="attribute-box">
+              <div class="tag attribute">
+                境界: {{ player.level >= maxLv ? levelNames[levelNames.length - 1] : levelNames[player.level] }}
+              </div>
+              <div
+                class="tag attribute"
+                v-if="player.level >= this.maxLv"
+              >
+                修为: 登峰造极
+              </div>
+              <div
+                class="tag attribute"
+                v-else
+              >
+                修为: {{ player.cultivation }}/{{ player.maxCultivation }}
+              </div>
+              <div class="tag attribute">
+                气血: {{ player.health || 0 }}/{{ player.maxHealth || 0 }}
+              </div>
+              <div class="tag attribute">
+                法力: {{ player.mana }}/{{ player.maxMana }}
+              </div>
+              <div class="tag attribute">
+                攻击: {{ player.attack }}
+              </div>
+              <div class="tag attribute">
+                防御: {{ player.defense }}
+              </div>
+              <div class="tag attribute">
+                闪避率: {{ (player.dodge * 100).toFixed(2) }}%
+              </div>
+              <div class="tag attribute">
+                暴击率: {{ (player.critical * 100).toFixed(2) }}%
+              </div>
+            </div>
+          </div>
+          <div class="equip-box">
+            <div class="tag equip-item">
+              <span class="equip">
+                <span>兵器: </span>
+                <el-tag
+                  v-if="player.equipment.weapon?.name"
+                  :type="player.equipment.weapon?.quality"
+                  :closable="player.equipment.weapon?.name ? true : false"
+                  @close="equipmentClose('weapon')"
+                  @click="equipmentInfo('weapon')"
+                >{{ player.equipment.weapon?.name }}</el-tag>
+                <span v-else>无</span>
+              </span>
+              <span class="equip">
+                <span>护甲: </span>
+                <el-tag
+                  v-if="player.equipment.armor?.name"
+                  :type="player.equipment.armor?.quality"
+                  :closable="player.equipment.armor?.name ? true : false"
+                  @close="equipmentClose('armor')"
+                  @click="equipmentInfo('armor')"
+                >{{ player.equipment.armor?.name }}</el-tag>
+                <span v-else>无</span>
+              </span>
+            </div>
+            <div class="tag equip-item">
+              <span class="equip">
+                <span>灵宝: </span>
+                <el-tag
+                  v-if="player.equipment.accessory?.name"
+                  :type="player.equipment.accessory?.quality"
+                  :closable="player.equipment.accessory?.name ? true : false"
+                  @close="equipmentClose('accessory')"
+                  @click="equipmentInfo('accessory')"
+                >{{ player.equipment.accessory?.name }}</el-tag>
+                <span v-else>无</span>
+              </span>
+              <span class="equip">
+                <span>法器: </span>
+                <el-tag
+                  v-if="player.equipment.sutra?.name"
+                  :type="player.equipment.sutra?.quality"
+                  :closable="player.equipment.sutra?.name ? true : false"
+                  @close="equipmentClose('sutra')"
+                  @click="equipmentInfo('sutra')"
+                >{{ player.equipment.sutra?.name }}</el-tag>
+                <span v-else>无</span>
+              </span>
+            </div>
+            <div class="tag inventory-box">
+              <el-tabs
+                v-model="inventoryActive"
+                :stretch="true"
+              >
+                <el-tab-pane
+                  :label="i.name"
+                  :name="i.type"
+                  v-for="(i, k) in backPackItem"
+                  :key="k"
+                >
+                  <div class="inventory-content">
+                    <template v-for="item in player.inventory">
+                      <el-tag
+                        class="inventory-item"
+                        v-if="item.type == i.type"
+                        :key="item.id"
+                        :type="item?.quality"
+                        closable
+                        @close="inventoryClose(item)"
+                        @click="inventory(item.id, item.type)"
+                      >
+                        {{ item?.name }}
+                      </el-tag>
+                    </template>
+                  </div>
+                </el-tab-pane>
+              </el-tabs>
+            </div>
+          </div>
+          <div class="actions">
+            <el-button
+              :type="action.type ? action.type : ''"
+              v-for="(action, index) in actions"
+              :key="index"
+              @click="action.handler"
+            >
+              {{ action.text }}
+            </el-button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <el-dialog
+      title="游戏数据管理"
+      :visible.sync="show"
+    >
+      <div class="dialog-footer">
+        <el-button
+          class="dialog-footer-button"
+          @click="deleteData(1)"
+        >
+          清空背包
+        </el-button>
+        <el-button
+          type="info"
+          class="dialog-footer-button"
+          @click="exportData"
+        >
+          导出存档
+        </el-button>
+        <el-upload
+          action="#"
+          class="dialog-upload"
+          :http-request="importData"
+          :show-file-list="false"
+          accept="application/json"
+        >
+          <el-button
+            type="warning"
+            class="dialog-footer-button"
+          >
+            导入存档
+          </el-button>
+        </el-upload>
+        <el-button
+          type="danger"
+          class="dialog-footer-button"
+          @click="deleteData(0)"
+        >
+          删除存档
+        </el-button>
+      </div>
+    </el-dialog>
+    <div class="wm_bg_1" />
+    <div class="wm_bg_2" />
+    <div class="bbh">
+      当前游戏版本0.4.0
+    </div>
+  </div>
 </template>
 
 <script>
@@ -126,12 +280,16 @@
     import monster from '@/plugins/monster';
     // 装备
     import equip from '@/plugins/equip';
+    // 图鉴
+    import equipAll from '@/plugins/equipAll';
 
     export default {
         data () {
             return {
-                //弹窗
+                // 弹窗
                 show: false,
+                // 最高等级
+                maxLv: 40,
                 genre: {
                     sutra: '法器',
                     armor: '护甲',
@@ -140,9 +298,10 @@
                 },
                 levels: {
                     info: '下品',
-                    danger: '极品',
+                    danger: '神品',
+                    primary: '上品',
                     success: '中品',
-                    warning: '上品'
+                    warning: '极品'
                 },
                 // 玩家属性
                 player: {
@@ -228,8 +387,12 @@
                     weapon: '兵器',
                     accessory: '灵宝'
                 },
+                isIllustrations: false,
                 inventoryActive: 'weapon',
-                openEquipItemInfo: null
+                openEquipItemInfo: null,
+                illustrationsItems: [],
+                illustrationsActive: 'weapon',
+                illustrationsInfoData: [],
             };
         },
         watch: {
@@ -307,9 +470,8 @@
                     this.player = vuex.player;
                 }
             }
-            window.player = this.player;
             // 初始化游戏
-            this.startGame();
+            this.startGame('home');
         },
         methods: {
             // 导入存档
@@ -347,15 +509,32 @@
                 const hours = String(today.getHours()).padStart(2, '0');
                 const minutes = String(today.getMinutes()).padStart(2, '0');
                 const seconds = String(today.getSeconds()).padStart(2, '0');
-
+                // 判断是否苹果设备
+                const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
                 const blob = new Blob([localStorage.getItem('vuex')], { type: 'application/json;charset=utf-8' });
-                const url = URL.createObjectURL(blob);
-                const downloadLink = document.createElement('a');
-                downloadLink.href = url;
-                downloadLink.download = `文字修仙小游戏存档${year}-${month}-${day} ${hours}:${minutes}:${seconds}.json`;
-                document.body.appendChild(downloadLink);
-                downloadLink.click();
-                document.body.removeChild(downloadLink);
+                const name = `文字修仙小游戏存档${year}-${month}-${day} ${hours}:${minutes}:${seconds}.json`;
+                if (isIOS) {
+                    const reader = new FileReader();
+                    reader.readAsDataURL(blob);
+                    reader.onload = function () {
+                        const url = reader.result;
+                        const a = document.createElement('a');
+                        a.style.display = 'none';
+                        document.body.appendChild(a);
+                        a.href = url;
+                        a.download = name;
+                        a.click();
+                        window.URL.revokeObjectURL(url);
+                    };
+                } else {
+                    const url = URL.createObjectURL(blob);
+                    const downloadLink = document.createElement('a');
+                    downloadLink.href = url;
+                    downloadLink.download = name;
+                    document.body.appendChild(downloadLink);
+                    downloadLink.click();
+                    document.body.removeChild(downloadLink);
+                }
             },
             // 删档
             deleteData (type) {
@@ -388,40 +567,77 @@
                 return timeDifferenceInMinutes;
             },
             // 初始化游戏
-            startGame () {
+            startGame (type) {
                 if (!this.player.cultivation) this.storyText = '欢迎来到《修仙文字游戏》，你的修仙之旅开始了。';
                 else this.storyText = '欢迎来到《修仙文字游戏》，你的修仙之旅开始了。';
                 this.actions = [
                     { text: '开始修炼', handler: this.cultivate },
                     { text: '探索秘境', handler: this.explore },
+                    { text: '装备图鉴', type: 'warning', handler: this.openIllustration },
                     { text: '数据管理', type: 'danger', handler: () => { this.show = !this.show; } }
                 ];
                 // 初始化玩家当前气血
                 this.player.health = this.player.maxHealth;
-                // 更新离线时间错
-                setInterval(() => {
-                    this.player.offline = Math.floor(Date.now() / 1000);
-                    // 更新玩家存档
-                    this.$store.commit('setPlayer', this.player);
-                }, 60000)
-                // 离线时长
-                const time = this.getMinuteDifference(this.player.offline);
-                // 赠送离线挂机修为
-                if (time >= 1) {
-                    // 增加修为
-                    this.breakThrough(time);
-                    this.$message({
-                        message: `你已神魂游离太虚${time}分钟, 获得了${time}修为`,
-                        type: 'success'
-                    });
+                if (type == 'home') {
+                    // 更新离线时间错
+                    setInterval(() => {
+                        this.player.offline = Math.floor(Date.now() / 1000);
+                        // 更新玩家存档
+                        this.$store.commit('setPlayer', this.player);
+                    }, 60000)
+                    // 离线时长
+                    const time = this.getMinuteDifference(this.player.offline);
+                    // 赠送离线挂机修为
+                    if (time >= 1) {
+                        // 增加修为
+                        this.breakThrough(time);
+                        this.$message({
+                            message: `你已神魂游离太虚${time}分钟, 获得了${time}修为`,
+                            type: 'success'
+                        });
+                    }
                 }
                 // 更新玩家存档
                 this.$store.commit('setPlayer', this.player);
             },
+            // 打开图鉴
+            openIllustration () {
+                this.actions = [
+                    {
+                        text: '返回家里', type: 'success', handler: () => {
+                            this.isIllustrations = false;
+                            this.startGame('Illustration');
+                        }
+                    }
+                ];
+                this.isIllustrations = true;
+                this.illustrationsItems = equipAll.drawPrize(this.maxLv);
+            },
+            // 图鉴装备信息
+            illustrationsInfo (i, ii) {
+                const info = this.illustrationsItems[i].data[ii];
+                this.$confirm('', info.name, {
+                    center: true,
+                    message: `<div class="monsterinfo">
+                        <div class="monsterinfo-box">
+                            <p>类型: ${this.genre[info.type]}</p>
+                            <p>等级: ${this.player.level >= this.maxLv ? this.levelNames[this.levelNames.length - 1] : this.levelNames[info.level]}</p>
+                            <p>品质: ${this.levels[info.quality]}</p>
+                            <p>气血: ${info.health}</p>
+                            <p>攻击: ${info.attack}</p>
+                            <p>防御: ${info.defense}</p>
+                            <p>闪避率: ${info.dodge}%</p>
+                            <p>暴击率: ${info.critical}%</p>
+                            <p>获得率: ${info.prize}%</p>
+                        </div>
+                    </div>`,
+                    dangerouslyUseHTMLString: true
+                }).catch(() => { });
+            },
             // 修为突破
             breakThrough (exp) {
-                // 如果当前等级小于40当前修为大于等于总修为
-                if (this.player.level < 40) {
+                // 如果当前等级小于最高等级当前修为大于等于总修为
+                if (this.player.level < this.maxLv) {
                     if (this.player.cultivation >= this.player.maxCultivation) {
                         // 增加等级
                         this.player.level++;
@@ -433,7 +649,7 @@
                         this.player.mana = this.player.maxMana;
                         // 增加玩家总修为
                         this.player.maxCultivation = Math.floor(100 * Math.pow(2, this.player.level));
-                        this.storyText = `恭喜你突破了！当前境界：${this.player.level >= 40 ? this.levelNames[this.levelNames.length - 1] : this.levelNames[this.player.level]}`;
+                        this.storyText = `恭喜你突破了！当前境界：${this.player.level >= this.maxLv ? this.levelNames[this.levelNames.length - 1] : this.levelNames[this.player.level]}`;
                         this.actions = [
                             { text: '继续修炼', handler: this.cultivate },
                             { text: '探索秘境', handler: this.explore }
@@ -444,8 +660,8 @@
                         this.player.cultivation += exp;
                     }
                 } else {
-                    this.player.level = 40;
-                    this.player.maxCultivation = Math.floor(100 * Math.pow(2, 40));
+                    this.player.level = this.maxLv;
+                    this.player.maxCultivation = Math.floor(100 * Math.pow(2, this.maxLv));
                     this.storyText = `你当前的境界已达到当前版本的顶峰, 无法再提升`;
                 }
             },
@@ -514,12 +730,12 @@
                     center: true,
                     message: `<div class="monsterinfo">
                         <div class="monsterinfo-box">
-                            <p>境界: ${this.player.level >= 40 ? this.levelNames[this.levelNames.length - 1] : (this.player.level == 0 ? this.levelNames[this.player.level + 1] : this.levelNames[this.player.level])}</p>
+                            <p>境界: ${this.player.level >= this.maxLv ? this.levelNames[this.levelNames.length - 1] : (this.player.level == 0 ? this.levelNames[this.player.level + 1] : this.levelNames[this.player.level])}</p>
                             <p>气血: ${this.monster.health}</p>
                             <p>攻击: ${this.monster.attack}</p>
                             <p>防御: ${this.monster.defense}</p>
-                            <p>闪避率: ${this.monster.dodge ?? 0}%</p>
-                            <p>暴击率: ${this.monster.critical ?? 0}%</p>
+                            <p>闪避率: ${(this.monster.dodge * 100).toFixed(2) ?? 0}%</p>
+                            <p>暴击率: ${(this.monster.critical * 100).toFixed(2) ?? 0}%</p>
                         </div>
                     </div>`,
                     confirmButtonText: '知道了',
@@ -561,7 +777,7 @@
                     this.guashaRounds = 10;
                     this.storyText = `回合结束, 你未战胜${this.monster.name}你输了。`;
                     this.actions = [
-                        { text: '回到家里', handler: this.startGame }
+                        { text: '回到家里', type: 'success', handler: () => this.startGame('rest') }
                     ];
                 }
             },
@@ -627,7 +843,7 @@
                         this.storyText = '你的法力已经用光了, 请回家升级补充法力';
                         this.actions = [
                             { text: '打坐休息', handler: this.rest },
-                            { text: '回到家里', handler: this.startGame }
+                            { text: '回到家里', type: 'success', handler: () => this.startGame('fightMonster') }
                         ];
                         return;
                     }
@@ -644,6 +860,7 @@
                             // 增加修为
                             this.breakThrough(exp);
                             this.actions = [
+                                { text: '回到家里', type: 'success', handler: () => this.startGame('fightMonster') },
                                 { text: '继续修炼', handler: this.cultivate },
                                 { text: '继续探索', handler: this.explore },
                             ];
@@ -651,7 +868,7 @@
                     } else if (this.player.health <= 0) {
                         this.storyText = '你因为太弱被击败了。';
                         this.actions = [
-                            { text: '回到家里', handler: this.startGame }
+                            { text: '回到家里', type: 'success', handler: () => this.startGame('fightMonster') }
                         ];
                     } else {
                         // 玩家
@@ -669,7 +886,7 @@
                     this.guashaRounds = 10;
                     this.storyText = `回合结束, 你未战胜${this.monster.name}你输了。`;
                     this.actions = [
-                        { text: '回到家里', handler: this.startGame }
+                        { text: '回到家里', type: 'success', handler: () => this.startGame('fightMonster') }
                     ];
                 }
                 // 更新玩家存档
@@ -750,13 +967,13 @@
                     message: `<div class="monsterinfo">
                         <div class="monsterinfo-box">
                             <p>类型: ${this.genre[type] ?? '未知'}</p>
-                            <p>等级: ${this.player.level >= 40 ? this.levelNames[this.levelNames.length - 1] : this.levelNames[inventory.level]}</p>
+                            <p>等级: ${this.player.level >= this.maxLv ? this.levelNames[this.levelNames.length - 1] : this.levelNames[inventory.level]}</p>
                             <p>品质: ${this.levels[inventory.quality] ?? '未知'}</p>
                             <p>气血: ${inventory.health}</p>
                             <p>攻击: ${inventory.attack}</p>
                             <p>防御: ${inventory.defense}</p>
-                            <p>闪避率: ${inventory.dodge ?? 0}%</p>
-                            <p>暴击率: ${inventory.critical ?? 0}%</p>
+                            <p>闪避率: ${(inventory.dodge * 100).toFixed(2) ?? 0}%</p>
+                            <p>暴击率: ${(inventory.critical * 100).toFixed(2) ?? 0}%</p>
                         </div>
                     </div>`,
                     cancelButtonText: '知道了',
@@ -776,13 +993,13 @@
                     message: `<div class="monsterinfo">
                         <div class="monsterinfo-box">
                             <p>类型: ${this.genre[type] ?? '未知'}</p>
-                            <p>等级: ${this.player.level >= 40 ? this.levelNames[this.levelNames.length - 1] : this.levelNames[equipment.level]}</p>
+                            <p>等级: ${this.player.level >= this.maxLv ? this.levelNames[this.levelNames.length - 1] : this.levelNames[equipment.level]}</p>
                             <p>品质: ${this.levels[equipment.quality] ?? '未知'}</p>
                             <p>气血: ${equipment.health}</p>
                             <p>攻击: ${equipment.attack}</p>
                             <p>防御: ${equipment.defense}</p>
-                            <p>闪避率: ${equipment.dodge ?? 0}%</p>
-                            <p>暴击率: ${equipment.critical ?? 0}%</p>
+                            <p>闪避率: ${(equipment.dodge * 100).toFixed(2) ?? 0}%</p>
+                            <p>暴击率: ${(equipment.critical * 100).toFixed(2) ?? 0}%</p>
                         </div>
                     </div>`,
                     dangerouslyUseHTMLString: true
@@ -797,13 +1014,13 @@
                     message: `<div class="monsterinfo">
                         <div class="monsterinfo-box">
                             <p>类型: ${this.genre[equipment.type] ?? '未知'}</p>
-                            <p>等级: ${this.player.level >= 40 ? this.levelNames[this.levelNames.length - 1] : this.levelNames[equipment.level]}</p>
+                            <p>等级: ${this.player.level >= this.maxLv ? this.levelNames[this.levelNames.length - 1] : this.levelNames[equipment.level]}</p>
                             <p>品质: ${this.levels[equipment.quality] ?? '未知'}</p>
                             <p>气血: ${equipment.health}</p>
                             <p>攻击: ${equipment.attack}</p>
                             <p>防御: ${equipment.defense}</p>
-                            <p>闪避率: ${equipment.dodge ?? 0}%</p>
-                            <p>暴击率: ${equipment.critical ?? 0}%</p>
+                            <p>闪避率: ${(equipment.dodge * 100).toFixed(2) ?? 0}%</p>
+                            <p>暴击率: ${(equipment.critical * 100).toFixed(2) ?? 0}%</p>
                         </div>
                     </div>`,
                     dangerouslyUseHTMLString: true

@@ -6,19 +6,22 @@ const All = {
             { type: 'accessory', data: this.equipAccessories() },
             { type: 'sutra', data: this.equipSutras() }
         ];
-        const prize = { info: 50, success: 20, primary: 10, warning: 7, danger: 3 };
+        const prize = { info: 60, success: 20, primary: 14, warning: 5, danger: 1 };
         const genre = { sutra: '法器', armor: '护甲', weapon: '兵器', accessory: '灵宝' };
         const quality = Object.keys(prize);
-        const getAttribute = (type, lv, attribute) => {
+        const getAttribute = (type, lv, attribute, quality) => {
+            // 根据装备品质调整装备属性值
+            const qualityMultiplier = { info: 1.2, success: 2, primary: 5, warning: 7, danger: 10 };
+            const multiplier = qualityMultiplier[quality];
             const Attack = 1000 * lv;
             const Health = 10000 * lv;
             const CriticalHitrate = 0.1 * lv;
             const attrs = {
-                attack: ['weapon', 'accessory', 'sutra'].includes(type) ? Attack : 0,
-                health: ['armor', 'accessory', 'sutra'].includes(type) ? Health : 0,
-                critical: ['weapon', 'accessory', 'sutra'].includes(type) ? CriticalHitrate : 0,
-                dodge: ['accessory', 'sutra'].includes(type) ? CriticalHitrate : 0,
-                defense: ['accessory', 'sutra'].includes(type) ? Attack : 0
+                attack: ['weapon', 'accessory', 'sutra'].includes(type) ? Attack * multiplier : 0,
+                health: ['armor', 'accessory', 'sutra'].includes(type) ? Health * multiplier : 0,
+                critical: ['weapon', 'accessory', 'sutra'].includes(type) ? CriticalHitrate * multiplier : 0,
+                dodge: ['accessory', 'sutra'].includes(type) ? CriticalHitrate * multiplier : 0,
+                defense: ['accessory', 'sutra'].includes(type) ? Attack * multiplier : 0
             };
             return attrs[attribute];
         };
@@ -31,11 +34,11 @@ const All = {
                     type,
                     level: lv,
                     prize: prize[quality[kk]],
-                    attack: getAttribute(type, lv, 'attack'),
-                    health: getAttribute(type, lv, 'health'),
-                    critical: getAttribute(type, lv, 'critical'),
-                    dodge: getAttribute(type, lv, 'dodge'),
-                    defense: getAttribute(type, lv, 'defense'),
+                    attack: getAttribute(type, lv, 'attack', quality[kk]),
+                    health: getAttribute(type, lv, 'health', quality[kk]),
+                    critical: getAttribute(type, lv, 'critical', quality[kk]),
+                    dodge: getAttribute(type, lv, 'dodge', quality[kk]),
+                    defense: getAttribute(type, lv, 'defense', quality[kk]),
                     quality: quality[kk]
                 }))
             )

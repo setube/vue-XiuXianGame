@@ -5,9 +5,31 @@ import CryptoJS from 'crypto-js';
 
 Vue.use(Vuex);
 
+const encryption = (val) => {
+    return CryptoJS.AES.encrypt(JSON.stringify(val), window.d, {
+        iv: window.d,
+        mode: CryptoJS.mode.CBC,
+        padding: CryptoJS.pad.Pkcs7
+    }).toString();
+};
+
 export default new Vuex.Store(
     {
         state: {
+            // boss属性
+            boss: {
+                name: '',
+                text: '',
+                time: 0,
+                desc: '',
+                level: 0,
+                dodge: 0,
+                attack: 0,
+                health: 0,
+                defense: 0,
+                critical: 0,
+                maxhealth: 0
+            },
             // 玩家属性
             player: {
                 // 当前法力
@@ -50,6 +72,9 @@ export default new Vuex.Store(
             }
         },
         mutations: {
+            setBoss (state, data) {
+                state.boss = data;
+            },
             setPlayer (state, data) {
                 state.player = data;
             }
@@ -58,13 +83,9 @@ export default new Vuex.Store(
             persistedState({
                 storage: window.localStorage,
                 reducer (val) {
-                    const encryptedPlayerData = CryptoJS.AES.encrypt(JSON.stringify(val.player), 'YourEncryptionKe', {
-                        iv: 'YourEncryptionKe',
-                        mode: CryptoJS.mode.CBC,
-                        padding: CryptoJS.pad.Pkcs7
-                    });
                     return {
-                        player: encryptedPlayerData.toString()
+                        boss: encryption(val.boss),
+                        player: encryption(val.player)
                     };
                 }
             })

@@ -1,14 +1,14 @@
 const equips = {
     drawPrize (lv, type, names_a, names_b, names_c, names_d, names_e) {
         // 如果玩家等级为0 生成的装备等级最低为1
-        lv = lv == 0 ? 1 : lv;
+        lv = lv == 0 ? 1 : (lv < 40 ? lv++ : 40);
         // 装备的抽中概率
         const weaponTypes = {
-            info: { names: names_a, probability: 50 },
+            info: { names: names_a, probability: 60 },
             success: { names: names_b, probability: 20 },
-            primary: { names: names_c, probability: 10 },
-            warning: { names: names_d, probability: 7 },
-            danger: { names: names_e, probability: 3 }
+            primary: { names: names_c, probability: 14 },
+            warning: { names: names_d, probability: 5 },
+            danger: { names: names_e, probability: 1 }
         };
         const totalProbability = Object.values(weaponTypes).reduce((acc, { probability }) => acc + probability, 0);
         const random = Math.floor(Math.random() * totalProbability);
@@ -30,7 +30,7 @@ const equips = {
                     critical: ['weapon', 'accessory', 'sutra'].includes(type) ? this.equip_Criticalhitrate(lv) : 0, // 暴击率
                 };
                 // 根据装备品质调整装备属性值
-                const qualityMultiplier = { info: 1, success: 1.5, primary:3, warning: 5, danger: 7 };
+                const qualityMultiplier = { info: 1.2, success: 2, primary: 5, warning: 7, danger: 10 };
                 const multiplier = qualityMultiplier[quality];
                 // 装备属性
                 baseEquip.dodge = parseFloat((baseEquip.dodge * multiplier).toFixed(4)); // 闪避
@@ -46,32 +46,17 @@ const equips = {
     generateAllEquips () {
         const maxLevel = 40;
         const allEquips = new Set();
-        
+
         const weaponTypes = ['Weapons', 'Armors', 'Accessorys', 'Sutras'];
-        
+
         weaponTypes.forEach(type => {
             for (let i = 0; i < 10; i++) {
                 const equip = this[`equip_${type}`](maxLevel);
                 allEquips.add(JSON.stringify(equip));  // Convert object to JSON string to ensure uniqueness
             }
         });
-        
+
         return Array.from(allEquips).map(equip => JSON.parse(equip));  // Convert JSON strings back to objects
-    },
-    displayIllustratedBook () {
-        const highestEquipments = this.generateAllEquips();
-        highestEquipments.forEach(equip => {
-            console.log(`装备名称: ${equip.name}`);
-            console.log(`装备类型: ${equip.type}`);
-            console.log(`装备等级: ${equip.level}`);
-            console.log(`装备品质: ${equip.quality}`);
-            console.log(`攻击力: ${equip.attack}`);
-            console.log(`防御力: ${equip.defense}`);
-            console.log(`血量: ${equip.health}`);
-            console.log(`闪避率: ${equip.dodge}`);
-            console.log(`暴击率: ${equip.critical}`);
-            console.log('---------------------------');
-        });
     },
     equip_Weapons (lv) {
         const names_a = [
@@ -139,7 +124,7 @@ const equips = {
         const names_e = [
             '赤焰凤凰翎', '血珀琉璃坠', '烈焰红宝石链', '朱雀之翼耳环', '红莲业火镯',
             '丹霄火凤戒', '玛瑙赤焰项链', '炽天使之泪珮', '绯红织锦手环', '火凤涅槃珠链'
-        ]
+        ];
         return this.drawPrize(lv, 'accessory', names_a, names_b, names_c, names_d, names_e);
     },
     equip_Sutras (lv) {
@@ -189,13 +174,13 @@ const equips = {
     },
     equip_Criticalhitrate (lv) {
         if (lv >= 0 || lv <= 9) {
-            return this.getRandomFloatInRange(0.001, 0.005) * lv;
+            return this.getRandomFloatInRange(0.001, 0.005);
         } else if (lv >= 10 || lv <= 19) {
-            return this.getRandomFloatInRange(0.005, 0.01) * lv;
+            return this.getRandomFloatInRange(0.005, 0.01);
         } else if (lv >= 20 || lv <= 29) {
-            return this.getRandomFloatInRange(0.01, 0.05) * lv;
+            return this.getRandomFloatInRange(0.01, 0.05);
         } else if (lv >= 30 || lv <= 40) {
-            return this.getRandomFloatInRange(0.05, 0.1) * lv;
+            return this.getRandomFloatInRange(0.05, 0.1);
         }
     },
     // equip_Defense (lv) {

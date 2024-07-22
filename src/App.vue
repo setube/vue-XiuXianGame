@@ -1339,6 +1339,7 @@
     }
 
     .Illustrations .inventory-content {
+        height: auto;
         max-height: none;
         overflow: hidden;
     }

@@ -3,8 +3,9 @@
 
 # 游戏交流群 920930589
 https://qm.qq.com/q/iifNs5qukg
+
 # 项目预览
-![预览图](https://i0.hdslb.com/bfs/article/0fede2227e2ceb653410444992f212138941412.png@1e_1c.webp)
+![预览图](https://github.com/user-attachments/assets/3c7c4e1a-dcce-4cdc-81fa-dc66f42fa613)
 
 # 安装依赖
 npm install

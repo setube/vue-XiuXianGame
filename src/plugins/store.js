@@ -1,17 +1,9 @@
 import Vue from 'vue';
 import Vuex from 'vuex';
+import crypto from '@/plugins/crypto';
 import persistedState from 'vuex-persistedstate';
-import CryptoJS from 'crypto-js';
 
 Vue.use(Vuex);
-
-const encryption = (val) => {
-    return CryptoJS.AES.encrypt(JSON.stringify(val), window.d, {
-        iv: window.d,
-        mode: CryptoJS.mode.CBC,
-        padding: CryptoJS.pad.Pkcs7
-    }).toString();
-};
 
 export default new Vuex.Store(
     {
@@ -48,10 +40,14 @@ export default new Vuex.Store(
                 defense: 10,
                 // 总法力
                 maxMana: 50,
+                // 已击杀数量
+                taskNum: 0,
                 // 总血量
                 maxHealth: 100,
                 // 背包道具
                 inventory: [],
+                // 新手礼包
+                isNewbie: false,
                 // 装备
                 equipment: {
                     // 法宝
@@ -84,8 +80,8 @@ export default new Vuex.Store(
                 storage: window.localStorage,
                 reducer (val) {
                     return {
-                        boss: encryption(val.boss),
-                        player: encryption(val.player)
+                        boss: crypto.encryption(val.boss),
+                        player: crypto.encryption(val.player)
                     };
                 }
             })

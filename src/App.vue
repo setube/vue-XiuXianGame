@@ -108,11 +108,17 @@
                             <el-tabs v-model="inventoryActive" :stretch="true">
                                 <el-tab-pane :label="i.name" :name="i.type" v-for="(i, k) in backPackItem" :key="k">
                                     <div class="inventory-content">
-                                        <template v-for="item in player.inventory">
-                                            <el-tag class="inventory-item" v-if="item.type == i.type" :key="item.id" :type="item?.quality" closable @close="inventoryClose(item)" @click="inventory(item.id, item.type)">
-                                                {{ item?.name }}
-                                            </el-tag>
-                                        </template>
+                                        <div v-if="player.inventory.length">
+                                            <template v-for="item in player.inventory">
+                                                <el-tag class="inventory-item" v-if="item.type == i.type" :key="item.id" :type="item?.quality" closable @close="inventoryClose(item)" @click="inventory(item.id, item.type)">
+                                                    {{ item?.name }}
+                                                </el-tag>
+
+                                            </template>
+                                        </div>
+                                        <div v-else>
+                                            <el-tag type="success" class="dialog-footer-button" v-if="!player.isNewbie && player.level < 10" @click="newbiePack(4)">领取新手礼包</el-tag>
+                                        </div>
                                     </div>
                                 </el-tab-pane>
                             </el-tabs>
@@ -147,17 +153,17 @@
         <div class="wm_bg_1" />
         <div class="wm_bg_2" />
         <div class="bbh">
-            当前游戏版本0.4.5
+            当前游戏版本0.4.7
         </div>
     </div>
 </template>
 
 <script>
-    import CryptoJS from 'crypto-js';
     // 怪物
     import boss from '@/plugins/boss';
     // 装备
     import equip from '@/plugins/equip';
+    import crypto from '@/plugins/crypto';
     // 怪物
     import monster from '@/plugins/monster';
     // 图鉴
@@ -213,8 +219,12 @@
                     defense: 10,
                     // 总法力
                     maxMana: 50,
+                    // 已击杀数量
+                    taskNum: 0,
                     // 暴击率
                     critical: 0,
+                    // 是否已领取新手礼包
+                    isNewbie: false,
                     // 总气血
                     maxHealth: 100,
                     // 背包道具
@@ -285,52 +295,43 @@
         },
         watch: {
             'player.attack': function (val) {
-                if (val == null || val <= 0) {
-                    this.player.attack = 10;
-                    this.equipmentClose('attack');
-                    this.storyText = '攻击属性出错, 已重置属性, 请重新装备';
+                if (isNaN(val)) {
+                    this.reset();
                 } else {
                     this.player.attack = val;
                 }
             },
             'player.health': function (val) {
-                if (val == null || val <= 0) {
-                    this.player.health = 100;
-                    this.equipmentClose('health');
-                    this.storyText = '气血属性出错, 已重置属性, 请重新装备';
+                if (isNaN(val)) {
+                    this.reset();
                 } else {
                     this.player.health = val;
                 }
             },
             'player.defense': function (val) {
-                if (val == null || val <= 0) {
-                    this.player.defense = 10;
-                    this.equipmentClose('defense');
-                    this.storyText = '防御属性出错, 已重置属性, 请重新装备';
+                if (isNaN(val)) {
+                    this.reset();
                 } else {
                     this.player.defense = val;
                 }
             },
             'player.maxHealth': function (val) {
-                if (val == null || val <= 0) {
-                    this.player.maxHealth = 100;
-                    this.storyText = '气血属性出错, 已重置属性, 请重新装备';
+                if (isNaN(val)) {
+                    this.reset();
                 } else {
                     this.player.maxHealth = val;
                 }
             },
             'player.critical': function (val) {
-                if (val == null || val < 0) {
-                    this.player.critical = 0;
-                    this.storyText = '暴击率属性出错, 已重置属性, 请重新装备';
+                if (isNaN(val)) {
+                    this.reset();
                 } else {
                     this.player.critical = val;
                 }
             },
             'player.dodge': function (val) {
-                if (val == null || val < 0) {
-                    this.player.dodge = 0;
-                    this.storyText = '闪避率属性出错, 已重置属性, 请重新装备';
+                if (isNaN(val)) {
+                    this.reset();
                 } else {
                     this.player.dodge = val;
                 }
@@ -345,27 +346,25 @@
         },
         mounted () {
             // 判断本地有没有玩家存档数据
-            if (localStorage.vuex) {
-                const vuex = JSON.parse(localStorage.vuex);
-                this.boss = this.decryptData(vuex.boss);
-                this.player = this.decryptData(vuex.player);
+            const local = window.localStorage;
+            if (local.vuex) {
+                const vuex = JSON.parse(local.vuex);
+                this.boss = crypto.decryption(vuex.boss);
+                this.player = crypto.decryption(vuex.player);
             }
             // 初始化游戏
             this.startGame('home');
         },
         methods: {
-            // 解密
-            decryptData (data) {
-                if (typeof data == 'string') {
-                    const player = CryptoJS.AES.decrypt(data, window.d, {
-                        iv: window.d,
-                        mode: CryptoJS.mode.CBC,
-                        padding: CryptoJS.pad.Pkcs7
-                    }).toString(CryptoJS.enc.Utf8);
-                    return JSON.parse(player);
-                } else {
-                    return data;
-                }
+            // 重置
+            reset () {
+                this.storyText = '属性出错, 请添加QQ群:920930589, 上传"存档"并联系作者解决';
+                this.$confirm('你是否要导出存档?', '存档导出提示', {
+                    center: true,
+                    confirmButtonText: '确定'
+                }).then(() => {
+                    this.exportData();
+                }).catch(() => { });
             },
             // 导入存档
             importData (data) {
@@ -375,10 +374,10 @@
                     try {
                         const data = JSON.parse(e.target.result);
                         if (data.boss) {
-                            this.boss = this.decryptData(data.boss);
+                            this.boss = crypto.decryption(data.boss);
                             this.$store.commit('setBoss', this.boss);
                         }
-                        this.player = this.decryptData(data.player);
+                        this.player = crypto.decryption(data.player);
                         this.$store.commit('setPlayer', this.player);
                         location.reload(1);
                     } catch (err) {
@@ -431,11 +430,13 @@
                     confirmButtonText: '确定以及肯定'
                 }).then(() => {
                     if (type) {
+                        // 关闭弹窗
+                        this.show = false;
                         // 清空背包道具
                         this.player.inventory = [];
                         this.$store.commit('setPlayer', this.player);
+                        this.$message({ message: '背包已清空', type: 'success' });
                     } else {
-                        this.player = null;
                         // 清空存档
                         localStorage.removeItem('vuex');
                         // 刷新页面
@@ -475,7 +476,7 @@
                         this.player.offline = Math.floor(Date.now() / 1000);
                         // 更新玩家存档
                         this.$store.commit('setPlayer', this.player);
-                    }, 60000)
+                    }, 10000)
                     // 离线时长
                     const time = this.getMinuteDifference(this.player.offline);
                     // 赠送离线挂机修为
@@ -656,13 +657,13 @@
                 const time = this.getMinuteDifference(this.boss.time);
                 // 如果boss已生成
                 if (this.boss.name) {
-                    // 生成的时间大于10分钟就重新生成一个boss
-                    if (time > 10) {
-                        this.boss = boss.drawPrize();
+                    // 生成的时间大于等于10分钟就重新生成一个boss
+                    if (time >= 10) {
+                        this.boss = boss.drawPrize(this.maxLv);
                     }
                     //如果没有生成boss就生成一个新的boss
                 } else {
-                    this.boss = boss.drawPrize();
+                    this.boss = boss.drawPrize(this.maxLv);
                     // 更新boss信息
                     this.$store.commit('setBoss', this.boss);
                 }
@@ -753,15 +754,64 @@
                     dangerouslyUseHTMLString: true
                 }).catch(() => { });
             },
+            // 赠送新手礼包
+            newbiePack (timesLeft) {
+                // 如果没有领取新手礼包
+                if (!this.player.isNewbie) {
+                    // 初始化物品
+                    let equipItem = {};
+                    // 兵器
+                    if (timesLeft == 4) equipItem = equip.equip_Weapons(10, false);
+                    // 护甲
+                    else if (timesLeft == 3) equipItem = equip.equip_Armors(10, false);
+                    // 灵宝
+                    else if (timesLeft == 2) equipItem = equip.equip_Accessorys(10, false);
+                    // 法器
+                    else if (timesLeft == 1) equipItem = equip.equip_Sutras(10, false);
+                    // 发送通知
+                    else if (timesLeft == 0) {
+                        // 修改礼包领取状态
+                        this.player.isNewbie = true;
+                        this.$message({ message: `新手礼包领取成功!`, type: 'success' });
+                    }
+                    // 终止
+                    else return;
+
+                    // 将装备添加到库存  
+                    this.player.inventory.push(equipItem);
+                    // 更新剩余次数  
+                    timesLeft--;
+                    // 设置延时以便下一次调用
+                    setTimeout(() => {
+                        this.newbiePack(timesLeft);
+                    }, 100);
+                    // 更新玩家存档
+                    this.$store.commit('setPlayer', this.player);
+                }
+            },
             // 修为突破
             breakThrough (exp) {
                 // 如果当前境界小于最高境界当前修为大于等于总修为
                 if (this.player.level < this.maxLv) {
                     if (this.player.cultivation >= this.player.maxCultivation) {
+                        // 如果玩家等级大于10并且击杀数低于当前等级
+                        if (this.player.level > 10 && this.player.level > this.player.taskNum) {
+                            this.$notify({
+                                title: '当前境界修为已满',
+                                message: `需要通过击败(${this.player.taskNum}/${this.player.level})个敌人证道突破`
+                            });
+                            return;
+                        }
+                        // 清空已击杀敌人
+                        this.player.taskNum = 0;
                         // 增加境界
                         this.player.level++;
                         // 增加攻击
-                        this.player.attack += 5;
+                        this.player.attack += equip.getRandomInt(10, 30);
+                        // 增加防御
+                        this.player.defense += equip.getRandomInt(10, 30);
+                        // 增加气血
+                        this.player.maxHealth += equip.getRandomInt(100, 150);
                         // 更新气血
                         this.player.health = this.player.maxHealth;
                         // 增加玩家法力
@@ -788,7 +838,7 @@
             cultivate () {
                 this.ismonster = false;
                 // 如果当前修为小于总修为
-                if (this.player.cultivation < this.player.maxCultivation) {
+                if (this.player.cultivation <= this.player.maxCultivation) {
                     // 增加当前修为
                     const exp = this.player.level <= 10 ? Math.floor(this.player.maxCultivation / equip.getRandomInt(10, 30)) : Math.floor(this.player.maxCultivation / 100);
                     this.breakThrough(exp);
@@ -801,17 +851,18 @@
                     this.storyText = '你已经达到了当前境界的修为上限，需要突破到下一个境界。';
                     this.actions = [
                         { text: '突破境界', handler: () => this.breakThrough(1) },
-                        { text: '探索秘境', handler: this.explore }
+                        { text: '杀敌证道', handler: this.explore }
                     ];
                 }
             },
             // 探索逻辑
             explore () {
+                if (this.player.level < 10) {
+                    this.$message.error(`外面太危险了, 请突破到${this.levelNames[10]}再出去吧!`);
+                    return;
+                }
                 this.guashaRounds = 10;
-                // 遇到怪物
-                if (equip.getRandomInt(0, 1)) this.encounterMonster();
-                // 发现道具
-                else this.findTreasure();
+                this.encounterMonster();
             },
             // 遇怪逻辑
             encounterMonster () {
@@ -966,20 +1017,14 @@
                     this.guashaRounds--;
                     // 野怪气血小于等于0
                     if (this.monster.health <= 0) {
-                        if (equip.getRandomInt(0, 1)) {
-                            this.findTreasure(`你击败了${this.monster.name}, `);
-                        } else {
-                            let exp = this.player.level <= 10 ? Math.floor(this.player.maxCultivation / equip.getRandomInt(10, 30)) : Math.floor(this.player.maxCultivation / 100);
-                            exp = exp ? exp : 1;
-                            this.storyText = `你击败了${this.monster.name}获得了${exp}点修为`;
-                            // 增加修为
-                            this.breakThrough(exp);
-                            this.actions = [
-                                { text: '回到家里', type: 'success', handler: () => this.startGame('fightMonster') },
-                                { text: '继续修炼', handler: this.cultivate },
-                                { text: '继续探索', handler: this.explore },
-                            ];
-                        }
+                        // 增加击杀数量
+                        this.player.taskNum++;
+                        this.findTreasure(this.monster.name);
+                        this.actions = [
+                            { text: '回到家里', type: 'success', handler: () => this.startGame('fightMonster') },
+                            { text: '继续修炼', handler: this.cultivate },
+                            { text: '继续探索', handler: this.explore },
+                        ];
                     } else if (this.player.health <= 0) {
                         this.storyText = '你因为太弱被击败了。';
                         this.actions = [
@@ -1022,17 +1067,25 @@
                     this.storyText = '你选择了撤退，安全返回了修炼地点。';
                     this.guashaRounds = 10;
                     this.actions = [
+                        { text: '回到家里', type: 'success', handler: () => this.startGame('runAway') },
                         { text: '继续修炼', handler: this.cultivate },
                         { text: '继续探索', handler: this.explore }
                     ];
                 }
             },
             // 发现道具
-            findTreasure (text = '') {
+            findTreasure (name) {
                 this.ismonster = false;
                 this.isequipment = true;
                 const randomInt = equip.getRandomInt(1, 5);
                 let equipItem = null;
+                let exp = Math.floor(this.player.maxCultivation / 100);
+                exp = exp ? exp : 1;
+                // 如果没有满级
+                if (this.player.level < this.maxLv) {
+                    // 增加修为
+                    this.breakThrough(exp);
+                }
                 // 兵器
                 if (randomInt == 1) equipItem = equip.equip_Weapons(this.player.level);
                 // 护甲
@@ -1043,10 +1096,10 @@
                 else if (randomInt == 4) equipItem = equip.equip_Sutras(this.player.level);
                 if (randomInt == 5) {
                     this.isequipment = false;
-                    this.storyText = `${text}你发现了一个宝箱，打开后箱子里是空的。`;
+                    this.storyText = `你击败${name}后，获得了${exp}点修为。`;
                 } else {
                     this.isequipment = true;
-                    this.storyText = `${text}你发现了一个宝箱，打开后获得了<span class="el-tag el-tag--${equipItem.quality}">${this.levels[equipItem.quality]}${equipItem.name}(${this.genre[equipItem.type]})</span>`;
+                    this.storyText = `你击败${name}后，发现了一个宝箱，打开后获得了<span class="el-tag el-tag--${equipItem.quality}">${this.levels[equipItem.quality]}${equipItem.name}(${this.genre[equipItem.type]})</span>`;
                     this.openEquipItemInfo = equipItem;
                     // 跳转背包相关页
                     this.inventoryActive = equipItem.type;
@@ -1054,6 +1107,7 @@
                     if (equipItem?.name) this.player.inventory.push(equipItem);
                 }
                 this.actions = [
+                    { text: '回到家里', type: 'success', handler: () => this.startGame('findTreasure') },
                     { text: '继续修炼', handler: this.cultivate },
                     { text: '继续探索', handler: this.explore }
                 ];

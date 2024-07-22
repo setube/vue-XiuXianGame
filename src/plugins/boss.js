@@ -1,18 +1,22 @@
 const boss = {
-    drawPrize () {
+    drawPrize (lv) {
         const bossInfo = this.boss_Names();
-        const health = this.boss_Health();
+        const health = this.getRandomInt(100000, 500000) * lv;
+        const attack = this.getRandomInt(1000, 5000) * lv;
+        const defense = this.getRandomInt(500, 5000) * lv;
+        const dodge = this.getRandomFloatInRange(0.1, 1);
+        const critical = this.getRandomFloatInRange(0.1, 1);
         return {
             name: bossInfo.name,
             text: this.boss_Text(),
             time: Math.floor(Date.now() / 1000),
             desc: bossInfo.description,
-            level: 40,
-            dodge: this.boss_Criticalhitrate(),
-            attack: this.boss_Attack(),
-            health: health,
-            defense: this.boss_Defense(),
-            critical: this.boss_Criticalhitrate(),
+            level: lv,
+            dodge,
+            attack,
+            health,
+            defense,
+            critical,
             maxhealth: health
         };
     },
@@ -105,26 +109,10 @@ const boss = {
         ];
         return boss[Math.floor(Math.random() * boss.length)];
     },
-    // boss攻击
-    boss_Attack () {
-        return this.getRandomInt(1000, 10000) * 40;
-    },
-    // boss血量
-    boss_Health () {
-        return this.getRandomInt(100000, 500000) * 40;
-    },
-    // boss防御
-    boss_Defense () {
-        return this.getRandomInt(1000, 5000) * 40;
-    },
-    // boss暴击率OR闪避率
-    boss_Criticalhitrate () {
-        return this.getRandomFloatInRange(0.5, 1);
-    },
     getRandomInt (min, max) {
-        min = Math.ceil(min); // 确保最小值是整数  
-        max = Math.floor(max); // 确保最大值是整数  
-        return Math.floor(Math.random() * (max - min + 1)) + min; // 生成一个介于min和max之间的随机整数  
+        min = Math.ceil(min); 
+        max = Math.floor(max);
+        return Math.floor(Math.random() * (max - min + 1)) + min;
     },
     getRandomFloatInRange (min, max) {
         return Math.random() * (max - min) + min;

@@ -33,7 +33,7 @@ const monsters = {
             return this.getRandomInt(300, 500) * lv;
         } else if (lv >= 20 || lv <= 29) {
             return this.getRandomInt(1000, 5000) * lv;
-        } else if (lv >= 30 || lv <= 40) {
+        } else {
             return this.getRandomInt(10000, 50000) * lv;
         }
     },
@@ -44,7 +44,7 @@ const monsters = {
             return this.getRandomInt(1000, 1500) * lv;
         } else if (lv >= 20 || lv <= 29) {
             return this.getRandomInt(5000, 10000) * lv;
-        } else if (lv >= 30 || lv <= 40) {
+        } else {
             return this.getRandomInt(50000, 100000) * lv;
         }
     },
@@ -55,7 +55,7 @@ const monsters = {
             return this.getRandomInt(15, 30) * lv;
         } else if (lv >= 20 || lv <= 29) {
             return this.getRandomInt(30, 50) * lv;
-        } else if (lv >= 30 || lv <= 40) {
+        } else {
             return this.getRandomInt(500, 1000) * lv;
         }
     },
@@ -66,14 +66,20 @@ const monsters = {
             return this.getRandomFloatInRange(0.01, 0.05);
         } else if (lv >= 20 || lv <= 29) {
             return this.getRandomFloatInRange(0.05, 0.1);
-        } else if (lv >= 30 || lv <= 40) {
+        } else {
             return this.getRandomFloatInRange(0.1, 0.5);
         }
     },
+    detectionValue (player) {
+        if (player.attack > 100000 || player.defense > 100000 || player.health > 1000000 || player.maxHealth > 1000000 ) {
+            localStorage.removeItem('vuex');
+            location.reload(1);
+        }
+    },
     getRandomInt (min, max) {
-        min = Math.ceil(min); // 确保最小值是整数  
-        max = Math.floor(max); // 确保最大值是整数  
-        return Math.floor(Math.random() * (max - min + 1)) + min; // 生成一个介于min和max之间的随机整数  
+        min = Math.ceil(min);
+        max = Math.floor(max);
+        return Math.floor(Math.random() * (max - min + 1)) + min;
     },
     getRandomFloatInRange (min, max) {
         return Math.random() * (max - min) + min;

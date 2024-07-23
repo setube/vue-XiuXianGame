@@ -30,6 +30,8 @@ export default new Vuex.Store(
                 level: 0,
                 // 闪避
                 dodge: 0,
+                // 点数
+                points: 0,
                 // 攻击
                 attack: 10,
                 // 当前血量
@@ -42,6 +44,8 @@ export default new Vuex.Store(
                 maxMana: 50,
                 // 已击杀数量
                 taskNum: 0,
+                // 混沌石数量
+                currency: 0,
                 // 总血量
                 maxHealth: 100,
                 // 背包道具
@@ -59,13 +63,15 @@ export default new Vuex.Store(
                     // 饰品
                     accessory: null
                 },
-                // 离线时间戳
-                offline: 0,
                 // 当前修为
                 cultivation: 0,
+                // 转生次数
+                reincarnation: 0,
                 // 下个等级所需修为
                 maxCultivation: 100,
-            }
+            },
+            // 离线时间戳
+            offline: 0
         },
         mutations: {
             setBoss (state, data) {
@@ -73,6 +79,9 @@ export default new Vuex.Store(
             },
             setPlayer (state, data) {
                 state.player = data;
+            },
+            setOffline (state, data) {
+                state.offline = data;
             }
         },
         plugins: [
@@ -81,7 +90,8 @@ export default new Vuex.Store(
                 reducer (val) {
                     return {
                         boss: crypto.encryption(val.boss),
-                        player: crypto.encryption(val.player)
+                        player: crypto.encryption(val.player),
+                        offline: crypto.encryption(val.offline),
                     };
                 }
             })

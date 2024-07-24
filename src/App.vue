@@ -139,7 +139,7 @@
                 v-else
                 @click="$notify({title: '修为提示', message: `您距离${levelNames[player.level + 1]}境界还需${formatNumberToChineseUnit(player.maxCultivation - player.cultivation)}点修为`})"
               >
-                修为: {{ calculatePercentageDifference(player.maxCultivation, player.cultivation) }}%
+                修为: {{ calculatePercentageDifference(player.maxCultivation, player.cultivation).toFixed(2) }}%
               </div>
               <div class="tag attribute">
                 气血: {{ formatNumberToChineseUnit(player.health) }} / {{ formatNumberToChineseUnit(player.maxHealth) }}
@@ -320,7 +320,7 @@
         </div>
       </div>
       <div class="bbh">
-        当前游戏版本0.5.6
+        当前游戏版本0.5.7
       </div>
     </div>
     <el-drawer
@@ -366,8 +366,7 @@
               <i :class="calculateDifference(levelsNum[inventoryInfo.quality], levelsNum[player.equipment[inventoryInfo.type]?.quality]).icon" />
             </span>
             <span class="value">
-              {{ calculateDifference(levelsNum[inventoryInfo.quality], levelsNum[player.equipment[inventoryInfo.type]?.quality]).num < 0 ? levels[player.equipment[inventoryInfo.type]?.quality] : levels[inventoryInfo.quality] }} 
-            </span>
+              {{ calculateDifference(levelsNum[inventoryInfo.quality], levelsNum[player.equipment[inventoryInfo.type]?.quality]).num < 0 ? levels[player.equipment[inventoryInfo.type]?.quality] : levels[inventoryInfo.quality] }} </span>
           </p>
           <p>
             <span class="description">气血: {{ inventoryInfo.health }}</span>
@@ -721,7 +720,7 @@
                 item1 = item1 || 0;
                 item2 = item2 || 0;
                 const ojb = {
-                    num: this.isFloat(item1) && this.isFloat(item2) ? ((item1 - parseFloat(item2))* 100).toFixed(2) + '%': item1 - parseInt(item2),
+                    num: this.isFloat(item1) || this.isFloat(item2) ? ((item1 - parseFloat(item2)) * 100).toFixed(2) + '%' : item1 - parseInt(item2),
                     icon: item1 > item2 ? 'success el-icon-caret-top' : (item1 == item2 ? '' : 'danger el-icon-caret-bottom'),
                 };
                 ojb.num = ojb.num == 0 ? '' : ojb.num
@@ -1238,26 +1237,34 @@
             },
             // 转生突破
             reincarnationBreakthrough () {
-                if (this.player.level == this.maxLv) {
-                    // 转生次数
-                    let reincarnation = this.player.reincarnation;
-                    reincarnation = reincarnation == 0 ? 1 * 100 : reincarnation * 100;
-                    // 如果击杀数大于等于转生次数 * 100
-                    if (this.player.taskNum >= reincarnation) {
-                        // 境界重置
-                        this.player.level = 0;
-                        // 修为重置
-                        this.player.cultivation = 0;
-                        // 总修为重置
-                        this.player.maxCultivation = 100;
-                        // 重置击杀次数
-                        this.player.taskNum = 0;
-                        // 增加转生次数
-                        this.player.reincarnation++;
-                        // 检测玩家装备境界
-                        this.testingEquipmentLevel();
-                        // 更新玩家存档
-                        this.$store.commit('setPlayer', this.player);
+                // 转生次数
+                let reincarnation = this.player.reincarnation;
+                reincarnation = reincarnation == 0 ? 1 * 100 : reincarnation * 100;
+                // 如果击杀数大于等于转生次数 * 100
+                if (this.player.taskNum >= reincarnation) {
+
+                    if (this.player.level == this.maxLv) {
+                        this.$confirm('转生前请务必准备好大乘境的装备,避免转生后无法完成突破条件', '转生提醒', {
+                            center: true,
+                            cancelButtonText: '再攒攒装备',
+                            confirmButtonText: '知道了, 我会对我的操作负责',
+                            dangerouslyUseHTMLString: true
+                        }).then(() => {
+                            // 境界重置
+                            this.player.level = 0;
+                            // 修为重置
+                            this.player.cultivation = 0;
+                            // 总修为重置
+                            this.player.maxCultivation = 100;
+                            // 重置击杀次数
+                            this.player.taskNum = 0;
+                            // 增加转生次数
+                            this.player.reincarnation++;
+                            // 检测玩家装备境界
+                            this.testingEquipmentLevel();
+                            // 更新玩家存档
+                            this.$store.commit('setPlayer', this.player);
+                        }).catch(() => { });
                     } else {
                         this.$notify({
                             title: '未满足转生条件',
@@ -2050,7 +2057,7 @@
     }
 
     .el-tag.el-tag--purple .el-tag__close:hover {
-        color: #FFF!important;
+        color: #FFF !important;
         background-color: #8560f5 !important;
     }
 
@@ -2066,7 +2073,7 @@
     }
 
     .el-tag.el-tag--pink .el-tag__close:hover {
-        color: #FFF!important;
+        color: #FFF !important;
         background-color: #f48fb1 !important;
     }
 

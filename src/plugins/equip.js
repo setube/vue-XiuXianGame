@@ -3,7 +3,7 @@ const equips = {
         // 如果玩家等级为0 生成的装备等级最低为1, 如果玩家等级低于40级的话就随机生成当前等级和低于当前等级的装备
         lv = lv == 0 ? 1 : lv;
         // 如果已领取新手礼包
-        if (isNewbie) lv = lv < 40 ? this.getRandomInt(1, lv) : 40;
+        if (isNewbie) lv = this.getRandomInt(1, lv);
 
         // 装备的抽中概率
         const weaponTypes = {

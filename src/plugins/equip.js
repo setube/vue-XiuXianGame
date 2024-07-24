@@ -1,5 +1,5 @@
 const equips = {
-    drawPrize (lv, type, names_a, names_b, names_c, names_d, names_e, names_f, names_g, isNewbie) {
+    drawPrize (lv, type, names_a, names_b, names_c, names_d, names_e, names_f, isNewbie) {
         // 如果玩家等级为0 生成的装备等级最低为1, 如果玩家等级低于40级的话就随机生成当前等级和低于当前等级的装备
         lv = lv == 0 ? 1 : lv;
         // 如果已领取新手礼包
@@ -12,8 +12,7 @@ const equips = {
             primary: { names: names_c, probability: 15 }, // 蓝装
             purple: { names: names_d, probability: 9 }, // 紫装
             warning: { names: names_e, probability: 5 }, // 金装
-            danger: { names: names_f, probability: 1 }, // 红装,
-            pink: { names: names_g, probability: 0 } // 粉装
+            danger: { names: names_f, probability: 1 } // 红装
         };
         const totalProbability = Object.values(weaponTypes).reduce((acc, { probability }) => acc + probability, 0);
         const random = Math.floor(Math.random() * totalProbability);
@@ -36,7 +35,7 @@ const equips = {
                     critical: ['weapon', 'accessory', 'sutra'].includes(type) ? this.equip_Criticalhitrate(lv) : 0, // 暴击率
                 };
                 // 根据装备品质调整装备属性值
-                const qualityMultiplier = { info: 1.2, success: 2, primary: 3, purple: 5, warning: 7, danger: 10, pink: 15 };
+                const qualityMultiplier = { info: 1.2, success: 2, primary: 3, purple: 5, warning: 7, danger: 10 };
                 const multiplier = qualityMultiplier[quality];
                 // 装备属性
                 baseEquip.dodge = parseFloat((baseEquip.dodge * multiplier).toFixed(4)); // 闪避
@@ -73,11 +72,7 @@ const equips = {
             '赤焰凤凰剑', '血玉红莲枪', '烈焰焚天弓', '赤霄神火戟', '火舞流云扇',
             '朱雀炎翼鞭', '赤龙焚世刃', '炎狱魔瞳镰', '炽血星辰杖', '红莲业火轮'
         ];
-        const names_g = [
-            '粉晶月刃剑', '樱花吹雪弓', '蔷薇缠绕鞭', '蜜桃梦境杖', '粉蝶幻光刃',
-            '粉晶流光扇', '甜梦水晶枪', '粉樱魔法杖', '粉钻心语弩', '柔粉蔷薇盾'
-        ];
-        return this.drawPrize(lv, 'weapon', names_a, names_b, names_c, names_d, names_e, names_f, names_g, isNewbie);
+        return this.drawPrize(lv, 'weapon', names_a, names_b, names_c, names_d, names_e, names_f, isNewbie);
     },
     equip_Armors (lv, isNewbie = true) {
         const names_a = [
@@ -104,11 +99,7 @@ const equips = {
             '烈焰红莲战甲', '赤霄火凤云裳', '朱雀焚天织锦', '赤焰龙鳞宝衣', '血色蔷薇华服',
             '丹霞流光长袍', '炎阳炽烈战袍', '炽火红莲披风', '火舞凤凰羽衣', '红莲业火锦衣'
         ];
-        const names_g = [
-            '粉樱绮梦裳', '甜梦粉蝶衣', '蜜桃恋曲裙', '粉晶流光铠', '樱花恋歌袍',
-            '柔粉蔷薇甲', '粉蝶翩翩袖', '甜梦羽织衣', '粉晶幻彩裙', '蜜桃梦境袍'
-        ];
-        return this.drawPrize(lv, 'armor', names_a, names_b, names_c, names_d, names_e, names_f, names_g, isNewbie);
+        return this.drawPrize(lv, 'armor', names_a, names_b, names_c, names_d, names_e, names_f, isNewbie);
     },
     equip_Accessorys (lv, isNewbie = true) {
         const names_a = [
@@ -135,11 +126,7 @@ const equips = {
             '赤焰凤凰翎', '血珀琉璃坠', '烈焰红宝石链', '朱雀之翼耳环', '红莲业火镯',
             '丹霄火凤戒', '玛瑙赤焰项链', '炽天使之泪珮', '绯红织锦手环', '火凤涅槃珠链'
         ];
-        const names_g = [
-            '粉晶梦蝶链', '樱花恋曲簪', '甜梦蔷薇戒', '蜜桃绮梦环', '粉蝶轻舞坠',
-            '粉晶甜蜜链', '柔粉心语珥', '樱花绮梦镯', '蜜桃梦境簪', '粉蝶幻彩带'
-        ];
-        return this.drawPrize(lv, 'accessory', names_a, names_b, names_c, names_d, names_e, names_f, names_g, isNewbie);
+        return this.drawPrize(lv, 'accessory', names_a, names_b, names_c, names_d, names_e, names_f, isNewbie);
     },
     equip_Sutras (lv, isNewbie = true) {
         const names_a = [
@@ -166,11 +153,7 @@ const equips = {
             '炽焰灵珠阵图', '火凤涅槃炉鼎', '红莲业火净世碑', '血玉轮回盘', '朱雀翔天翼',
             '烈焰焚天炉', '丹霄火域图', '赤龙炼魂珠', '火灵炽心镜', '九转炎灵祭坛'
         ];
-        const names_g = [
-            '粉樱梦幻笛', '甜心粉蝶壶', '蜜桃恋语镜', '粉晶流光珠', '柔粉绮梦石', 
-            '樱花纷飞扇', '甜梦绮罗盘', '蜜桃幻影灯', '粉蝶织梦琴', '粉樱守护符'
-        ];
-        return this.drawPrize(lv, 'sutra', names_a, names_b, names_c, names_d, names_e, names_f, names_g, isNewbie);
+        return this.drawPrize(lv, 'sutra', names_a, names_b, names_c, names_d, names_e, names_f, isNewbie);
     },
     equip_Attack (lv) {
         if (lv >= 0 || lv <= 9) {

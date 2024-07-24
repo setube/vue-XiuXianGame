@@ -126,7 +126,7 @@
                 class="tag attribute"
                 @click="isLevel = true"
               >
-                境界: {{ player.level >= maxLv ? levelNames[levelNames.length - 1] : levelNames[player.level] }}
+                境界: {{ levelNames[player.level] }} ({{ player.reincarnation || 0 }}转)
               </div>
               <div
                 class="tag attribute"
@@ -137,11 +137,12 @@
               <div
                 class="tag attribute"
                 v-else
+                @click="$notify({title: '修为提示', message: `您距离${levelNames[player.level + 1]}境界还需${formatNumberToChineseUnit(player.maxCultivation - player.cultivation)}点修为`})"
               >
-                修为: {{ player.cultivation | formatNumberToChineseUnit }} / {{ player.maxCultivation | formatNumberToChineseUnit }}
+                修为: {{ calculatePercentageDifference(player.maxCultivation, player.cultivation) }}%
               </div>
               <div class="tag attribute">
-                气血: {{ player.health | formatNumberToChineseUnit }} / {{ player.maxHealth | formatNumberToChineseUnit }}
+                气血: {{ formatNumberToChineseUnit(player.health) }} / {{ formatNumberToChineseUnit(player.maxHealth) }}
                 <i
                   class="el-icon-circle-plus-outline"
                   v-if="player.points > 0"
@@ -152,7 +153,7 @@
                 法力: {{ player.mana }} / {{ player.maxMana }}
               </div>
               <div class="tag attribute">
-                攻击: {{ player.attack | formatNumberToChineseUnit }}
+                攻击: {{ formatNumberToChineseUnit(player.attack) }}
                 <i
                   class="el-icon-circle-plus-outline"
                   v-if="player.points > 0"
@@ -160,7 +161,7 @@
                 />
               </div>
               <div class="tag attribute">
-                防御: {{ player.defense | formatNumberToChineseUnit }}
+                防御: {{ formatNumberToChineseUnit(player.defense) }}
                 <i
                   class="el-icon-circle-plus-outline"
                   v-if="player.points > 0"
@@ -319,7 +320,7 @@
         </div>
       </div>
       <div class="bbh">
-        当前游戏版本0.5.5
+        当前游戏版本0.5.6
       </div>
     </div>
     <el-drawer
@@ -345,14 +346,64 @@
     >
       <div class="monsterinfo">
         <div class="monsterinfo-box">
-          <p>类型: {{ genre[inventoryInfo.type] }}</p>
-          <p>境界: {{ player.level >= maxLv ? levelNames[levelNames.length - 1] : levelNames[inventoryInfo.level] }}</p>
-          <p>品质: {{ levels[inventoryInfo.quality] }}</p>
-          <p>气血: {{ inventoryInfo.health }}</p>
-          <p>攻击: {{ inventoryInfo.attack }}</p>
-          <p>防御: {{ inventoryInfo.defense }}</p>
-          <p>闪避率: {{ (inventoryInfo.dodge * 100).toFixed(2) ?? 0 }}%</p>
-          <p>暴击率: {{ (inventoryInfo.critical * 100).toFixed(2) ?? 0 }}%</p>
+          <p>
+            <span class="description">类型: {{ genre[inventoryInfo.type] }}</span>
+            <span class="icon" />
+            <span class="value" />
+          </p>
+          <p>
+            <span class="description">境界: {{ levelNames[inventoryInfo.level] }}</span>
+            <span class="icon">
+              <i :class="calculateDifference(inventoryInfo.level, player.equipment[inventoryInfo.type]?.level).icon" />
+            </span>
+            <span class="value">
+              {{ inventoryInfo.level > parseInt(player.equipment[inventoryInfo.type]?.level || 1) ? levelNames[inventoryInfo.level] : levelNames[player.equipment[inventoryInfo.type]?.level] }}
+            </span>
+          </p>
+          <p>
+            <span class="description">品质: {{ levels[inventoryInfo.quality] }}</span>
+            <span class="icon">
+              <i :class="calculateDifference(levelsNum[inventoryInfo.quality], levelsNum[player.equipment[inventoryInfo.type]?.quality]).icon" />
+            </span>
+            <span class="value">
+              {{ calculateDifference(levelsNum[inventoryInfo.quality], levelsNum[player.equipment[inventoryInfo.type]?.quality]).num < 0 ? levels[player.equipment[inventoryInfo.type]?.quality] : levels[inventoryInfo.quality] }} 
+            </span>
+          </p>
+          <p>
+            <span class="description">气血: {{ inventoryInfo.health }}</span>
+            <span class="icon">
+              <i :class="calculateDifference(inventoryInfo.health, player.equipment[inventoryInfo.type]?.health).icon" />
+            </span>
+            <span class="value">{{ calculateDifference(inventoryInfo.health, player.equipment[inventoryInfo.type]?.health).num }}</span>
+          </p>
+          <p>
+            <span class="description">攻击: {{ inventoryInfo.attack }}</span>
+            <span class="icon">
+              <i :class="calculateDifference(inventoryInfo.attack, player.equipment[inventoryInfo.type]?.attack).icon" />
+            </span>
+            <span class="value">{{ calculateDifference(inventoryInfo.attack, player.equipment[inventoryInfo.type]?.attack).num }}</span>
+          </p>
+          <p>
+            <span class="description">防御: {{ inventoryInfo.defense }}</span>
+            <span class="icon">
+              <i :class="calculateDifference(inventoryInfo.defense, player.equipment[inventoryInfo.type]?.defense).icon" />
+            </span>
+            <span class="value">{{ calculateDifference(inventoryInfo.defense, player.equipment[inventoryInfo.type]?.defense).num }}</span>
+          </p>
+          <p>
+            <span class="description">闪避率: {{ (inventoryInfo.dodge * 100).toFixed(2) ?? 0 }}%</span>
+            <span class="icon">
+              <i :class="calculateDifference(inventoryInfo.dodge, player.equipment[inventoryInfo.type]?.dodge).icon" />
+            </span>
+            <span class="value">{{ calculateDifference(inventoryInfo.dodge, player.equipment[inventoryInfo.type]?.dodge).num }}</span>
+          </p>
+          <p>
+            <span class="description">暴击率: {{ (inventoryInfo.critical * 100).toFixed(2) ?? 0 }}%</span>
+            <span class="icon">
+              <i :class="calculateDifference(inventoryInfo.critical, player.equipment[inventoryInfo.type]?.critical).icon" />
+            </span>
+            <span class="value">{{ calculateDifference(inventoryInfo.critical, player.equipment[inventoryInfo.type]?.critical).num }}</span>
+          </p>
         </div>
       </div>
       <div
@@ -541,6 +592,15 @@
                 shopItems: [],
                 // 商店商品价格
                 shopPrice: 100,
+                levelsNum: {
+                    info: 1,
+                    pink: 7,
+                    danger: 6,
+                    purple: 4,
+                    primary: 3,
+                    success: 2,
+                    warning: 5,
+                },
                 shopActive: 'weapon',
                 levelNames: [
                     '凡人', '筑基', '开光', '胎息', '辟谷',
@@ -574,17 +634,6 @@
                 illustrationsActive: 'weapon',
                 illustrationsInfoData: [],
             };
-        },
-        filters: {
-            formatNumberToChineseUnit (number) {
-                if (number >= 100000000) {
-                    return (number / 100000000).toFixed(2) + '亿';
-                } else if (number >= 10000) {
-                    return (number / 10000).toFixed(2) + '万';
-                } else {
-                    return number.toString();
-                }
-            }
         },
         watch: {
             'player.attack': function (val) {
@@ -651,12 +700,37 @@
                 const vuex = JSON.parse(local.vuex);
                 this.boss = crypto.decryption(vuex.boss);
                 this.player = crypto.decryption(vuex.player);
+                // 防止数据错乱
+                this.player.currency = this.player.currency ? this.player.currency : 0;
+                // 防止数据错乱
+                this.player.reincarnation = this.player.reincarnation ? this.player.reincarnation : 0;
                 monster.detectionValue(this.player);
             }
             // 初始化游戏
             this.startGame();
         },
         methods: {
+            // 计算所需修为相差百分比
+            calculatePercentageDifference (num1, num2) {
+                let difference = Math.abs(num1 - num2);
+                let percentage = (difference / num1) * 100;
+                return 100 - percentage;
+            },
+            // 计算身上装备和背包装备差值
+            calculateDifference (item1, item2) {
+                item1 = item1 || 0;
+                item2 = item2 || 0;
+                const ojb = {
+                    num: this.isFloat(item1) && this.isFloat(item2) ? ((item1 - parseFloat(item2))* 100).toFixed(2) + '%': item1 - parseInt(item2),
+                    icon: item1 > item2 ? 'success el-icon-caret-top' : (item1 == item2 ? '' : 'danger el-icon-caret-bottom'),
+                };
+                ojb.num = ojb.num == 0 ? '' : ojb.num
+                return ojb;
+            },
+            // 判断是否为浮点数
+            isFloat (num) {
+                return Number(num) === num && num % 1 !== 0;
+            },
             // 随机获取商店装备
             tabClick () {
                 if (this.inventoryActive == 'shop') this.shopItems = shop.drawPrize(this.maxLv);
@@ -669,7 +743,7 @@
                         <div class="monsterinfo-box">
                             <p>价格: ${this.shopPrice}鸿蒙石</p>
                             <p>类型: ${this.genre[item.type]}</p>
-                            <p>境界: ${this.player.level >= this.maxLv ? this.levelNames[this.levelNames.length - 1] : this.levelNames[item.level]}</p>
+                            <p>境界: ${this.levelNames[item.level]}</p>
                             <p>品质: ${this.levels[item.quality]}</p>
                             <p>气血: ${item.health}</p>
                             <p>攻击: ${item.attack}</p>
@@ -684,6 +758,15 @@
                 }).then(() => {
                     this.shopBuy(item);
                 }).catch(() => { });
+            },
+            formatNumberToChineseUnit (number) {
+                if (number >= 100000000) {
+                    return (number / 100000000).toFixed(2) + '亿';
+                } else if (number >= 10000) {
+                    return (number / 10000).toFixed(2) + '万';
+                } else {
+                    return number.toString();
+                }
             },
             // 购买装备
             shopBuy (item) {
@@ -1084,7 +1167,7 @@
                     message: `<div class="monsterinfo">
                         <div class="monsterinfo-box">
                             <p>类型: ${this.genre[info.type]}</p>
-                            <p>境界: ${this.player.level >= this.maxLv ? this.levelNames[this.levelNames.length - 1] : this.levelNames[info.level]}</p>
+                            <p>境界: ${this.levelNames[info.level]}</p>
                             <p>品质: ${this.levels[info.quality]}</p>
                             <p>气血: ${info.health}</p>
                             <p>攻击: ${info.attack}</p>
@@ -1170,7 +1253,7 @@
                         // 重置击杀次数
                         this.player.taskNum = 0;
                         // 增加转生次数
-                        this.player.reincarnationn++;
+                        this.player.reincarnation++;
                         // 检测玩家装备境界
                         this.testingEquipmentLevel();
                         // 更新玩家存档
@@ -1198,7 +1281,8 @@
                         if (this.player.level > 10 && this.player.level > this.player.taskNum) {
                             this.$notify({
                                 title: '当前境界修为已满',
-                                message: `需要通过击败<span style="color: #f56c6c;">(${this.player.taskNum} / ${this.player.level})</span>个敌人证道突破`
+                                message: `需要通过击败<span style="color: #f56c6c;">(${this.player.taskNum} / ${this.player.level})</span>个敌人证道突破`,
+                                dangerouslyUseHTMLString: true
                             });
                             return;
                         }
@@ -1214,7 +1298,7 @@
                         this.player.mana = this.player.maxMana;
                         // 增加玩家总修为
                         this.player.maxCultivation = Math.floor(100 * Math.pow(2, this.player.level));
-                        this.storyText = `恭喜你突破了！当前境界：${this.player.level >= this.maxLv ? this.levelNames[this.levelNames.length - 1] : this.levelNames[this.player.level]}`;
+                        this.storyText = `恭喜你突破了！当前境界：${this.levelNames[this.player.level]}`;
                         this.actions = [
                             { text: '转生突破', handler: this.reincarnationBreakthrough },
                             { text: '继续修炼', handler: this.cultivate },
@@ -1297,7 +1381,7 @@
                     center: true,
                     message: `<div class="monsterinfo">
                         <div class="monsterinfo-box">
-                            <p>境界: ${this.player.level >= this.maxLv ? this.levelNames[this.levelNames.length - 1] : (this.player.level == 0 ? this.levelNames[this.player.level + 1] : this.levelNames[this.player.level])}</p>
+                            <p>境界: ${this.player.level == 0 ? this.levelNames[this.player.level + 1] : this.levelNames[this.player.level]}</p>
                             <p>气血: ${this.monster.health}</p>
                             <p>攻击: ${this.monster.attack}</p>
                             <p>防御: ${this.monster.defense}</p>
@@ -1536,8 +1620,8 @@
                 // 更新玩家存档
                 this.$store.commit('setPlayer', this.player);
                 this.$notify({
-                    title: !inventoryItem.lock ? '装备解锁提示' : '装备加锁提示',
-                    message: !inventoryItem.lock ? '装备解锁成功' : '装备加锁成功'
+                    title: !inventoryItem.lock ? '装备解锁提示' : '装备锁定提示',
+                    message: !inventoryItem.lock ? '装备解锁成功' : '装备锁定成功'
                 });
             },
             // 道具信息
@@ -1554,7 +1638,7 @@
                     message: `<div class="monsterinfo">
                         <div class="monsterinfo-box">
                             <p>类型: ${this.genre[type] ?? '未知'}</p>
-                            <p>境界: ${this.player.level >= this.maxLv ? this.levelNames[this.levelNames.length - 1] : this.levelNames[equipment.level]}</p>
+                            <p>境界: ${this.levelNames[equipment.level]}</p>
                             <p>品质: ${this.levels[equipment.quality] ?? '未知'}</p>
                             <p>气血: ${equipment.health}</p>
                             <p>攻击: ${equipment.attack}</p>
@@ -1575,7 +1659,7 @@
                     message: `<div class="monsterinfo">
                         <div class="monsterinfo-box">
                             <p>类型: ${this.genre[equipment.type] ?? '未知'}</p>
-                            <p>境界: ${this.player.level >= this.maxLv ? this.levelNames[this.levelNames.length - 1] : this.levelNames[equipment.level]}</p>
+                            <p>境界: ${this.levelNames[equipment.level]}</p>
                             <p>品质: ${this.levels[equipment.quality] ?? '未知'}</p>
                             <p>气血: ${equipment.health}</p>
                             <p>攻击: ${equipment.attack}</p>
@@ -1709,6 +1793,7 @@
         position: fixed;
         top: 0;
         right: 0;
+        z-index: 10;
     }
 
     .game-container {
@@ -1886,6 +1971,44 @@
             width: 33%;
         }
     }
+
+    .danger.el-icon-caret-bottom {
+        color: #f56c6c;
+        margin-left: 5px;
+    }
+
+    .success.el-icon-caret-top {
+        color: #67c23a;
+        margin-left: 5px;
+    }
+
+    /* 装备信息 */
+    .monsterinfo {
+        display: flex;
+        justify-content: center;
+    }
+
+    .monsterinfo-box {
+        display: grid;
+        grid-template-columns: 1fr 20px 1fr;
+        gap: 10px;
+    }
+
+    .monsterinfo-box p {
+        display: contents;
+    }
+
+    .description {
+        text-align: left;
+    }
+
+    .icon {
+        text-align: center;
+    }
+
+    .value {
+        text-align: left;
+    }
 </style>
 
 <style>
@@ -1927,7 +2050,7 @@
     }
 
     .el-tag.el-tag--purple .el-tag__close:hover {
-        color: #FFF;
+        color: #FFF!important;
         background-color: #8560f5 !important;
     }
 
@@ -1943,7 +2066,7 @@
     }
 
     .el-tag.el-tag--pink .el-tag__close:hover {
-        color: #FFF;
+        color: #FFF!important;
         background-color: #f48fb1 !important;
     }
 

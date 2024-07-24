@@ -794,7 +794,6 @@
                 this.player.reincarnation = this.player.reincarnation ? this.player.reincarnation : 0;
                 // 防止数据错乱
                 this.player.strengtheningStone = this.player.strengtheningStone ? this.player.strengtheningStone : 0;
-                monster.detectionValue(this.player);
             }
             // 初始化游戏
             this.startGame();

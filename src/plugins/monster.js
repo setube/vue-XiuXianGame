@@ -70,12 +70,6 @@ const monsters = {
             return this.getRandomFloatInRange(0.1, 0.5);
         }
     },
-    detectionValue (player) {
-        if (player.attack > 100000 || player.defense > 100000 || player.health > 1000000 || player.maxHealth > 1000000 ) {
-            localStorage.removeItem('vuex');
-            location.reload(1);
-        }
-    },
     getRandomInt (min, max) {
         min = Math.ceil(min);
         max = Math.floor(max);

@@ -69,6 +69,8 @@ export default new Vuex.Store(
                 reincarnation: 0,
                 // 下个等级所需修为
                 maxCultivation: 100,
+                // 强化石数量
+                strengtheningStone: 0
             },
             // 离线时间戳
             offline: 0

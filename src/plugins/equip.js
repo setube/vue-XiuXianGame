@@ -31,8 +31,9 @@ const equips = {
                     attack: ['weapon', 'accessory', 'sutra'].includes(type) ? this.equip_Attack(lv) : 0, // 攻击力
                     health: ['armor', 'accessory', 'sutra'].includes(type) ? this.equip_Health(lv) : 0, // 血量
                     quality, // 装备品质
-                    defense: ['accessory', 'sutra'].includes(type) ? this.equip_Attack(lv) : 0, // 装备防御
+                    defense: ['armor', 'accessory', 'sutra'].includes(type) ? this.equip_Attack(lv) : 0, // 装备防御
                     critical: ['weapon', 'accessory', 'sutra'].includes(type) ? this.equip_Criticalhitrate(lv) : 0, // 暴击率
+                    strengthen: 0 // 炼器等级
                 };
                 // 根据装备品质调整装备属性值
                 const qualityMultiplier = { info: 1.2, success: 2, primary: 3, purple: 5, warning: 7, danger: 10 };

@@ -174,17 +174,21 @@
               <div class="tag attribute">
                 暴击率: {{ player.critical > 0 ? (player.critical * 100).toFixed(2) : 0 }}%
               </div>
+              <div
+                class="tag attribute"
+                @click="$notify({title: '获得方式', message: '可以通过击败世界Boss后获得'})"
+              >
+                鸿蒙石: {{ player.currency || 0 }}
+              </div>
+              <div
+                class="tag attribute"
+                @click="$notify({title: '获得方式', message: '可以通过出售装备可获得'})"
+              >
+                炼器石: {{ player.strengtheningStone || 0 }}
+              </div>
             </div>
           </div>
           <div class="equip-box">
-            <div class="tag equip-item">
-              <span
-                class="equip"
-                @click="$notify({title: '获得方式', message: '击败世界Boss后掉落'})"
-              >
-                <span>鸿蒙石: {{ player.currency || 0 }}颗</span>
-              </span>
-            </div>
             <div class="tag equip-item">
               <span class="equip">
                 <span>兵器: </span>
@@ -194,7 +198,9 @@
                   :closable="player.equipment.weapon?.name ? true : false"
                   @close="equipmentClose('weapon')"
                   @click="equipmentInfo('weapon')"
-                >{{ player.equipment.weapon?.name }}</el-tag>
+                >
+                  {{ player.equipment.weapon?.name }}{{ player.equipment.weapon?.strengthen ? '+' + player.equipment.weapon?.strengthen : '' }}
+                </el-tag>
                 <span v-else>无</span>
               </span>
               <span class="equip">
@@ -205,7 +211,9 @@
                   :closable="player.equipment.armor?.name ? true : false"
                   @close="equipmentClose('armor')"
                   @click="equipmentInfo('armor')"
-                >{{ player.equipment.armor?.name }}</el-tag>
+                >
+                  {{ player.equipment.armor?.name }}{{ player.equipment.armor?.strengthen ? '+' + player.equipment.armor?.strengthen : '' }}
+                </el-tag>
                 <span v-else>无</span>
               </span>
             </div>
@@ -218,7 +226,9 @@
                   :closable="player.equipment.accessory?.name ? true : false"
                   @close="equipmentClose('accessory')"
                   @click="equipmentInfo('accessory')"
-                >{{ player.equipment.accessory?.name }}</el-tag>
+                >
+                  {{ player.equipment.accessory?.name }}{{ player.equipment.accessory?.strengthen ? '+' + player.equipment.accessory?.strengthen : '' }}
+                </el-tag>
                 <span v-else>无</span>
               </span>
               <span class="equip">
@@ -229,7 +239,9 @@
                   :closable="player.equipment.sutra?.name ? true : false"
                   @close="equipmentClose('sutra')"
                   @click="equipmentInfo('sutra')"
-                >{{ player.equipment.sutra?.name }}</el-tag>
+                >
+                  {{ player.equipment.sutra?.name }}{{ player.equipment.sutra?.strengthen ? '+' + player.equipment.sutra?.strengthen : '' }}
+                </el-tag>
                 <span v-else>无</span>
               </span>
             </div>
@@ -253,7 +265,7 @@
                           v-if="item.type == i.type"
                           :key="item.id"
                           :type="item?.quality"
-                          closable
+                          :closable="!item.lock"
                           @close="inventoryClose(item)"
                           @click="inventory(item.id, item.type)"
                         >
@@ -320,7 +332,7 @@
         </div>
       </div>
       <div class="bbh">
-        当前游戏版本0.5.7
+        当前游戏版本0.6.0
       </div>
     </div>
     <el-drawer
@@ -338,6 +350,66 @@
         {{ item }}
       </el-tag>
     </el-drawer>
+    <el-drawer
+      title="炼器"
+      :visible.sync="strengthenShow"
+      direction="rtl"
+      class="strengthen"
+    >
+      <div class="strengthen-box">
+        <div class="attributes">
+          <div class="attribute-box">
+            <div class="tag attribute">
+              境界: {{ levelNames[strengthenInfo.level] }}
+            </div>
+            <div class="tag attribute">
+              气血: {{ strengthenInfo.health }}
+            </div>
+            <div class="tag attribute">
+              攻击: {{ strengthenInfo.attack }}
+            </div>
+            <div class="tag attribute">
+              防御: {{ strengthenInfo.defense }}
+            </div>
+            <div class="tag attribute">
+              闪避率: {{ strengthenInfo.dodge > 0 ? (strengthenInfo.dodge * 100).toFixed(2) : 0 }}%
+            </div>
+            <div class="tag attribute">
+              暴击率: {{ strengthenInfo.critical > 0 ? (strengthenInfo.critical * 100).toFixed(2) : 0 }}%
+            </div>
+            <div class="tag attribute">
+              炼器等级: {{ strengthenInfo.strengthen ?? 0 }}
+            </div>
+            <div class="tag attribute">
+              成功率: {{ (calculateEnhanceSuccessRate(strengthenInfo) * 100).toFixed(2) }}%
+            </div>
+            <div
+              class="tag attribute"
+              @click="$notify({title: '获得方式', message: '出售装备可获取', position: 'top-left'})"
+            >
+              拥有炼器石: {{ player.strengtheningStone || 0 }}
+            </div>
+            <div class="tag attribute">
+              炼器消耗: {{ calculateCost(strengthenInfo) }}
+            </div>
+          </div>
+        </div>
+        <div class="click-box">
+          <el-checkbox v-model="protect">
+            炼器保护
+          </el-checkbox>
+          <el-checkbox v-model="increase">
+            炼器增幅
+          </el-checkbox>
+          <el-button
+            type="primary"
+            @click="enhance(strengthenInfo)"
+          >
+            点击炼器
+          </el-button>
+        </div>
+      </div>
+    </el-drawer>
     <el-dialog
       :title="inventoryInfo.name"
       :visible.sync="inventoryShow"
@@ -350,6 +422,13 @@
             <span class="description">类型: {{ genre[inventoryInfo.type] }}</span>
             <span class="icon" />
             <span class="value" />
+          </p>
+          <p>
+            <span class="description">炼器: {{ inventoryInfo.strengthen || 0 }}</span>
+            <span class="icon">
+              <i :class="calculateDifference(inventoryInfo.strengthen, player.equipment[inventoryInfo.type]?.strengthen).icon" />
+            </span>
+            <span class="value">{{ calculateDifference(inventoryInfo.strengthen, player.equipment[inventoryInfo.type]?.strengthen).num }}</span>
           </p>
           <p>
             <span class="description">境界: {{ levelNames[inventoryInfo.level] }}</span>
@@ -435,7 +514,7 @@
           class="dialog-footer-button"
           @click="deleteData(1)"
         >
-          清空背包
+          出售装备
         </el-button>
         <el-button
           type="info"
@@ -568,6 +647,8 @@
                     reincarnation: 0,
                     // 下个境界所需修为
                     maxCultivation: 100,
+                    // 炼器石数量
+                    strengtheningStone: 0
                 },
                 // 野怪属性
                 monster: {
@@ -587,6 +668,10 @@
                 isLevel: false,
                 loading: false,
                 actions: [],
+                // 炼器保护
+                protect: false,
+                // 炼器增幅
+                increase: false,
                 // 商店数据
                 shopItems: [],
                 // 商店商品价格
@@ -626,6 +711,10 @@
                 ],
                 inventoryInfo: {},
                 inventoryShow: false,
+                // 炼器弹窗
+                strengthenShow: false,
+                // 炼器的信息
+                strengthenInfo: {},
                 isIllustrations: false,
                 inventoryActive: 'weapon',
                 openEquipItemInfo: null,
@@ -703,12 +792,132 @@
                 this.player.currency = this.player.currency ? this.player.currency : 0;
                 // 防止数据错乱
                 this.player.reincarnation = this.player.reincarnation ? this.player.reincarnation : 0;
+                // 防止数据错乱
+                this.player.strengtheningStone = this.player.strengtheningStone ? this.player.strengtheningStone : 0;
                 monster.detectionValue(this.player);
             }
             // 初始化游戏
             this.startGame();
         },
         methods: {
+            // 计算炼器成功概率  
+            calculateEnhanceSuccessRate (item) {
+                // 基础成功率
+                let baseSuccessRate = 1;
+                // 每级降低成功率
+                let decrementPerLevel = 0.05;
+                // 炼器增幅
+                let increase = this.increase ? 0.1 : 0;
+                // 最终成功率
+                return baseSuccessRate - (item.strengthen * decrementPerLevel - increase);
+            },
+            // 计算炼器所需消耗的道具数量
+            calculateCost (item) {
+                // 炼器基础消耗
+                let baseCost = item.level * 5;
+                // 每级炼器需要增加的消耗
+                let incrementPerLevel = item.strengthen * 50;
+                // 是否开启炼器保护
+                let protect = this.protect ? 10 : 1;
+                // 是否开启炼器增幅
+                let increase = this.increase ? 5 : 1;
+                // 最终所需消耗道具数量
+                return (baseCost + incrementPerLevel) * protect * increase;
+            },
+            // 炼器
+            enhance (item) {
+                // 炼器成功率
+                const successRate = this.calculateEnhanceSuccessRate(item);
+                // 炼器消耗道具数量
+                const calculateCost = this.calculateCost(item);
+                // 玩家信息
+                let player = this.player;
+                // 如果炼器石不足
+                if (calculateCost > player.strengtheningStone) {
+                    // 发送通知
+                    this.$notify({ title: '炼器提示', message: '炼器石不足, 进行无法炼器操作', position: 'top-left' });
+                    return;
+                }
+                // 炼器确认弹窗
+                this.$confirm(item.strengthen >= 15 && !this.protect ? `当前装备炼器等级已达到+${item.strengthen}, 如果炼器失败该装备会销毁, 请问还需要炼器吗?` : '你确定要炼器吗?', '炼器提示', {
+                    cancelButtonText: '我点错了',
+                    confirmButtonText: '确定以及肯定'
+                }).then(() => {
+                    // 如果炼器成功
+                    if (Math.random() <= successRate) {
+                        // 闪避
+                        const dodge = parseFloat(item.dodge * 0.1);
+                        // 攻击
+                        const attack = Math.floor(item.attack * 0.1);
+                        // 血量
+                        const health = Math.floor(item.health * 0.1);
+                        // 防御
+                        const defense = Math.floor(item.defense * 0.1);
+                        // 暴击
+                        const critical = parseFloat(item.critical * 0.1);
+                        let increaseStats = {};
+                        switch (item.type) {
+                            // 如果是兵器
+                            case 'weapon':
+                                increaseStats = {
+                                    attack: item.attack += attack,
+                                    critical: item.critical += critical
+                                };
+                                break;
+                            // 如果是防具
+                            case 'armor':
+                                increaseStats = {
+                                    health: item.health += health,
+                                    defense: item.defense += defense
+                                };
+                                break;
+                            // 如果是灵宝或法器
+                            case 'accessory':
+                            case 'sutra':
+                                increaseStats = {
+                                    dodge: item.dodge += dodge,
+                                    attack: item.attack += attack,
+                                    health: item.health += health,
+                                    defense: item.defense += defense,
+                                    critical: item.critical += critical
+                                };
+                                break;
+                            default:
+                                break;
+                        }
+                        Object.assign(item, increaseStats);
+                        Object.assign(player, increaseStats);
+                        // 如果是防具或灵宝或法器就增加玩家的最高气血
+                        if (['armor', 'sutra', 'accessory'].includes(item.type)) player.maxHealth += health;
+                        // 增加炼器等级
+                        item.strengthen++;
+                        // 发送炼器成功通知
+                        this.$notify({ title: '炼器提示', message: '炼器成功', position: 'top-left' });
+                    } else {
+                        // 如果炼器等级等于或大于15级并且未开启炼器保护
+                        if (item.strengthen >= 15 && !this.protect) {
+                            // 移除销毁当前装备
+                            player.equipment[item.type] = {};
+                            // 扣除已销毁装备增加的属性
+                            player.dodge -= item.dodge; // 闪避
+                            player.attack -= item.attack; // 攻击
+                            player.health = player.maxHealth; // 血量
+                            player.defense -= item.defense; // 防御
+                            player.critical -= item.critical; // 暴击
+                            item.strengthen = 0; // 炼器等级清零
+                            player.maxHealth -= item.health; // 最高血量
+                            // 关闭炼器弹窗
+                            this.strengthenShow = false;
+                        }
+                        // 发送炼器失败通知
+                        this.$notify({ title: '炼器提示', message: item.strengthen >= 15 && !this.protect ? '炼器失败, 装备已自动销毁' : '炼器失败', position: 'top-left' });
+                    }
+                    // 扣除炼器石
+                    this.player.strengtheningStone -= calculateCost;
+                    // 更新玩家存档
+                    this.$store.commit('setPlayer', this.player);
+                }).catch(() => { });
+            },
             // 计算所需修为相差百分比
             calculatePercentageDifference (num1, num2) {
                 let difference = Math.abs(num1 - num2);
@@ -730,7 +939,7 @@
             isFloat (num) {
                 return Number(num) === num && num % 1 !== 0;
             },
-            // 随机获取商店装备
+            // 获取商店装备
             tabClick () {
                 if (this.inventoryActive == 'shop') this.shopItems = shop.drawPrize(this.maxLv);
             },
@@ -758,6 +967,7 @@
                     this.shopBuy(item);
                 }).catch(() => { });
             },
+            // 单位转换
             formatNumberToChineseUnit (number) {
                 if (number >= 100000000) {
                     return (number / 100000000).toFixed(2) + '亿';
@@ -852,7 +1062,7 @@
             },
             // 删档
             deleteData (type) {
-                this.$confirm(type ? '你确定要清空背包里的所有道具吗?' : '你确定要删除存档吗?建议数据出问题的时候再删除', type ? '道具清空提示' : '数据删除提示', {
+                this.$confirm(type ? '你确定要出售背包里的所有装备吗?' : '你确定要删除存档吗?建议数据出问题的时候再删除', type ? '装备出售提示' : '数据删除提示', {
                     center: true,
                     cancelButtonText: '我点错了',
                     confirmButtonText: '确定以及肯定'
@@ -860,12 +1070,16 @@
                     if (type) {
                         // 关闭弹窗
                         this.show = false;
-                        // 清空背包道具
+                        // 计算未锁定装备的等级总和
+                        const strengtheningStoneTotal = this.player.inventory.filter(equipment => !equipment.lock).reduce((acc, equipment) => acc + equipment.level, 0);
+                        // 增加炼器石数量
+                        this.player.strengtheningStone += strengtheningStoneTotal
+                        // 清空背包内所有未锁定装备
                         this.player.inventory = this.player.inventory.filter(obj => obj.lock === true);
                         this.$store.commit('setPlayer', this.player);
                         this.$notify({
-                            title: '背包清空提示',
-                            message: '背包内所有非锁定装备已成功清空'
+                            title: '背包装备售卖提示',
+                            message: `背包内所有非锁定装备已成功出售, 你获得了${strengtheningStoneTotal}个炼器石`
                         });
                     } else {
                         // 清空存档
@@ -1166,14 +1380,15 @@
                     message: `<div class="monsterinfo">
                         <div class="monsterinfo-box">
                             <p>类型: ${this.genre[info.type]}</p>
+                            <p>炼器: +${info.strengthen}</p>
                             <p>境界: ${this.levelNames[info.level]}</p>
                             <p>品质: ${this.levels[info.quality]}</p>
-                            <p>气血: ${info.health}</p>
-                            <p>攻击: ${info.attack}</p>
-                            <p>防御: ${info.defense}</p>
-                            <p>闪避率: ${info.dodge}%</p>
-                            <p>暴击率: ${info.critical}%</p>
-                            <p>获得率: ${info.prize == 0 ? '无法掉落' : info.prize + '%'}</p>
+                            <p>气血: ${Math.floor(info.health)}</p>
+                            <p>攻击: ${Math.floor(info.attack)}</p>
+                            <p>防御: ${Math.floor(info.defense)}</p>
+                            <p>闪避率: ${(info.dodge * 100).toFixed(2)}%</p>
+                            <p>暴击率: ${(info.critical * 100).toFixed(2)}%</p>
+                            <p>获得率: ${info.prize}%</p>
                         </div>
                     </div>`,
                     dangerouslyUseHTMLString: true
@@ -1339,6 +1554,7 @@
                 } else {
                     this.storyText = '你已经达到了当前境界的修为上限，需要突破到下一个境界。';
                     this.actions = [
+                        { text: '转生突破', handler: this.reincarnationBreakthrough },
                         { text: '突破境界', handler: () => this.breakThrough(1) },
                         { text: '杀敌证道', handler: this.explore }
                     ];
@@ -1606,18 +1822,25 @@
                 // 更新玩家存档
                 this.$store.commit('setPlayer', this.player);
             },
-            // 删除道具
+            // 出售装备
             inventoryClose (item) {
-                this.$confirm(`你确定要丢弃<span class="el-tag el-tag--${item.quality}">${this.levels[item.quality]}${item.name}(${this.genre[item.type]})</span>吗?`, '道具丢弃通知', {
+                this.$confirm(`你确定要出售<span class="el-tag el-tag--${item.quality}">${this.levels[item.quality]}${item.name}(${this.genre[item.type]})</span>吗?`, '装备出售通知', {
                     center: true,
-                    cancelButtonText: '取消',
-                    confirmButtonText: '确定',
+                    cancelButtonText: '取消出售',
+                    confirmButtonText: '确定出售',
                     dangerouslyUseHTMLString: true
                 }).then(() => {
+                    // 增加炼器石数量
+                    this.player.strengtheningStone += item.level;
                     // 删除道具
                     this.player.inventory = this.player.inventory.filter(obj => obj.id !== item.id);
                     // 更新玩家存档
                     this.$store.commit('setPlayer', this.player);
+                    // 装备出售通知
+                    this.$notify({
+                        title: '背包装备售卖提示',
+                        message: `${item.name}已成功卖出, 你获得了${item.level}个炼器石`
+                    });
                 }).catch(() => { });
             },
             // 道具锁定or道具解锁
@@ -1645,6 +1868,7 @@
                     message: `<div class="monsterinfo">
                         <div class="monsterinfo-box">
                             <p>类型: ${this.genre[type] ?? '未知'}</p>
+                            <p>炼器: ${equipment.strengthen ? '+' + equipment.strengthen : 0}</p>
                             <p>境界: ${this.levelNames[equipment.level]}</p>
                             <p>品质: ${this.levels[equipment.quality] ?? '未知'}</p>
                             <p>气血: ${equipment.health}</p>
@@ -1654,7 +1878,16 @@
                             <p>暴击率: ${(equipment.critical * 100).toFixed(2) ?? 0}%</p>
                         </div>
                     </div>`,
+                    cancelButtonText: '确定',
+                    confirmButtonText: '炼器',
                     dangerouslyUseHTMLString: true
+                }).then(() => {
+                    // 打开炼器弹窗
+                    this.strengthenShow = true;
+                    // 需要炼器的装备信息
+                    this.strengthenInfo = equipment;
+                    // 炼器等级
+                    this.player.equipment[type].strengthen = equipment.strengthen ? equipment.strengthen : 0;
                 }).catch(() => { });
             },
             // 发现的装备信息
@@ -2016,6 +2249,21 @@
     .value {
         text-align: left;
     }
+
+    /* 炼器弹窗 */
+    .strengthen-box {
+        padding: 0 5px;
+    }
+
+    .click-box {
+        padding: 0 5px;
+        margin-top: 10px;
+    }
+
+    .click-box button {
+        margin-top: 10px;
+        width: 100%;
+    }
 </style>
 
 <style>
@@ -2088,6 +2336,10 @@
 
         .levels .el-drawer.ltr {
             width: 50% !important;
+        }
+
+        .strengthen .el-drawer.rtl {
+            width: 70% !important;
         }
 
         .el-dialog {

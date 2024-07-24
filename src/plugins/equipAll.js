@@ -13,9 +13,9 @@ const All = {
             // 根据装备品质调整装备属性值
             const qualityMultiplier = { info: 1.2, success: 2, primary: 3, purple: 5, warning: 7, danger: 10, pink: 15 };
             const multiplier = qualityMultiplier[quality];
-            const Attack = 1000 * lv;
-            const Health = 10000 * lv;
-            const CriticalHitrate = 0.1;
+            const Attack = this.calculateCompoundGrowth(1000 * lv, 20, 0.1);
+            const Health = this.calculateCompoundGrowth(10000 * lv, 20, 0.1);
+            const CriticalHitrate = this.calculateCompoundGrowth(0.1, 20, 0.1);
             const attrs = {
                 attack: ['weapon', 'accessory', 'sutra'].includes(type) ? Attack * multiplier : 0,
                 health: ['armor', 'accessory', 'sutra'].includes(type) ? Health * multiplier : 0,
@@ -39,7 +39,8 @@ const All = {
                     critical: getAttribute(type, lv, 'critical', quality[kk]),
                     dodge: getAttribute(type, lv, 'dodge', quality[kk]),
                     defense: getAttribute(type, lv, 'defense', quality[kk]),
-                    quality: quality[kk]
+                    quality: quality[kk],
+                    strengthen: 20
                 }))
             )
         }));
@@ -87,6 +88,15 @@ const All = {
             ['炽焰灵珠阵图', '火凤涅槃炉鼎', '红莲业火净世碑', '血玉轮回盘', '朱雀翔天翼', '烈焰焚天炉', '丹霄火域图', '赤龙炼魂珠', '火灵炽心镜', '九转炎灵祭坛'],
             ['粉樱梦幻笛', '甜心粉蝶壶', '蜜桃恋语镜', '粉晶流光珠', '柔粉绮梦石', '樱花纷飞扇', '甜梦绮罗盘', '蜜桃幻影灯', '粉蝶织梦琴', '粉樱守护符']
         ];
+    },
+    // 计算炼器后的数值
+    calculateCompoundGrowth (baseValue, growthTimes, growthRate = 0.1) {
+        // 计算复合增长后的值  
+        let result = baseValue;
+        for (let i = 0; i < growthTimes; i++) {
+            result *= (1 + growthRate);
+        }
+        return result;
     }
 };
 export default All;

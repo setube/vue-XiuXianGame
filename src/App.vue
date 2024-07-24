@@ -855,40 +855,40 @@
                         const defense = Math.floor(item.defense * 0.1);
                         // 暴击
                         const critical = parseFloat(item.critical * 0.1);
-                        let increaseStats = {};
                         switch (item.type) {
                             // 如果是兵器
                             case 'weapon':
-                                increaseStats = {
-                                    attack: item.attack += attack,
-                                    critical: item.critical += critical
-                                };
+                                item.attack += attack;
+                                item.critical += critical;
+                                player.attack += attack;
+                                player.critical += critical;
                                 break;
                             // 如果是防具
                             case 'armor':
-                                increaseStats = {
-                                    health: item.health += health,
-                                    defense: item.defense += defense
-                                };
+                                item.health += health;
+                                item.defense += defense;
+                                player.health += health;
+                                player.defense += defense;
+                                player.maxHealth += health;
                                 break;
                             // 如果是灵宝或法器
                             case 'accessory':
                             case 'sutra':
-                                increaseStats = {
-                                    dodge: item.dodge += dodge,
-                                    attack: item.attack += attack,
-                                    health: item.health += health,
-                                    defense: item.defense += defense,
-                                    critical: item.critical += critical
-                                };
+                                item.dodge += dodge;
+                                item.attack += attack;
+                                item.health += health;
+                                item.defense += defense;
+                                item.critical += critical;
+                                player.dodge += dodge;
+                                player.attack += attack;
+                                player.health += health;
+                                player.defense += defense;
+                                player.critical += critical;
+                                player.maxHealth += health;
                                 break;
                             default:
                                 break;
                         }
-                        Object.assign(item, increaseStats);
-                        Object.assign(player, increaseStats);
-                        // 如果是防具或灵宝或法器就增加玩家的最高气血
-                        if (['armor', 'sutra', 'accessory'].includes(item.type)) player.maxHealth += health;
                         // 增加炼器等级
                         item.strengthen++;
                         // 发送炼器成功通知
@@ -1068,21 +1068,30 @@
                     confirmButtonText: '确定以及肯定'
                 }).then(() => {
                     if (type) {
+                        const inventory = this.player.inventory;
+                        const length = inventory.filter(equipment => !equipment.lock).length;
+                        if (!length) {
+                            this.$notify({
+                                title: '背包装备出售提示',
+                                message: '背包内并没有可以售卖的非锁定装备'
+                            });
+                            return;
+                        }
                         // 关闭弹窗
                         this.show = false;
                         // 计算未锁定装备的等级总和
-                        const strengtheningStoneTotal = this.player.inventory.filter(equipment => !equipment.lock).reduce((acc, equipment) => {
+                        const strengtheningStoneTotal = inventory.filter(equipment => !equipment.lock).reduce((acc, equipment) => {
                             // 确保 level 是一个数字
-                            const level = Number(equipment.level) || 0;  
+                            const level = Number(equipment.level) || 0;
                             return acc + level;
                         }, 0);
                         // 增加炼器石数量
                         this.player.strengtheningStone += strengtheningStoneTotal
                         // 清空背包内所有未锁定装备
-                        this.player.inventory = this.player.inventory.filter(obj => obj.lock === true);
+                        this.player.inventory = inventory.filter(obj => obj.lock === true);
                         this.$store.commit('setPlayer', this.player);
                         this.$notify({
-                            title: '背包装备售卖提示',
+                            title: '背包装备出售提示',
                             message: `背包内所有非锁定装备已成功出售, 你获得了${strengtheningStoneTotal}个炼器石`
                         });
                     } else {
@@ -1460,9 +1469,8 @@
                 let reincarnation = this.player.reincarnation;
                 reincarnation = reincarnation == 0 ? 1 * 100 : reincarnation * 100;
                 // 如果击杀数大于等于转生次数 * 100
-                if (this.player.taskNum >= reincarnation) {
-
-                    if (this.player.level == this.maxLv) {
+                if (this.player.level == this.maxLv) {
+                    if (this.player.taskNum >= reincarnation) {
                         this.$confirm('转生前请务必准备好大乘境的装备,避免转生后无法完成突破条件', '转生提醒', {
                             center: true,
                             cancelButtonText: '再攒攒装备',

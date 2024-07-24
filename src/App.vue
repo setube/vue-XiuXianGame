@@ -1071,7 +1071,11 @@
                         // 关闭弹窗
                         this.show = false;
                         // 计算未锁定装备的等级总和
-                        const strengtheningStoneTotal = this.player.inventory.filter(equipment => !equipment.lock).reduce((acc, equipment) => acc + equipment.level, 0);
+                        const strengtheningStoneTotal = this.player.inventory.filter(equipment => !equipment.lock).reduce((acc, equipment) => {
+                            // 确保 level 是一个数字
+                            const level = Number(equipment.level) || 0;  
+                            return acc + level;
+                        }, 0);
                         // 增加炼器石数量
                         this.player.strengtheningStone += strengtheningStoneTotal
                         // 清空背包内所有未锁定装备

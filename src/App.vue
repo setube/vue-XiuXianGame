@@ -779,6 +779,8 @@
             // 购买装备
             shopBuy (item) {
                 if (this.player.currency >= this.shopPrice) {
+                    // 扣除鸿蒙石
+                    this.player.currency -= this.shopPrice;
                     // 添加到背包
                     this.player.inventory.push(item);
                     // 更新玩家存档
@@ -1052,6 +1054,7 @@
                                     this.boss = {
                                         name: this.boss.name,
                                         time: Math.floor(Date.now() / 1000),
+                                        health: 0,
                                         conquer: true
                                     };
                                     this.isBoss = false;
@@ -1112,7 +1115,7 @@
                 // boss难度根据玩家最高等级 + 转生次数
                 const bossLv = this.maxLv * this.player.reincarnation + this.maxLv;
                 // 如果boss已生成
-                if (this.boss.name) {
+                if (this.boss.health) {
                     // 如果boss被战胜并且战胜时间小于10分钟
                     if (this.boss.conquer && time < 10) {
                         this.$notify({ title: '提示', message: 'Boss还未刷新' });

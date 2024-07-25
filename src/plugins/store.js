@@ -18,14 +18,15 @@ export default new Vuex.Store(
                 dodge: 0,
                 attack: 0,
                 health: 0,
+                conquer: false,
                 defense: 0,
                 critical: 0,
                 maxhealth: 0
             },
             // 玩家属性
             player: {
-                // 当前法力
-                mana: 50,
+                // 命中率
+                hit: 0,
                 // 等级
                 level: 0,
                 // 闪避
@@ -40,8 +41,6 @@ export default new Vuex.Store(
                 critical: 0,
                 // 防御
                 defense: 10,
-                // 总法力
-                maxMana: 50,
                 // 已击杀数量
                 taskNum: 0,
                 // 混沌石数量

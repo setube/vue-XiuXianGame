@@ -23,6 +23,7 @@ const equips = {
             if (random < cumulativeProbability) {
                 const baseEquip = {
                     id: Date.now(), // 装备ID
+                    hit: ['accessory', 'sutra'].includes(type) ? this.equip_Criticalhitrate(lv) : 0, // 命中率
                     name: names[Math.floor(Math.random() * names.length)], //装备名字
                     type, // 装备类型
                     lock: false,

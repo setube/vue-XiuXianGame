@@ -14,6 +14,7 @@ const shop = {
             const Health = 10000 * lv;
             const CriticalHitrate = 0.1;
             const attrs = {
+                hit: ['accessory', 'sutra'].includes(type) ? CriticalHitrate * multiplier : 0,
                 attack: ['weapon', 'accessory', 'sutra'].includes(type) ? Attack * multiplier : 0,
                 health: ['armor', 'accessory', 'sutra'].includes(type) ? Health * multiplier : 0,
                 critical: ['weapon', 'accessory', 'sutra'].includes(type) ? CriticalHitrate * multiplier : 0,
@@ -27,6 +28,7 @@ const shop = {
             name: genre[type],
             data: data.flatMap((name) => ({
                 id: Date.now(),
+                hit: getAttribute(type, lv, 'hit'),
                 name,
                 type,
                 lock: true,

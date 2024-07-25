@@ -4,10 +4,10 @@ const boss = {
         // 血量
         const health = this.getRandomInt(100000, 500000) * lv;
         // 攻击
-        const attack = this.getRandomInt(10000, 100000) * lv;
+        const attack = this.getRandomInt(1000, 5000) * lv;
         // 防御
-        const defense = this.getRandomInt(5000, 50000) * lv;
-        // 闪避 
+        const defense = this.getRandomInt(500, 5000) * lv;
+        // 闪避
         const dodge = this.getRandomFloatInRange(0.1, 1);
         // 暴击
         const critical = this.getRandomFloatInRange(0.1, 1);
@@ -17,7 +17,7 @@ const boss = {
             text: this.boss_Text(),
             time: Math.floor(Date.now() / 1000),
             desc: bossInfo.description,
-            level: lv,
+            level: 40,
             dodge,
             attack,
             health,
@@ -62,7 +62,6 @@ const boss = {
                 const Criticalhitrate = this.getRandomFloatInRange(0.05, 0.1) * 10;
                 return {
                     id: Date.now(), // 装备ID
-                    hit: ['weapon', 'accessory', 'sutra'].includes(quality) ? Criticalhitrate.toFixed(4) : 0, // 命中率
                     name: names[Math.floor(Math.random() * names.length)], //装备名字
                     type: quality, // 装备类型
                     level: lv, // 装备等级

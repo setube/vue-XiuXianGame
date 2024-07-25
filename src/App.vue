@@ -964,7 +964,7 @@
                             <p>气血: ${info.health}</p>
                             <p>攻击: ${info.attack}</p>
                             <p>防御: ${info.defense}</p>
-                            <p>命中率: ${(info.hit * 100).toFixed(2)}%</p>
+                            <p>命中率: 必中</p>
                             <p>闪避率: ${(info.dodge * 100).toFixed(2)}%</p>
                             <p>暴击率: ${(info.critical * 100).toFixed(2)}%</p>
                             <p>鸿蒙石掉落: 10颗</p>
@@ -983,68 +983,88 @@
                     });
                     return;
                 }
-                // 伤害计算
-                const calculateHarm = (attacker, defender) => {
-                    let harm = Math.max(0, Math.floor(attacker.attack - defender.defense));
-                    return harm <= 1 ? 1 : harm;
-                };
-                // 检查是否暴击
-                const checkCritical = (entity) => Math.random() < entity.critical;
-                // 检查是否命中
-                const checkHit = (attacker) => Math.random() < attacker.hit;
-                // 检查是否闪避
-                const checkDodge = (entity) => Math.random() < entity.dodge;
-                // 野怪伤害计算
-                let monsterHarm = calculateHarm(this.boss, this.player);
-                let isMCritical = checkCritical(this.boss);
-                if (isMCritical) monsterHarm *= 2;
+                // boss伤害计算
+                const monsterAttack = this.boss.attack; // boss攻击
+                const playerDefense = this.player.defense; // 玩家防御
+                let monsterHarm = Math.max(0, Math.floor(monsterAttack - playerDefense)); // boss伤害
+                monsterHarm = monsterHarm <= 1 ? 1 : monsterHarm; // 伤害小于1时强制破防
                 // 玩家伤害计算  
-                let playerHarm = calculateHarm(this.player, this.boss);
-                let isCritical = checkCritical(this.player);
-                if (isCritical) playerHarm *= 1.5;
-                // 检查命中和闪避
-                let isMonsterHit = true;
-                let isPlayerHit = checkHit(this.player);
-                let isMDodge = isMonsterHit ? false : checkDodge(this.boss);
-                let isDodge = isPlayerHit ? false : checkDodge(this.player);
-                // 更新血量
-                if (isMonsterHit && !isDodge) this.player.health -= monsterHarm;
-                if (isPlayerHit && !isMDodge) this.boss.health -= playerHarm;
-                // 如果双方都闪避就全扣血
-                if (isMonsterHit && isPlayerHit && isMDodge && isDodge) {
-                    this.player.health -= monsterHarm;
-                    this.boss.health -= playerHarm;
+                const playerAttack = this.player.attack; // 玩家攻击  
+                const monsterDefense = this.boss.defense; // boss防御
+                let playerHarm = Math.max(0, Math.floor(playerAttack - monsterDefense)); // 玩家伤害基础值
+                playerHarm = playerHarm <= 1 ? 1 : playerHarm; // 伤害小于1时强制破防
+                // 是否暴击
+                let isMCritical = false, isCritical = false;
+                // 是否闪避
+                let isMDodge = false, isDodge = false;
+
+                // 检查boss是否暴击  
+                if (Math.random() < this.boss.critical) {
+                    // boss暴击，伤害加倍  
+                    monsterHarm *= 2;
+                    // boss成功暴击
+                    isMCritical = true;
                 }
+
+                // 检查玩家是否暴击  
+                if (Math.random() < this.player.critical) {
+                    // 玩家暴击，伤害加倍  
+                    playerHarm *= 1.5;
+                    // 玩家成功暴击
+                    isCritical = true;
+                }
+
+                // 强制扣除玩家气血, 因为boss攻击必中
+                this.player.health -= monsterHarm;
+
+                // 检查boss是否闪避  
+                if (Math.random() > this.boss.dodge) {
+                    // boss未闪避，扣除boss气血  
+                    this.boss.health -= playerHarm;
+                } else {
+                    // 野怪闪避成功
+                    isMDodge = true;
+                }
+
                 this.player.health = Math.max(0, this.player.health);
                 this.boss.health = Math.max(0, this.boss.health);
+
                 if (this.guashaRounds > 1) {
+                    // 扣除回合数
                     this.guashaRounds--;
+                    // boss气血小于等于0
                     if (this.boss.health <= 0) {
                         const equipItem = boss.boss_Equip(this.maxLv);
                         this.isequipment = true;
                         this.storyText = `你击败${this.boss.name}后，获得了<span class="el-tag el-tag--${equipItem.quality}">${this.levels[equipItem.quality]}${equipItem.name}(${this.genre[equipItem.type]})</span>`;
                         this.player.currency += 10;
+                        // 获得鸿蒙石通知
                         this.$notify({ title: '道具获得提示', message: '你获得了10颗鸿蒙石' });
                         this.openEquipItemInfo = equipItem;
+                        // 跳转背包相关页
                         this.inventoryActive = equipItem.type;
+                        // 玩家获得道具
                         if (equipItem?.name) this.player.inventory.push(equipItem);
                         this.actions = [
                             {
                                 text: '回到家里', type: 'success', handler: () => {
+                                    // 修改boss状态
+                                    this.boss = {
+                                        name: this.boss.name,
+                                        time: Math.floor(Date.now() / 1000),
+                                        conquer: true
+                                    };
                                     this.isBoss = false;
-                                    this.boss.time = Date.now();
-                                    this.boss.conquer = true;
                                     this.startGame();
                                 }
                             }
                         ];
                     } else if (this.player.health <= 0) {
                         this.$notify({ title: this.boss.name, message: this.boss.text });
-                        this.storyText = '你因为太弱被击败了。';
+                        this.storyText = '你因为太弱被击败了。'
                         this.actions = [
                             {
                                 text: '回到家里', type: 'success', handler: () => {
-
                                     this.isBoss = false;
                                     this.startGame();
                                 }
@@ -1052,12 +1072,13 @@
                         ];
                     } else {
                         let dodgeText1 = '', dodgeText2 = '';
+                        // 野怪
                         if (isMDodge && isDodge) {
                             dodgeText1 = `你攻击了${this.boss.name}，${isCritical ? '触发暴击' : ''}造成了${playerHarm}点伤害，剩余${this.boss.health}气血。`;
                             dodgeText2 = `${this.boss.name}攻击了你，${isMCritical ? '触发暴击' : ''}造成了${monsterHarm}点伤害`;
                         } else {
-                            dodgeText1 = isMDodge ? `你攻击了${this.boss.name}，对方闪避了你的攻击，你未造成伤害，剩余${this.boss.health}气血。` : `你攻击了${this.boss.name}，${isCritical ? '触发暴击' : ''}造成了${playerHarm}点伤害，剩余${this.boss.health}气血。`;
-                            dodgeText2 = isDodge ? `${this.boss.name}攻击了你，你闪避了对方的攻击，对方未造成伤害。` : `${this.boss.name}攻击了你，${isMCritical ? '触发暴击' : ''}造成了${monsterHarm}点伤害`;
+                            dodgeText1 = isMDodge ? `你攻击了${this.boss.name}，对方闪避了你的攻击，你未造成伤害，剩余${this.boss.health}气血。 ` : `你攻击了${this.boss.name}，${isCritical ? '触发暴击' : ''}造成了${playerHarm}点伤害，剩余${this.boss.health}气血。`;
+                            dodgeText2 = isDodge ? `${this.boss.name}攻击了你，你闪避了对方的攻击，对方未造成伤害。 ` : `${this.boss.name}攻击了你，${isMCritical ? '触发暴击' : ''}造成了${monsterHarm}点伤害`;
                         }
                         this.storyText = `${this.guashaRounds}回合 / 100回合<br>${dodgeText1}<br>${dodgeText2}`;
                         this.actions = [
@@ -1081,24 +1102,28 @@
                         { text: '回到家里', type: 'success', handler: this.startGame }
                     ];
                 }
+                // 更新玩家存档
                 this.$store.commit('setPlayer', this.player);
             },
             // 世界BOSS
             assaultBoss () {
                 // boss生成的时间
                 const time = this.getMinuteDifference(this.boss.time);
+                // boss难度根据玩家最高等级 + 转生次数
+                const bossLv = this.maxLv * this.player.reincarnation + this.maxLv;
                 // 如果boss已生成
                 if (this.boss.name) {
                     // 如果boss被战胜并且战胜时间小于10分钟
                     if (this.boss.conquer && time < 10) {
                         this.$notify({ title: '提示', message: 'Boss还未刷新' });
                         return;
-                    } else {
-                        this.boss = boss.drawPrize(this.maxLv);
+                        // 如果没有击败boss并且boss生成的时间大于等于10分钟
+                    } else if (!this.boss.conquer && time >= 10) {
+                        this.boss = boss.drawPrize(bossLv);
                     }
                     //如果没有生成boss就生成一个新的boss
                 } else {
-                    this.boss = boss.drawPrize(this.maxLv);
+                    this.boss = boss.drawPrize(bossLv);
                     // 更新boss信息
                     this.$store.commit('setBoss', this.boss);
                 }
@@ -1363,27 +1388,26 @@
             },
             // 遇怪逻辑
             encounterMonster () {
-                // 转生次数
-                let reincarnation = this.player.reincarnation;
-                reincarnation = reincarnation == 0 ? 1 : reincarnation;
                 // 玩家境界
-                const level = this.player.level == 0 ? 1 * reincarnation : this.player.level + this.player.level * reincarnation;
+                let level = this.player.level == 0 ? 1 : this.player.level;
+                // 怪物难度根据玩家最高境界 + 转生次数
+                const monsterLv = level * this.player.reincarnation + level;
                 // 野怪属性
                 this.monster = {
                     // 命中率
-                    hit: monster.monster_Criticalhitrate(level),
+                    hit: monster.monster_Criticalhitrate(monsterLv),
                     // 名称
-                    name: monster.monster_Names(level),
+                    name: monster.monster_Names(monsterLv),
                     // 气血
-                    health: monster.monster_Health(level),
+                    health: monster.monster_Health(monsterLv),
                     // 攻击
-                    attack: monster.monster_Attack(level),
+                    attack: monster.monster_Attack(monsterLv),
                     // 防御
-                    defense: monster.monster_Attack(level),
+                    defense: monster.monster_Attack(monsterLv),
                     // 闪避率
-                    dodge: monster.monster_Criticalhitrate(level),
+                    dodge: monster.monster_Criticalhitrate(monsterLv),
                     // 暴击
-                    critical: monster.monster_Criticalhitrate(level)
+                    critical: monster.monster_Criticalhitrate(monsterLv)
                 };
                 this.ismonster = true;
                 this.storyText = `你遇到了<span class="el-tag el-tag--danger">${this.monster.name}</span>`;
@@ -1453,49 +1477,71 @@
             fightMonster () {
                 this.ismonster = false;
                 this.isequipment = false;
-
-                // 伤害计算函数
-                const calculateHarm = (attacker, defender) => {
-                    let harm = Math.max(0, Math.floor(attacker.attack - defender.defense));
-                    return harm <= 1 ? 1 : harm;
-                };
-
-                // 检查是否暴击函数
-                const checkCritical = (entity) => Math.random() < entity.critical;
-
-                // 检查是否命中函数
-                const checkHit = (attacker) => Math.random() < attacker.hit;
-
-                // 检查是否闪避函数
-                const checkDodge = (entity) => Math.random() < entity.dodge;
-
                 // 野怪伤害计算
-                let monsterHarm = calculateHarm(this.monster, this.player);
-                let isMCritical = checkCritical(this.monster);
-                if (isMCritical) monsterHarm *= 2;
-
+                const monsterAttack = this.monster.attack; // 野怪攻击
+                const playerDefense = this.player.defense; // 玩家防御
+                let monsterHarm = Math.max(0, Math.floor(monsterAttack - playerDefense)); // 野怪伤害
+                monsterHarm = monsterHarm <= 1 ? 1 : monsterHarm; // 伤害小于1时强制破防
                 // 玩家伤害计算  
-                let playerHarm = calculateHarm(this.player, this.monster);
-                let isCritical = checkCritical(this.player);
-                if (isCritical) playerHarm *= 1.5;
+                const playerAttack = this.player.attack; // 玩家攻击  
+                const monsterDefense = this.monster.defense; // 野怪防御
+                let playerHarm = Math.max(0, Math.floor(playerAttack - monsterDefense)); // 玩家伤害基础值
+                playerHarm = playerHarm <= 1 ? 1 : playerHarm; // 伤害小于1时强制破防
+                // 是否暴击
+                let isMCritical = false, isCritical = false;
+                // 是否闪避
+                let isMDodge = false, isDodge = false;
+                // 是否命中
+                let isMHit = false, isHit = false;
 
-                // 检查命中和闪避
-                let isMonsterHit = checkHit(this.monster);
-                let isPlayerHit = checkHit(this.player);
+                // 检查野怪是否暴击  
+                if (Math.random() < this.monster.critical) {
+                    // 野怪暴击，伤害加倍  
+                    monsterHarm *= 2;
+                    // 野怪成功暴击
+                    isMCritical = true;
+                }
 
-                let isMDodge = isMonsterHit ? false : checkDodge(this.monster);
-                let isDodge = isPlayerHit ? false : checkDodge(this.player);
+                // 检查玩家是否暴击  
+                if (Math.random() < this.player.critical) {
+                    // 玩家暴击，伤害加倍  
+                    playerHarm *= 1.5;
+                    // 玩家成功暴击
+                    isCritical = true;
+                }
 
-                // 更新血量
-                if (isMonsterHit && !isDodge) this.player.health -= monsterHarm;
-                if (isPlayerHit && !isMDodge) this.monster.health -= playerHarm;
+                // 检查玩家是否命中
+                if (Math.random() > this.player.hit) isHit = true;
+                // 检查怪物是否命中
+                if (Math.random() > this.monster.hit) isMHit = true;
+
+                // 检查玩家是否闪避
+                if (!isMHit && Math.random() > this.player.dodge) {
+                    // 玩家未闪避，扣除玩家气血  
+                    this.player.health -= monsterHarm;
+                } else {
+                    // 玩家闪避成功
+                    isDodge = true;
+                }
+
+                // 检查野怪是否闪避  
+                if (!isHit && Math.random() > this.monster.dodge) {
+                    // 野怪未闪避，扣除野怪气血  
+                    this.monster.health -= playerHarm;
+                } else {
+                    // 野怪闪避成功
+                    isMDodge = true;
+                }
 
                 this.player.health = Math.max(0, this.player.health);
                 this.monster.health = Math.max(0, this.monster.health);
 
                 if (this.guashaRounds > 1) {
+                    // 扣除回合数
                     this.guashaRounds--;
+                    // 野怪气血小于等于0
                     if (this.monster.health <= 0) {
+                        // 增加击杀数量
                         this.player.taskNum++;
                         this.findTreasure(this.monster.name);
                         this.actions = [
@@ -1509,7 +1555,9 @@
                             { text: '回到家里', type: 'success', handler: this.startGame }
                         ];
                     } else {
+                        // 玩家
                         const dodgeText1 = isMDodge ? `你攻击了${this.monster.name}，对方闪避了你的攻击，你未造成伤害，剩余${this.monster.health}气血。` : `你攻击了${this.monster.name}，${isCritical ? '触发暴击' : ''}造成了${playerHarm}点伤害，剩余${this.monster.health}气血。`;
+                        // 野怪
                         const dodgeText2 = isDodge ? `${this.monster.name}攻击了你，你闪避了对方的攻击，对方未造成伤害。` : `${this.monster.name}攻击了你，${isMCritical ? '触发暴击' : ''}造成了${monsterHarm}点伤害`;
                         this.storyText = `${this.guashaRounds}回合 / 10回合<br>${dodgeText1}<br>${dodgeText2}`;
                         this.actions = [

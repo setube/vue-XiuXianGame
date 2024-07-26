@@ -709,6 +709,12 @@
             petUpgrade (item) {
                 // 计算灵宠升级所需材料数量
                 const consume = this.petConsumption(item.level);
+                // 如果灵宠培养到了满级
+                if (item.level >= this.maxLv) {
+                    // 发送通知
+                    this.$notify({ title: '灵宠培养提示', message: '灵宠境界已满', position: 'top-left' });
+                    return;
+                }
                 // 如果培养丹不足
                 if (consume > this.player.cultivateDan) {
                     // 发送通知

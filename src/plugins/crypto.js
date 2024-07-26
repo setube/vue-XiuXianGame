@@ -13,17 +13,13 @@ const crypto = {
         }).toString();
     },
     decryption (data) {
-        if (typeof data == 'string') {
-            const iv = this.iv().join('');
-            const player = CryptoJS.AES.decrypt(data, iv, {
-                iv,
-                mode: CryptoJS.mode.CBC,
-                padding: CryptoJS.pad.Pkcs7
-            }).toString(CryptoJS.enc.Utf8);
-            return JSON.parse(player);
-        } else {
-            return data;
-        }
+        const iv = this.iv().join('');
+        const player = CryptoJS.AES.decrypt(data, iv, {
+            iv,
+            mode: CryptoJS.mode.CBC,
+            padding: CryptoJS.pad.Pkcs7
+        }).toString(CryptoJS.enc.Utf8);
+        return JSON.parse(player);
     },
 };
 

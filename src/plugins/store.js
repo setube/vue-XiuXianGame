@@ -25,8 +25,10 @@ export default new Vuex.Store(
             },
             // 玩家属性
             player: {
-                // 命中率
-                hit: 0,
+                // 出战的灵兽
+                pet: {},
+                // 收服的灵兽
+                pets: [],
                 // 等级
                 level: 0,
                 // 闪避
@@ -64,6 +66,8 @@ export default new Vuex.Store(
                 },
                 // 当前修为
                 cultivation: 0,
+                // 培养丹数量
+                cultivateDan: 0,
                 // 转生次数
                 reincarnation: 0,
                 // 下个等级所需修为
@@ -71,8 +75,6 @@ export default new Vuex.Store(
                 // 强化石数量
                 strengtheningStone: 0
             },
-            // 离线时间戳
-            offline: 0
         },
         mutations: {
             setBoss (state, data) {
@@ -80,9 +82,6 @@ export default new Vuex.Store(
             },
             setPlayer (state, data) {
                 state.player = data;
-            },
-            setOffline (state, data) {
-                state.offline = data;
             }
         },
         plugins: [
@@ -91,8 +90,7 @@ export default new Vuex.Store(
                 reducer (val) {
                     return {
                         boss: crypto.encryption(val.boss),
-                        player: crypto.encryption(val.player),
-                        offline: crypto.encryption(val.offline),
+                        player: crypto.encryption(val.player)
                     };
                 }
             })

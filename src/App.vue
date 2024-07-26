@@ -9,8 +9,8 @@
                 </svg>
             </a>
         </div>
-        <div class="game-container" v-loading="loading">
-            <div class="game-box" v-if="!loading">
+        <div class="game-container">
+            <div class="game-box">
                 <i class="setting el-icon-setting" @click="show = !show" />
                 <div class="Illustrations" v-if="isIllustrations">
                     <div class="story">
@@ -73,9 +73,6 @@
                                 <i class="el-icon-circle-plus-outline" v-if="player.points > 0" @click="attributePoints('defense')" />
                             </div>
                             <div class="tag attribute">
-                                命中率: {{ player.hit > 0 ? (player.hit * 100).toFixed(2) : 0 }}%
-                            </div>
-                            <div class="tag attribute">
                                 闪避率: {{ player.dodge > 0 ? (player.dodge * 100).toFixed(2) : 0 }}%
                             </div>
                             <div class="tag attribute">
@@ -87,12 +84,15 @@
                             <div class="tag attribute" @click="$notify({title: '获得方式', message: '可以通过出售装备可获得'})">
                                 炼器石: {{ player.strengtheningStone || 0 }}
                             </div>
+                            <div class="tag attribute" @click="$notify({title: '获得方式', message: '可以通过探索秘境可获得'})">
+                                培养丹: {{ player.cultivateDan || 0 }}
+                            </div>
                         </div>
                     </div>
                     <div class="equip-box">
                         <div class="tag equip-item">
                             <span class="equip">
-                                <span>兵器: </span>
+                                <span>神兵: </span>
                                 <el-tag v-if="player.equipment.weapon?.name" :type="player.equipment.weapon?.quality" :closable="player.equipment.weapon?.name ? true : false" @close="equipmentClose('weapon')" @click="equipmentInfo('weapon')">
                                     {{ player.equipment.weapon?.name }}{{ player.equipment.weapon?.strengthen ? '+' + player.equipment.weapon?.strengthen : '' }}
                                 </el-tag>
@@ -122,6 +122,13 @@
                                 <span v-else>无</span>
                             </span>
                         </div>
+                        <div class="tag equip-item">
+                            <span class="equip">
+                                <span>灵宠: </span>
+                                <el-tag class="pet" v-if="player.pet?.name" :type="computePetsLevel(player.pet?.level)" closable @close="petRetract" @click="petItemShow = true">{{ player.pet?.name }}</el-tag>
+                                <span v-else>无</span>
+                            </span>
+                        </div>
                         <div class="tag inventory-box">
                             <el-tabs v-model="inventoryActive" :stretch="true" @tab-click="tabClick">
                                 <el-tab-pane :label="i.name" :name="i.type" v-for="(i, k) in backPackItem" :key="k">
@@ -139,6 +146,15 @@
                                                 领取新手礼包
                                             </el-tag>
                                         </div>
+                                    </div>
+                                </el-tab-pane>
+                                <el-tab-pane label="灵宠" name="pet">
+                                    <div class="inventory-content">
+                                        <template v-for="(item, index) in player.pets">
+                                            <el-tag class="inventory-item" :type="computePetsLevel(item.level)" :key="index" @click="petItemInfo(item)">
+                                                {{ item.name }}
+                                            </el-tag>
+                                        </template>
                                     </div>
                                 </el-tab-pane>
                                 <el-tab-pane label="鸿蒙商店" name="shop">
@@ -165,13 +181,50 @@
                 </div>
             </div>
             <div class="bbh">
-                当前游戏版本0.6.1
+                当前游戏版本0.6.5
             </div>
         </div>
         <el-drawer title="修仙境界表" :visible.sync="isLevel" direction="ltr" class="levels">
             <el-tag class="inventory-item" :type="player.level == index ? 'primary' : (index > player.level ? 'danger' : 'success')" :key="index" v-for="(item, index) in levelNames">
                 {{ item }}
             </el-tag>
+        </el-drawer>
+        <el-drawer title="灵宠培养" :visible.sync="petItemShow" direction="rtl" class="strengthen">
+            <div class="strengthen-box">
+                <div class="attributes">
+                    <div class="attribute-box">
+                        <div class="tag attribute">
+                            境界: {{ levelNames[player.pet.level] }}
+                        </div>
+                        <div class="tag attribute">
+                            气血: {{ player.pet.health }}
+                        </div>
+                        <div class="tag attribute">
+                            攻击: {{ player.pet.attack }}
+                        </div>
+                        <div class="tag attribute">
+                            防御: {{ player.pet.defense }}
+                        </div>
+                        <div class="tag attribute">
+                            闪避率: {{ player.pet.dodge > 0 ? (player.pet.dodge * 100).toFixed(2) : 0 }}%
+                        </div>
+                        <div class="tag attribute">
+                            暴击率: {{ player.pet.critical > 0 ? (player.pet.critical * 100).toFixed(2) : 0 }}%
+                        </div>
+                        <div class="tag attribute" @click="$notify({title: '获得方式', message: '可以通过探索秘境获得', position: 'top-left'})">
+                            拥有培养丹: {{ player.cultivateDan || 0 }}
+                        </div>
+                        <div class="tag attribute">
+                            培养消耗: {{ petConsumption(player.pet.level) }}
+                        </div>
+                    </div>
+                </div>
+                <div class="click-box">
+                    <el-button type="primary" @click="petUpgrade(player.pet)">
+                        点击培养
+                    </el-button>
+                </div>
+            </div>
         </el-drawer>
         <el-drawer title="炼器" :visible.sync="strengthenShow" direction="rtl" class="strengthen">
             <div class="strengthen-box">
@@ -188,9 +241,6 @@
                         </div>
                         <div class="tag attribute">
                             防御: {{ strengthenInfo.defense }}
-                        </div>
-                        <div class="tag attribute" @click="$notify({title: '提示', message: '炼器无法增加命中率', position: 'top-left'})">
-                            命中率: {{ strengthenInfo.hit > 0 ? (strengthenInfo.hit * 100).toFixed(2) : 0 }}%
                         </div>
                         <div class="tag attribute">
                             闪避率: {{ strengthenInfo.dodge > 0 ? (strengthenInfo.dodge * 100).toFixed(2) : 0 }}%
@@ -279,13 +329,6 @@
                         <span class="value">{{ calculateDifference(inventoryInfo.defense, player.equipment[inventoryInfo.type]?.defense).num }}</span>
                     </p>
                     <p>
-                        <span class="description">命中率: {{ (inventoryInfo.hit * 100).toFixed(2) ?? 0 }}%</span>
-                        <span class="icon">
-                            <i :class="calculateDifference(inventoryInfo.hit, player.equipment[inventoryInfo.type]?.hit).icon" />
-                        </span>
-                        <span class="value">{{ calculateDifference(inventoryInfo.hit, player.equipment[inventoryInfo.type]?.hit).num }}</span>
-                    </p>
-                    <p>
                         <span class="description">闪避率: {{ (inventoryInfo.dodge * 100).toFixed(2) ?? 0 }}%</span>
                         <span class="icon">
                             <i :class="calculateDifference(inventoryInfo.dodge, player.equipment[inventoryInfo.type]?.dodge).icon" />
@@ -353,7 +396,6 @@
                 show: false,
                 // boss属性
                 boss: {
-                    hit: 0,
                     name: '',
                     text: '',
                     desc: '',
@@ -362,6 +404,7 @@
                     attack: 0,
                     health: 0,
                     defense: 0,
+                    conquer: false,
                     critical: 0,
                     maxhealth: 0,
                 },
@@ -370,7 +413,7 @@
                 genre: {
                     sutra: '法器',
                     armor: '护甲',
-                    weapon: '兵器',
+                    weapon: '神兵',
                     accessory: '灵宝'
                 },
                 isBoss: false,
@@ -385,8 +428,10 @@
                 },
                 // 玩家属性
                 player: {
-                    // 当前法力
-                    mana: 50,
+                    // 当前携带的灵宠
+                    pet: {},
+                    // 已收服的灵宠
+                    pets: [],
                     // 境界
                     level: 0,
                     // 闪避率
@@ -399,8 +444,6 @@
                     health: 100,
                     // 防御
                     defense: 10,
-                    // 总法力
-                    maxMana: 50,
                     // 已击杀数量
                     taskNum: 0,
                     // 暴击率
@@ -419,19 +462,21 @@
                         sutra: null,
                         // 护甲
                         armor: null,
-                        // 兵器
+                        // 神兵
                         weapon: null,
                         // 灵宝
                         accessory: null
                     },
                     // 当前修为
                     cultivation: 0,
+                    // 培养丹数量
+                    cultivateDan: 0,
                     // 转生次数
                     reincarnation: 0,
                     // 下个境界所需修为
                     maxCultivation: 100,
                     // 炼器石数量
-                    strengtheningStone: 0
+                    strengtheningStone: 0,
                 },
                 // 野怪属性
                 monster: {
@@ -449,7 +494,6 @@
                     critical: 0
                 },
                 isLevel: false,
-                loading: false,
                 actions: [],
                 // 炼器保护
                 protect: false,
@@ -484,10 +528,12 @@
                 storyText: '',
                 ismonster: false,
                 isequipment: false,
+                // 灵宠信息弹窗
+                petItemShow: false,
                 // 回合数
                 guashaRounds: 10,
                 backPackItem: [
-                    { type: 'weapon', name: '兵器' },
+                    { type: 'weapon', name: '神兵' },
                     { type: 'armor', name: '护甲' },
                     { type: 'accessory', name: '灵宝' },
                     { type: 'sutra', name: '法器' }
@@ -551,21 +597,6 @@
                     this.player.dodge = val;
                 }
             },
-            'player.hit': function (val) {
-                if (isNaN(val) || val < 0) {
-                    this.player.hit = 0;
-                    this.storyText = '命中属性出错, 请手动卸下身上穿的所有装备后刷新游戏';
-                } else {
-                    this.player.hit = val;
-                }
-            },
-            actions (val) {
-                this.actions = val;
-                this.loading = true;
-                setTimeout(() => {
-                    this.loading = false;
-                }, 500);
-            }
         },
         mounted () {
             // 判断本地有没有玩家存档数据
@@ -573,20 +604,28 @@
             if (local.vuex) {
                 const vuex = JSON.parse(local.vuex);
                 this.boss = crypto.decryption(vuex.boss);
+                // 防止坏档, 死档
+                if (typeof this.boss == 'string') {
+                    this.boss = {};
+                    // 更新玩家存档
+                    this.$store.commit('setBoss', this.boss);
+                }
                 this.player = crypto.decryption(vuex.player);
-                // 防止数据错乱
-                this.player.hit = this.player.hit ? this.player.hit : 0;
-                // 防止数据错乱
+                // 已出战灵宠数据
+                this.player.pet = this.player.pet ? this.player.pet : {};
+                // 灵宠背包数据
+                this.player.pets = this.player.pets ? this.player.pets : [];
+                // 鸿蒙石数量
                 this.player.currency = this.player.currency ? this.player.currency : 0;
-                // 防止数据错乱
+                // 培养丹数量
+                this.player.cultivateDan = this.player.cultivateDan ? this.player.cultivateDan : 0;
+                // 转生次数
                 this.player.reincarnation = this.player.reincarnation ? this.player.reincarnation : 0;
-                // 防止数据错乱
+                // 强化石数量
                 this.player.strengtheningStone = this.player.strengtheningStone ? this.player.strengtheningStone : 0;
                 // 转换背包装备属性为纯数字
-                window.player = this.player;
                 if (this.player.inventory.length) {
                     this.player.inventory.forEach(item => {
-                        item.hit = parseFloat(item.hit || 0);
                         item.attack = Math.floor(item.attack);
                         item.critical = parseFloat(item.critical);
                         item.health = Math.floor(item.health);
@@ -599,6 +638,174 @@
             this.startGame();
         },
         methods: {
+            // 灵宠信息
+            petItemInfo (item) {
+                this.$confirm('', `${item.name}(灵宠)`, {
+                    center: true,
+                    message: `<div class="monsterinfo">
+                        <div class="monsterinfo-box">
+                            <p>境界: ${this.levelNames[item.level]}</p>
+                            <p>气血: ${item.health}</p>
+                            <p>攻击: ${item.attack}</p>
+                            <p>防御: ${item.defense}</p>
+                            <p>闪避率: ${(item.dodge * 100).toFixed(2)}%</p>
+                            <p>暴击率: ${(item.critical * 100).toFixed(2)}%</p>
+                        </div>
+                    </div>`,
+                    confirmButtonText: '出战',
+                    dangerouslyUseHTMLString: true
+                }).then(() => {
+                    this.petCarry(item);
+                }).catch(() => { });
+            },
+            // 灵宠收回
+            petRetract () {
+                const item = this.player.pet;
+                if (JSON.stringify(item) == '{}') return;
+                // 更新玩家属性，移除当前出战灵宠的属性加成
+                this.playerAttribute(-item.dodge, -item.attack, -item.health, -item.critical, -item.defense);
+                // 跳转背包相关页
+                this.inventoryActive = 'pet';
+                // 添加灵宠到灵宠背包里
+                this.player.pets.push(item);
+                // 收回当前出战的灵宠
+                this.player.pet = {};
+                // 更新玩家存档
+                this.$store.commit('setPlayer', this.player);
+            },
+            // 灵宠出战
+            petCarry (item) {
+                // 根据灵宠id查找灵宠信息
+                const petItem = this.getObjectById(item.id, this.player.pets);
+                // 如果已经有灵宠出战就收回
+                if (JSON.stringify(this.player.pet) != '{}') {
+                    const itemInfo = this.player.pet;
+                    // 更新玩家属性，移除出战灵宠的属性加成
+                    this.playerAttribute(-itemInfo.dodge, -itemInfo.attack, -itemInfo.health, -itemInfo.critical, -itemInfo.defense);
+                    // 收回当前出战的灵宠
+                    this.player.pets.push(this.player.pet);
+                }
+                // 出战当前选择的灵宠
+                this.player.pet = petItem;
+                // 更新玩家属性，添加当前出战灵宠的属性加成
+                this.playerAttribute(petItem.dodge, petItem.attack, petItem.health, petItem.critical, petItem.defense);
+                // 从灵宠背包中移除这个灵宠
+                this.player.pets = this.player.pets.filter(i => i.id !== item.id);
+                // 更新玩家存档
+                this.$store.commit('setPlayer', this.player);
+            },
+            // 计算灵宠等级
+            computePetsLevel (lv) {
+                if (lv >= 1 && lv <= 9) return 'success';
+                if (lv >= 10 && lv <= 19) return 'primary';
+                if (lv >= 20 && lv <= 29) return 'warning';
+                if (lv >= 30) return 'danger';
+            },
+            // 计算灵宠升级所需消耗
+            petConsumption (lv) {
+                return lv * 200;
+            },
+            // 灵宠升级
+            petUpgrade (item) {
+                // 计算灵宠升级所需材料数量
+                const consume = this.petConsumption(item.level);
+                // 如果培养丹不足
+                if (consume > this.player.cultivateDan) {
+                    // 发送通知
+                    this.$notify({ title: '灵宠培养提示', message: '培养丹不足, 进行无法培养', position: 'top-left' });
+                    return;
+                }
+                // 灵宠培养确认弹窗
+                this.$confirm('你确定要培养该灵宠吗?', '灵宠培养提示', {
+                    cancelButtonText: '我点错了',
+                    confirmButtonText: '确定以及肯定'
+                }).then(() => {
+                    // 闪避
+                    const dodge = parseFloat(item.dodge * 0.2);
+                    // 攻击
+                    const attack = Math.floor(item.attack * 0.2);
+                    // 血量
+                    const health = Math.floor(item.health * 0.2);
+                    // 防御
+                    const defense = Math.floor(item.defense * 0.2);
+                    // 暴击
+                    const critical = parseFloat(item.critical * 0.2);
+                    // 增加灵宠属性
+                    this.player.pet.level++;
+                    this.player.pet.dodge += dodge;
+                    this.player.pet.attack += attack;
+                    this.player.pet.health += health;
+                    this.player.pet.defense += defense;
+                    this.player.pet.critical += critical;
+                    // 更新玩家属性，添加灵宠培养后的属性加成
+                    this.playerAttribute(dodge, attack, health, critical, defense);
+                    // 扣除培养丹
+                    this.player.cultivateDan -= consume;
+                    // 更新玩家存档
+                    this.$store.commit('setPlayer', this.player);
+                }).catch(() => { });
+            },
+            // 收服灵宠
+            harvestPet (item) {
+                // 成功几率
+                const successRate = this.calculateCaptureRate();
+                // 是否成功收服
+                const isSuccess = successRate == monster.getRandomInt(1, successRate);
+                // 如果成功收服
+                if (isSuccess) {
+                    // 收服后的属性根据收服前的成功率算
+                    const newProperties = (100 - successRate) * 0.5;
+                    // 攻击
+                    const attack = Math.floor(monster.getRandomInt(50, 150) * newProperties);
+                    // 防御
+                    const defense = Math.floor(monster.getRandomInt(1, 15) * newProperties);
+                    // 血量
+                    const health = Math.floor(monster.getRandomInt(100, 500) * newProperties);
+                    // 闪避
+                    const dodge = parseFloat(monster.getRandomFloatInRange(0.001, 0.01) * newProperties);
+                    // 暴击
+                    const critical = parseFloat(monster.getRandomFloatInRange(0.001, 0.01) * newProperties);
+                    // 添加到灵宠背包里
+                    this.player.pets.push({
+                        id: Date.now(),
+                        name: item.name,
+                        level: 1,
+                        dodge,
+                        health,
+                        attack,
+                        defense,
+                        // 培养等级
+                        nourish: 0,
+                        critical
+                    });
+                    // 恢复回合数
+                    this.guashaRounds = 10;
+                    // 跳转背包相关页
+                    this.inventoryActive = 'pet';
+                    // 发送提示
+                    this.$notify({ title: '收服灵宠提示', message: `收服${item.name}成功` });
+                    // 更新玩家存档
+                    this.$store.commit('setPlayer', this.player);
+                    // 如果没有收服
+                } else {
+                    // 发送提示
+                    this.$notify({ title: '收服灵宠提示', message: `收服${item.name}失败` });
+                    // 触发战斗
+                    this.fightMonster();
+                }
+            },
+            // 计算收服灵宠成功概率
+            calculateCaptureRate () {
+                // 基础100%几率
+                const baseRate = 100;
+                // 每升一级减少5%的基础几率
+                const decayFactor = 0.95;
+                // 根据等级计算实际几率
+                let captureRate = baseRate * Math.pow(decayFactor, this.player.level);
+                // 确保几率在 0% 到 100% 之间
+                captureRate = Math.floor(Math.max(0, Math.min(100, captureRate)));
+                return captureRate;
+            },
             // 计算炼器成功概率  
             calculateEnhanceSuccessRate (item) {
                 // 基础成功率
@@ -655,7 +862,7 @@
                         // 暴击
                         const critical = parseFloat(item.critical * 0.1);
                         switch (item.type) {
-                            // 如果是兵器
+                            // 如果是神兵
                             case 'weapon':
                                 item.attack += attack;
                                 item.critical += critical;
@@ -903,7 +1110,7 @@
                     }
                 }).catch(() => { });
             },
-            // 计算当前时间和离线时间相差多少分钟
+            // 计算当前时间和指定时间相差多少分钟
             getMinuteDifference (specifiedTimestamp) {
                 // 获取当前时间戳（秒数）
                 const currentTimestamp = Math.floor(Date.now() / 1000);
@@ -923,37 +1130,10 @@
                     { text: '装备图鉴', type: 'warning', handler: this.openIllustration },
                     { text: '世界BOSS', type: 'danger', handler: this.assaultBoss }
                 ];
-                // 更新离线时间戳
-                setInterval(() => {
-                    this.offlineNum();
-                }, 10000);
-                // 初始化玩家当前法力
-                this.player.mana = 50;
-                // 初始化玩家当前最高法力
-                this.player.maxMana = 50;
                 // 初始化玩家当前气血
                 this.player.health = this.player.maxHealth;
-                // 检测玩家装备境界
-                this.testingEquipmentLevel();
                 // 更新玩家存档
                 this.$store.commit('setPlayer', this.player);
-            },
-            // 更新玩家离线时间
-            offlineNum () {
-                this.player.offline = Math.floor(Date.now() / 1000);
-                // 更新玩家存档
-                this.$store.commit('setOffline', this.player.offline);
-                // 离线时长
-                const time = this.getMinuteDifference(this.player.offline);
-                // 赠送离线挂机修为
-                if (time >= 1) {
-                    // 增加修为
-                    this.breakThrough(time);
-                    this.$notify({
-                        title: '欢迎回来',
-                        message: `你已神魂游离太虚${time}分钟, 获得了${time}修为`
-                    });
-                }
             },
             // boss信息
             openBossInfo () {
@@ -966,7 +1146,6 @@
                             <p>气血: ${info.health}</p>
                             <p>攻击: ${info.attack}</p>
                             <p>防御: ${info.defense}</p>
-                            <p>命中率: 必中</p>
                             <p>闪避率: ${(info.dodge * 100).toFixed(2)}%</p>
                             <p>暴击率: ${(info.critical * 100).toFixed(2)}%</p>
                             <p>鸿蒙石掉落: 10颗</p>
@@ -998,7 +1177,7 @@
                 // 是否暴击
                 let isMCritical = false, isCritical = false;
                 // 是否闪避
-                let isMDodge = false, isDodge = false;
+                const isPlayerHit = Math.random() > this.boss.dodge;
 
                 // 检查boss是否暴击  
                 if (Math.random() < this.boss.critical) {
@@ -1019,14 +1198,8 @@
                 // 强制扣除玩家气血, 因为boss攻击必中
                 this.player.health -= monsterHarm;
 
-                // 检查boss是否闪避  
-                if (Math.random() > this.boss.dodge) {
-                    // boss未闪避，扣除boss气血  
-                    this.boss.health -= playerHarm;
-                } else {
-                    // 野怪闪避成功
-                    isMDodge = true;
-                }
+                // 如果boss没有闪避，扣除boss气血
+                if (!isPlayerHit) this.boss.health -= playerHarm;
 
                 this.player.health = Math.max(0, this.player.health);
                 this.boss.health = Math.max(0, this.boss.health);
@@ -1039,6 +1212,7 @@
                         const equipItem = boss.boss_Equip(this.maxLv);
                         this.isequipment = true;
                         this.storyText = `你击败${this.boss.name}后，获得了<span class="el-tag el-tag--${equipItem.quality}">${this.levels[equipItem.quality]}${equipItem.name}(${this.genre[equipItem.type]})</span>`;
+                        // 增加鸿蒙石
                         this.player.currency += 10;
                         // 获得鸿蒙石通知
                         this.$notify({ title: '道具获得提示', message: '你获得了10颗鸿蒙石' });
@@ -1047,16 +1221,23 @@
                         this.inventoryActive = equipItem.type;
                         // 玩家获得道具
                         if (equipItem?.name) this.player.inventory.push(equipItem);
+                        // 修改boss状态
+                        this.boss = {
+                            // boss名字
+                            name: this.boss.name,
+                            // boss介绍
+                            desc: this.boss.desc,
+                            // 战胜时间
+                            time: Math.floor(Date.now() / 1000),
+                            // 血量
+                            health: 0,
+                            // 是否战胜
+                            conquer: true
+                        };
+                        this.$store.commit('setBoss', this.boss);
                         this.actions = [
                             {
                                 text: '回到家里', type: 'success', handler: () => {
-                                    // 修改boss状态
-                                    this.boss = {
-                                        name: this.boss.name,
-                                        time: Math.floor(Date.now() / 1000),
-                                        health: 0,
-                                        conquer: true
-                                    };
                                     this.isBoss = false;
                                     this.startGame();
                                 }
@@ -1074,16 +1255,8 @@
                             }
                         ];
                     } else {
-                        let dodgeText1 = '', dodgeText2 = '';
-                        // 野怪
-                        if (isMDodge && isDodge) {
-                            dodgeText1 = `你攻击了${this.boss.name}，${isCritical ? '触发暴击' : ''}造成了${playerHarm}点伤害，剩余${this.boss.health}气血。`;
-                            dodgeText2 = `${this.boss.name}攻击了你，${isMCritical ? '触发暴击' : ''}造成了${monsterHarm}点伤害`;
-                        } else {
-                            dodgeText1 = isMDodge ? `你攻击了${this.boss.name}，对方闪避了你的攻击，你未造成伤害，剩余${this.boss.health}气血。 ` : `你攻击了${this.boss.name}，${isCritical ? '触发暴击' : ''}造成了${playerHarm}点伤害，剩余${this.boss.health}气血。`;
-                            dodgeText2 = isDodge ? `${this.boss.name}攻击了你，你闪避了对方的攻击，对方未造成伤害。 ` : `${this.boss.name}攻击了你，${isMCritical ? '触发暴击' : ''}造成了${monsterHarm}点伤害`;
-                        }
-                        this.storyText = `${this.guashaRounds}回合 / 100回合<br>${dodgeText1}<br>${dodgeText2}`;
+                        const dodgeText = !isPlayerHit ? `你攻击了${this.boss.name}，${isCritical ? '触发暴击' : ''}造成了${playerHarm}点伤害，剩余${this.boss.health}气血。` : `你攻击了${this.boss.name}，对方闪避了你的攻击，你未造成伤害，剩余${this.boss.health}气血。 `;
+                        this.storyText = `${this.guashaRounds}回合 / 100回合<br>${dodgeText}<br>${this.boss.name}攻击了你，${isMCritical ? '触发暴击' : ''}造成了${monsterHarm}点伤害`;
                         this.actions = [
                             { text: '发起战斗', handler: this.fightBoss },
                             {
@@ -1114,24 +1287,21 @@
                 const time = this.getMinuteDifference(this.boss.time);
                 // boss难度根据玩家最高等级 + 转生次数
                 const bossLv = this.maxLv * this.player.reincarnation + this.maxLv;
-                // 如果boss已生成
-                if (this.boss.health) {
-                    // 如果boss被战胜并且战胜时间小于10分钟
-                    if (this.boss.conquer && time < 10) {
-                        this.$notify({ title: '提示', message: 'Boss还未刷新' });
-                        return;
-                        // 如果没有击败boss并且boss生成的时间大于等于10分钟
-                    } else if (!this.boss.conquer && time >= 10) {
+                // 如果boss血量为空
+                if (!this.boss.health) {
+                    // 如果没有击败boss并且boss生成的时间大于等于10分钟
+                    if (!this.boss.conquer && time >= 10 || isNaN(time)) {
                         this.boss = boss.drawPrize(bossLv);
+                        // 存档boss信息
+                        this.$store.commit('setBoss', this.boss);
+                        // 如果击败了boss并且boss生成的时间小于10分钟
+                    } else if (this.boss.conquer && time < 10) {
+                        this.$notify({ title: '提示', message: 'BOSS还未刷新' });
+                        return;
                     }
-                    //如果没有生成boss就生成一个新的boss
-                } else {
-                    this.boss = boss.drawPrize(bossLv);
-                    // 更新boss信息
-                    this.$store.commit('setBoss', this.boss);
                 }
-                this.storyText = '';
                 this.isBoss = true;
+                this.storyText = '';
                 this.guashaRounds = 100;
                 this.actions = [
                     {
@@ -1142,43 +1312,7 @@
                     },
                     { text: '攻击BOSS', type: 'danger', handler: this.fightBoss }
                 ];
-            },
-            // 检测装备境界
-            testingEquipmentLevel () {
-                const equipment = this.player.equipment;
-                // 用于存储超过玩家境界的装备类型 
-                let equipmentTypes = [];
-                // 检查并处理装备  
-                if (equipment.sutra && equipment.sutra.level > this.player.level) {
-                    this.equipmentClose('sutra');
-                    equipmentTypes.push('sutra');
-                }
-                if (equipment.accessory && equipment.accessory.level > this.player.level) {
-                    this.equipmentClose('accessory');
-                    equipmentTypes.push('accessory');
-                }
-                if (equipment.armor && equipment.armor.level > this.player.level) {
-                    this.equipmentClose('armor');
-                    equipmentTypes.push('armor');
-                }
-                if (equipment.weapon && equipment.weapon.level > this.player.level) {
-                    this.equipmentClose('weapon');
-                    equipmentTypes.push('weapon');
-                }
-                // 如果有超过境界的装备，显示警告信息  
-                if (equipmentTypes.length > 0) {
-                    let message = '当前身上的';
-                    equipmentTypes.forEach((item, index) => {
-                        equipmentTypes[index] = this.genre[item];
-                    });
-                    if (equipmentTypes.length > 1) {
-                        message += '装备（' + equipmentTypes.join(', ') + '）';
-                    } else {
-                        message += equipmentTypes[0] + '装备';
-                    }
-                    message += '境界高于自身境界, 系统自动卸下该装备';
-                    this.$notify({ title: '装备卸下提示', message });
-                }
+                // 更新boss信息
             },
             // 打开图鉴
             openIllustration () {
@@ -1207,7 +1341,6 @@
                             <p>气血: ${Math.floor(info.health)}</p>
                             <p>攻击: ${Math.floor(info.attack)}</p>
                             <p>防御: ${Math.floor(info.defense)}</p>
-                            <p>命中率: ${(info.hit * 100).toFixed(2)}%</p>
                             <p>闪避率: ${(info.dodge * 100).toFixed(2)}%</p>
                             <p>暴击率: ${(info.critical * 100).toFixed(2)}%</p>
                             <p>获得率: ${info.prize}%</p>
@@ -1222,7 +1355,7 @@
                 if (!this.player.isNewbie) {
                     // 初始化物品
                     let equipItem = {};
-                    // 兵器
+                    // 神兵
                     if (timesLeft == 4) equipItem = equip.equip_Weapons(10, false);
                     // 护甲
                     else if (timesLeft == 3) equipItem = equip.equip_Armors(10, false);
@@ -1296,8 +1429,6 @@
                             this.player.taskNum = 0;
                             // 增加转生次数
                             this.player.reincarnation++;
-                            // 检测玩家装备境界
-                            this.testingEquipmentLevel();
                             // 更新玩家存档
                             this.$store.commit('setPlayer', this.player);
                         }).catch(() => { });
@@ -1342,6 +1473,7 @@
                         this.player.maxCultivation = Math.floor(100 * Math.pow(2, this.player.level));
                         this.storyText = `恭喜你突破了！当前境界：${this.levelNames[this.player.level]}`;
                         this.actions = [
+                            { text: '返回家里', type: 'success', handler: this.startGame },
                             { text: '转生突破', handler: this.reincarnationBreakthrough },
                             { text: '继续修炼', handler: this.cultivate },
                             { text: '探索秘境', handler: this.explore }
@@ -1367,6 +1499,7 @@
                     this.breakThrough(exp);
                     this.storyText = `你开始冥想，吸收周围的灵气。修为提升了！`;
                     this.actions = [
+                        { text: '返回家里', type: 'success', handler: this.startGame },
                         { text: '转生突破', handler: this.reincarnationBreakthrough },
                         { text: '继续修炼', handler: this.cultivate },
                         { text: '探索秘境', handler: this.explore }
@@ -1374,6 +1507,7 @@
                 } else {
                     this.storyText = '你已经达到了当前境界的修为上限，需要突破到下一个境界。';
                     this.actions = [
+                        { text: '返回家里', type: 'success', handler: this.startGame },
                         { text: '转生突破', handler: this.reincarnationBreakthrough },
                         { text: '突破境界', handler: () => this.breakThrough(1) },
                         { text: '杀敌证道', handler: this.explore }
@@ -1397,8 +1531,6 @@
                 const monsterLv = level * this.player.reincarnation + level;
                 // 野怪属性
                 this.monster = {
-                    // 命中率
-                    hit: monster.monster_Criticalhitrate(monsterLv),
                     // 名称
                     name: monster.monster_Names(monsterLv),
                     // 气血
@@ -1406,7 +1538,7 @@
                     // 攻击
                     attack: monster.monster_Attack(monsterLv),
                     // 防御
-                    defense: monster.monster_Attack(monsterLv),
+                    defense: monster.monster_Defense(monsterLv),
                     // 闪避率
                     dodge: monster.monster_Criticalhitrate(monsterLv),
                     // 暴击
@@ -1416,6 +1548,7 @@
                 this.storyText = `你遇到了<span class="el-tag el-tag--danger">${this.monster.name}</span>`;
                 this.actions = [
                     { text: '发起战斗', handler: this.fightMonster },
+                    { text: '收服对方', type: 'pink', handler: () => this.harvestPet(this.monster) },
                     { text: '立马撤退', handler: this.runAway }
                 ];
             },
@@ -1431,6 +1564,7 @@
                             <p>防御: ${this.monster.defense}</p>
                             <p>闪避率: ${(this.monster.dodge * 100).toFixed(2) ?? 0}%</p>
                             <p>暴击率: ${(this.monster.critical * 100).toFixed(2) ?? 0}%</p>
+                            <p>收服率: ${this.calculateCaptureRate()}%</p>
                         </div>
                     </div>`,
                     confirmButtonText: '知道了',
@@ -1442,26 +1576,20 @@
                 // 打坐扣除回合数
                 if (this.guashaRounds > 1) {
                     this.guashaRounds--;
-                    if (this.player.mana >= this.player.maxMana && this.player.health >= this.player.maxHealth) {
-                        this.storyText = `${this.guashaRounds}回合 / 10回合<br>你的法力和气血恢复完毕`;
+                    if (this.player.health >= this.player.maxHealth) {
+                        this.storyText = `${this.guashaRounds}回合 / 10回合<br>你的气血恢复完毕`;
                         this.actions = [
                             { text: '继续干他', handler: this.fightMonster },
                             { text: '立马撤退', handler: this.runAway }
                         ];
                     } else {
-                        // 打坐回蓝
-                        const maxMana = Math.floor(this.player.maxMana * 0.1)
-                        if (this.player.mana < this.player.maxMana || this.player.mana > this.player.maxMana) {
-                            this.player.mana += maxMana;
-                            if (this.player.mana >= this.player.maxMana) this.player.mana = this.player.maxMana;
-                        }
                         // 打坐回血
                         const maxHealth = Math.floor(this.player.maxHealth * 0.1)
                         if (this.player.health < this.player.maxHealth || this.player.health > this.player.maxHealth) {
                             this.player.health += maxHealth;
                             if (this.player.health >= this.player.maxHealth) this.player.health = this.player.maxHealth;
                         }
-                        this.storyText = `${this.guashaRounds}回合 / 10回合<br>你恢复了${maxHealth}点气血和${maxMana}点法力`;
+                        this.storyText = `${this.guashaRounds}回合 / 10回合<br>你恢复了${maxHealth}点气血`;
                         this.actions = [
                             { text: '继续干他', handler: this.fightMonster },
                             { text: '继续打坐', handler: this.rest },
@@ -1476,7 +1604,7 @@
                     ];
                 }
             },
-            // 战斗逻辑
+            // 攻击怪物
             fightMonster () {
                 this.ismonster = false;
                 this.isequipment = false;
@@ -1492,10 +1620,10 @@
                 playerHarm = playerHarm <= 1 ? 1 : playerHarm; // 伤害小于1时强制破防
                 // 是否暴击
                 let isMCritical = false, isCritical = false;
-                // 是否闪避
-                let isMDodge = false, isDodge = false;
-                // 是否命中
-                let isMHit = false, isHit = false;
+                // 怪物是否闪避
+                const isMHit = Math.random() > this.player.dodge;
+                // 玩家是否闪避
+                const isPHit = Math.random() > this.monster.dodge;
 
                 // 检查野怪是否暴击  
                 if (Math.random() < this.monster.critical) {
@@ -1513,28 +1641,11 @@
                     isCritical = true;
                 }
 
-                // 检查玩家是否命中
-                if (Math.random() > this.player.hit) isHit = true;
-                // 检查怪物是否命中
-                if (Math.random() > this.monster.hit) isMHit = true;
+                // 怪物没有闪避
+                if (!isMHit) this.player.health -= monsterHarm;
 
-                // 检查玩家是否闪避
-                if (!isMHit && Math.random() > this.player.dodge) {
-                    // 玩家未闪避，扣除玩家气血  
-                    this.player.health -= monsterHarm;
-                } else {
-                    // 玩家闪避成功
-                    isDodge = true;
-                }
-
-                // 检查野怪是否闪避  
-                if (!isHit && Math.random() > this.monster.dodge) {
-                    // 野怪未闪避，扣除野怪气血  
-                    this.monster.health -= playerHarm;
-                } else {
-                    // 野怪闪避成功
-                    isMDodge = true;
-                }
+                // 玩家没有闪避
+                if (!isPHit) this.monster.health -= playerHarm;
 
                 this.player.health = Math.max(0, this.player.health);
                 this.monster.health = Math.max(0, this.monster.health);
@@ -1546,6 +1657,10 @@
                     if (this.monster.health <= 0) {
                         // 增加击杀数量
                         this.player.taskNum++;
+                        // 增加培养丹
+                        this.player.cultivateDan++;
+                        // 发送提示
+                        this.$notify({ title: '击败提示', message: `击败${this.monster.name}后你获得了1颗培养丹` });
                         this.findTreasure(this.monster.name);
                         this.actions = [
                             { text: '回到家里', type: 'success', handler: this.startGame },
@@ -1559,9 +1674,9 @@
                         ];
                     } else {
                         // 玩家
-                        const dodgeText1 = isMDodge ? `你攻击了${this.monster.name}，对方闪避了你的攻击，你未造成伤害，剩余${this.monster.health}气血。` : `你攻击了${this.monster.name}，${isCritical ? '触发暴击' : ''}造成了${playerHarm}点伤害，剩余${this.monster.health}气血。`;
+                        const dodgeText1 = isPHit ? `你攻击了${this.monster.name}，对方闪避了你的攻击，你未造成伤害，剩余${this.monster.health}气血。` : `你攻击了${this.monster.name}，${isCritical ? '触发暴击' : ''}造成了${playerHarm}点伤害，剩余${this.monster.health}气血。`;
                         // 野怪
-                        const dodgeText2 = isDodge ? `${this.monster.name}攻击了你，你闪避了对方的攻击，对方未造成伤害。` : `${this.monster.name}攻击了你，${isMCritical ? '触发暴击' : ''}造成了${monsterHarm}点伤害`;
+                        const dodgeText2 = isMHit ? `${this.monster.name}攻击了你，你闪避了对方的攻击，对方未造成伤害。` : `${this.monster.name}攻击了你，${isMCritical ? '触发暴击' : ''}造成了${monsterHarm}点伤害`;
                         this.storyText = `${this.guashaRounds}回合 / 10回合<br>${dodgeText1}<br>${dodgeText2}`;
                         this.actions = [
                             { text: '发起战斗', handler: this.fightMonster },
@@ -1613,7 +1728,7 @@
                     // 增加修为
                     this.breakThrough(exp);
                 }
-                // 兵器
+                // 神兵
                 if (randomInt == 1) equipItem = equip.equip_Weapons(this.player.level);
                 // 护甲
                 else if (randomInt == 2) equipItem = equip.equip_Armors(this.player.level);
@@ -1693,7 +1808,6 @@
                             <p>气血: ${equipment.health}</p>
                             <p>攻击: ${equipment.attack}</p>
                             <p>防御: ${equipment.defense}</p>
-                            <p>命中率: ${(equipment.hit * 100).toFixed(2) ?? 0}%</p>
                             <p>闪避率: ${(equipment.dodge * 100).toFixed(2) ?? 0}%</p>
                             <p>暴击率: ${(equipment.critical * 100).toFixed(2) ?? 0}%</p>
                         </div>
@@ -1724,7 +1838,6 @@
                             <p>气血: ${equipment.health}</p>
                             <p>攻击: ${equipment.attack}</p>
                             <p>防御: ${equipment.defense}</p>
-                            <p>命中率: ${(equipment.hit * 100).toFixed(2) ?? 0}%</p>
                             <p>闪避率: ${(equipment.dodge * 100).toFixed(2) ?? 0}%</p>
                             <p>暴击率: ${(equipment.critical * 100).toFixed(2) ?? 0}%</p>
                         </div>
@@ -1744,25 +1857,14 @@
                 if (this.player.equipment[type]) {
                     const equipment = this.player.equipment[type];
                     // 更新玩家属性，移除当前穿戴装备的属性加成
-                    this.player.hit -= (equipment.hit || 0);
-                    this.player.dodge -= equipment.dodge;
-                    this.player.health -= equipment.health;
-                    this.player.attack -= equipment.attack;
-                    this.player.defense -= equipment.defense;
-                    this.player.maxHealth -= equipment.health;
-                    this.player.critical -= equipment.critical;
+                    this.playerAttribute(-equipment.dodge, -equipment.attack, -equipment.health, -equipment.critical, -equipment.defense);
                     // 将当前装备放回背包
-                    this.player.inventory.push({ ...equipment });  // 深拷贝
+                    this.player.inventory.push(equipment);
                 }
                 // 装备新装备
-                this.player.equipment[type] = { ...inventoryItem };  // 深拷贝
-                this.player.hit += (inventoryItem.hit || 0);
-                this.player.dodge += inventoryItem.dodge;
-                this.player.health += inventoryItem.health;
-                this.player.attack += inventoryItem.attack;
-                this.player.defense += inventoryItem.defense;
-                this.player.maxHealth += inventoryItem.health;
-                this.player.critical += inventoryItem.critical;
+                this.player.equipment[type] = inventoryItem;
+                // 更新玩家属性，添加当前装备的属性加成
+                this.playerAttribute(inventoryItem.dodge, inventoryItem.attack, inventoryItem.health, inventoryItem.critical, inventoryItem.defense);
                 // 从背包中移除新装备
                 this.player.inventory = this.player.inventory.filter(item => item.id !== id);
                 // 重置类型
@@ -1777,16 +1879,11 @@
                 const { inventory, equipment } = this.player;
                 if (!equipment[type]) return;
                 // 更新玩家属性，移除当前穿戴装备的属性加成
-                equipment[type].id = Date.now();
-                this.player.hit -= (equipment[type].hit || 0);
-                this.player.dodge -= equipment[type].dodge;
-                this.player.health -= equipment[type].health;
-                this.player.attack -= equipment[type].attack;
-                this.player.defense -= equipment[type].defense;
-                this.player.maxHealth -= equipment[type].health;
-                this.player.critical -= equipment[type].critical;
+                this.playerAttribute(-equipment[type].dodge, -equipment[type].attack, -equipment[type].health, -equipment[type].critical, -equipment[type].defense);
                 // 跳转背包相关页
                 this.inventoryActive = type;
+                // 给装备增加id
+                equipment[type].id = Date.now();
                 // 添加装备到背包里
                 inventory.push(equipment[type]);
                 // 清空身上当前类型的装备
@@ -1797,7 +1894,21 @@
             // 根据装备ID给出信息
             getObjectById (id, arr) {
                 return arr.find(obj => obj.id === id);
-            }
+            },
+            // 玩家属性操作
+            playerAttribute (dodge = 0, attack = 0, health = 0, critical = 0, defense = 0) {
+                // 闪避
+                this.player.dodge = this.player.dodge + dodge;
+                // 攻击
+                this.player.attack = this.player.attack + attack;
+                // 血量
+                this.player.health = this.player.health + health;
+                this.player.maxHealth = this.player.maxHealth + health;
+                // 暴击
+                this.player.critical = this.player.critical + critical;
+                // 防御
+                this.player.defense = this.player.defense + defense;
+            },
         }
     };
 </script>
@@ -2148,6 +2259,24 @@
     .el-tag.el-tag--pink .el-tag__close:hover {
         color: #FFF !important;
         background-color: #f48fb1 !important;
+    }
+
+    .el-button--pink {
+        color: #FFF !important;
+        background-color: #FF82AB !important;
+        border-color: #FF82AB !important;
+    }
+
+    .el-button--pink:focus,
+    .el-button--pink:hover {
+        background-color: #ff82abd4 !important;
+        border-color: #ff82abd4 !important;
+        color: #FFF !important;
+    }
+
+    .attribute .pet {
+        border-color: transparent !important;
+        background-color: transparent !important;
     }
 
     @media only screen and (max-width: 750px) {

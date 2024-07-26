@@ -5,7 +5,7 @@
 https://qm.qq.com/q/iifNs5qukg
 
 # 项目预览
-![预览图](https://github.com/user-attachments/assets/3c7c4e1a-dcce-4cdc-81fa-dc66f42fa613)
+![预览图](https://github.com/user-attachments/assets/0f9c17bf-469d-4b6a-b3ed-620078f31ff6)
 
 # 安装依赖
 npm install

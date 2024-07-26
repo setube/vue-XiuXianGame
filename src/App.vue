@@ -680,6 +680,7 @@
             if (local) {
                 this.boss = local.boss;
                 this.player = local.player;
+                window.player = this.player;
                 // 已出战灵宠数据
                 this.player.pet = this.player.pet ? this.player.pet : {};
                 // 灵宠背包数据
@@ -692,6 +693,12 @@
                 this.player.reincarnation = this.player.reincarnation ? this.player.reincarnation : 0;
                 // 强化石数量
                 this.player.strengtheningStone = this.player.strengtheningStone ? this.player.strengtheningStone : 0;
+                // 转换灵宠背包里的转生次数
+                if (this.player.pets.length) {
+                    this.player.pets.forEach(item => {
+                        item.reincarnation = item.reincarnation ? item.reincarnation : 0;
+                    });
+                }
                 // 转换背包装备属性为纯数字
                 if (this.player.inventory.length) {
                     this.player.inventory.forEach(item => {
@@ -782,8 +789,11 @@
             },
             // 计算灵宠升级所需消耗
             petConsumption (lv) {
+                // 是否勾选转生选项
                 const cost = this.petReincarnation ? 10 : 1;
-                return lv * 200 * cost;
+                // 转生次数
+                const reincarnation = this.player.pet.reincarnation ? lv * 200 : 1;
+                return (lv * 200  + reincarnation) * cost;
             },
             // 灵宠升级
             petUpgrade (item) {
@@ -793,6 +803,12 @@
                 if (this.petReincarnation && this.maxLv > item.level) {
                     // 发送通知
                     this.notify({ title: '灵宠培养提示', message: '灵宠境界未满无法转生', position: 'top-left' });
+                    return;
+                }
+                // 如果没有勾选灵宠转生并且境界满了
+                if (!this.petReincarnation && item.level >= this.maxLv) {
+                    // 发送通知
+                    this.notify({ title: '灵宠培养提示', message: '灵宠境界已满请转生', position: 'top-left' });
                     return;
                 }
                 // 如果培养丹不足
@@ -820,6 +836,8 @@
                     if (item.level == this.maxLv) {
                         // 重置灵宠等级
                         this.player.pet.level = 1;
+                        // 取消转生勾选
+                        this.petReincarnation = false;
                         // 增加灵宠转生次数
                         this.player.pet.reincarnation++;
                         // 发送通知

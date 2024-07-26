@@ -92,6 +92,17 @@ export default new Vuex.Store(
                         boss: crypto.encryption(val.boss),
                         player: crypto.encryption(val.player)
                     };
+                },
+                getState (key, storage) {
+                    const value = storage.getItem(key);
+                    if (value) {
+                        const state = JSON.parse(value);
+                        return {
+                            boss: crypto.decryption(state.boss),
+                            player: crypto.decryption(state.player)
+                        };
+                    }
+                    return {};
                 }
             })
         ]

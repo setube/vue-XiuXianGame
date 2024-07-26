@@ -12,7 +12,6 @@ const boss = {
         // 暴击
         const critical = this.getRandomFloatInRange(0.1, 1);
         return {
-            hit: 9.9999,
             name: bossInfo.name,
             text: this.boss_Text(),
             time: Math.floor(Date.now() / 1000),

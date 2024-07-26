@@ -1,7 +1,7 @@
 <template>
     <div class="game-container-wrapper" draggable="true">
         <div class="github-corner">
-            <a href="https://github.com/setube/vue-XiuXianGame" aria-label="View source on GitHub">
+            <a href="https://github.com/setube/vue-XiuXianGame" target="_blank" aria-label="View source on GitHub">
                 <svg width="80" height="80" viewBox="0 0 250 250" style="fill:#151513; color:#fff; position: absolute; top: 0; border: 0; right: 0; z-index: 2;" aria-hidden="true">
                     <path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z" />
                     <path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" />
@@ -57,7 +57,7 @@
                             <div class="tag attribute" v-if="player.level >= this.maxLv">
                                 修为: 登峰造极
                             </div>
-                            <div class="tag attribute" v-else @click="$notify({title: '修为提示', message: `您距离${levelNames[player.level + 1]}境界还需${formatNumberToChineseUnit(player.maxCultivation - player.cultivation)}点修为`})">
+                            <div class="tag attribute" v-else @click="notify({title: '修为提示', message: `您距离${levelNames[player.level + 1]}境界还需${formatNumberToChineseUnit(player.maxCultivation - player.cultivation)}点修为`})">
                                 修为: {{ calculatePercentageDifference(player.maxCultivation, player.cultivation).toFixed(2) }}%
                             </div>
                             <div class="tag attribute">
@@ -78,14 +78,14 @@
                             <div class="tag attribute">
                                 暴击率: {{ player.critical > 0 ? (player.critical * 100).toFixed(2) : 0 }}%
                             </div>
-                            <div class="tag attribute" @click="$notify({title: '获得方式', message: '可以通过击败世界Boss后获得'})">
-                                鸿蒙石: {{ player.currency || 0 }}
+                            <div class="tag attribute" @click="notify({title: '获得方式', message: '可以通过击败世界Boss后获得'})">
+                                鸿蒙石: {{ formatNumberToChineseUnit(player.currency) }}
                             </div>
-                            <div class="tag attribute" @click="$notify({title: '获得方式', message: '可以通过出售装备可获得'})">
-                                炼器石: {{ player.strengtheningStone || 0 }}
+                            <div class="tag attribute" @click="notify({title: '获得方式', message: '可以通过出售装备可获得'})">
+                                炼器石: {{ formatNumberToChineseUnit(player.strengtheningStone) }}
                             </div>
-                            <div class="tag attribute" @click="$notify({title: '获得方式', message: '可以通过探索秘境可获得'})">
-                                培养丹: {{ player.cultivateDan || 0 }}
+                            <div class="tag attribute" @click="notify({title: '获得方式', message: '可以通过探索秘境可获得'})">
+                                培养丹: {{ formatNumberToChineseUnit(player.cultivateDan) }}
                             </div>
                         </div>
                     </div>
@@ -125,7 +125,7 @@
                         <div class="tag equip-item">
                             <span class="equip">
                                 <span>灵宠: </span>
-                                <el-tag class="pet" v-if="player.pet?.name" :type="computePetsLevel(player.pet?.level)" closable @close="petRetract" @click="petItemShow = true">{{ player.pet?.name }}</el-tag>
+                                <el-tag class="pet" v-if="player.pet?.name" :type="computePetsLevel(player.pet?.level)" closable @close="petRetract" @click="petItemShow = true">{{ player.pet?.name }}({{levelNames[player.pet.level]}})</el-tag>
                                 <span v-else>无</span>
                             </span>
                         </div>
@@ -152,7 +152,7 @@
                                     <div class="inventory-content">
                                         <template v-for="(item, index) in player.pets">
                                             <el-tag class="inventory-item" :type="computePetsLevel(item.level)" :key="index" @click="petItemInfo(item)">
-                                                {{ item.name }}
+                                                {{ item.name }}({{levelNames[item.level]}})
                                             </el-tag>
                                         </template>
                                     </div>
@@ -181,7 +181,7 @@
                 </div>
             </div>
             <div class="bbh">
-                当前游戏版本0.6.5
+                当前游戏版本0.6.7
             </div>
         </div>
         <el-drawer title="修仙境界表" :visible.sync="isLevel" direction="ltr" class="levels">
@@ -190,20 +190,20 @@
             </el-tag>
         </el-drawer>
         <el-drawer title="灵宠培养" :visible.sync="petItemShow" direction="rtl" class="strengthen">
-            <div class="strengthen-box">
+            <div class="strengthen-box" v-if="petItemShow">
                 <div class="attributes">
                     <div class="attribute-box">
                         <div class="tag attribute">
-                            境界: {{ levelNames[player.pet.level] }}
+                            境界: {{ levelNames[player.pet.level] }} ({{player.pet.reincarnation || 0}}转)
                         </div>
                         <div class="tag attribute">
-                            气血: {{ player.pet.health }}
+                            气血: {{ formatNumberToChineseUnit(player.pet.health) }}
                         </div>
                         <div class="tag attribute">
-                            攻击: {{ player.pet.attack }}
+                            攻击: {{ formatNumberToChineseUnit(player.pet.attack) }}
                         </div>
                         <div class="tag attribute">
-                            防御: {{ player.pet.defense }}
+                            防御: {{ formatNumberToChineseUnit(player.pet.defense) }}
                         </div>
                         <div class="tag attribute">
                             闪避率: {{ player.pet.dodge > 0 ? (player.pet.dodge * 100).toFixed(2) : 0 }}%
@@ -211,8 +211,8 @@
                         <div class="tag attribute">
                             暴击率: {{ player.pet.critical > 0 ? (player.pet.critical * 100).toFixed(2) : 0 }}%
                         </div>
-                        <div class="tag attribute" @click="$notify({title: '获得方式', message: '可以通过探索秘境获得', position: 'top-left'})">
-                            拥有培养丹: {{ player.cultivateDan || 0 }}
+                        <div class="tag attribute" @click="notify({title: '获得方式', message: '可以通过探索秘境获得', position: 'top-left'})">
+                            拥有培养丹: {{ formatNumberToChineseUnit(player.cultivateDan) }}
                         </div>
                         <div class="tag attribute">
                             培养消耗: {{ petConsumption(player.pet.level) }}
@@ -220,6 +220,9 @@
                     </div>
                 </div>
                 <div class="click-box">
+                    <el-checkbox v-model="petReincarnation">
+                        灵宠转生
+                    </el-checkbox>
                     <el-button type="primary" @click="petUpgrade(player.pet)">
                         点击培养
                     </el-button>
@@ -227,20 +230,20 @@
             </div>
         </el-drawer>
         <el-drawer title="炼器" :visible.sync="strengthenShow" direction="rtl" class="strengthen">
-            <div class="strengthen-box">
+            <div class="strengthen-box" v-if="strengthenShow">
                 <div class="attributes">
                     <div class="attribute-box">
                         <div class="tag attribute">
                             境界: {{ levelNames[strengthenInfo.level] }}
                         </div>
                         <div class="tag attribute">
-                            气血: {{ strengthenInfo.health }}
+                            气血: {{ formatNumberToChineseUnit(strengthenInfo.health) }}
                         </div>
                         <div class="tag attribute">
-                            攻击: {{ strengthenInfo.attack }}
+                            攻击: {{ formatNumberToChineseUnit(strengthenInfo.attack) }}
                         </div>
                         <div class="tag attribute">
-                            防御: {{ strengthenInfo.defense }}
+                            防御: {{ formatNumberToChineseUnit(strengthenInfo.defense) }}
                         </div>
                         <div class="tag attribute">
                             闪避率: {{ strengthenInfo.dodge > 0 ? (strengthenInfo.dodge * 100).toFixed(2) : 0 }}%
@@ -254,8 +257,8 @@
                         <div class="tag attribute">
                             成功率: {{ (calculateEnhanceSuccessRate(strengthenInfo) * 100).toFixed(2) }}%
                         </div>
-                        <div class="tag attribute" @click="$notify({title: '获得方式', message: '出售装备可获取', position: 'top-left'})">
-                            拥有炼器石: {{ player.strengtheningStone || 0 }}
+                        <div class="tag attribute" @click="notify({title: '获得方式', message: '出售装备可获取', position: 'top-left'})">
+                            拥有炼器石: {{ formatNumberToChineseUnit(player.strengtheningStone) }}
                         </div>
                         <div class="tag attribute">
                             炼器消耗: {{ calculateCost(strengthenInfo) }}
@@ -275,6 +278,71 @@
                 </div>
             </div>
         </el-drawer>
+        <el-dialog :title="petInfo.name" :visible.sync="petShow" center width="420px">
+            <div class="monsterinfo">
+                <div class="monsterinfo-box">
+                    <p>
+                        <span class="description">境界: {{ levelNames[petInfo.level] }}</span>
+                        <span class="icon">
+                            <i :class="calculateDifference(petInfo.level, player.pet?.level).icon" />
+                        </span>
+                        <span class="value">
+                            {{ petInfo.level > parseInt(player.pet?.level || 1) ? levelNames[petInfo.level] : levelNames[player.pet?.level] }}
+                        </span>
+                    </p>
+                    <p>
+                        <span class="description">转生: {{ petInfo.reincarnation || 0 }}</span>
+                        <span class="icon">
+                            <i :class="calculateDifference(petInfo.reincarnation, player.pet?.reincarnation).icon" />
+                        </span>
+                        <span class="value">{{ calculateDifference(petInfo.reincarnation, player.pet?.reincarnation).num }}</span>
+                    </p>
+                    <p>
+                        <span class="description">气血: {{ petInfo.health }}</span>
+                        <span class="icon">
+                            <i :class="calculateDifference(petInfo.health, player.pet?.health).icon" />
+                        </span>
+                        <span class="value">{{ calculateDifference(petInfo.health, player.pet?.health).num }}</span>
+                    </p>
+                    <p>
+                        <span class="description">攻击: {{ petInfo.attack }}</span>
+                        <span class="icon">
+                            <i :class="calculateDifference(petInfo.attack, player.pet?.attack).icon" />
+                        </span>
+                        <span class="value">{{ calculateDifference(petInfo.attack, player.pet?.attack).num }}</span>
+                    </p>
+                    <p>
+                        <span class="description">防御: {{ petInfo.defense }}</span>
+                        <span class="icon">
+                            <i :class="calculateDifference(petInfo.defense, player.pet?.defense).icon" />
+                        </span>
+                        <span class="value">{{ calculateDifference(petInfo.defense, player.pet?.defense).num }}</span>
+                    </p>
+                    <p>
+                        <span class="description">闪避率: {{ (petInfo.dodge * 100).toFixed(2) ?? 0 }}%</span>
+                        <span class="icon">
+                            <i :class="calculateDifference(petInfo.dodge, player.pet?.dodge).icon" />
+                        </span>
+                        <span class="value">{{ calculateDifference(petInfo.dodge, player.pet?.dodge).num }}</span>
+                    </p>
+                    <p>
+                        <span class="description">暴击率: {{ (petInfo.critical * 100).toFixed(2) ?? 0 }}%</span>
+                        <span class="icon">
+                            <i :class="calculateDifference(petInfo.critical, player.pet?.critical).icon" />
+                        </span>
+                        <span class="value">{{ calculateDifference(petInfo.critical, player.pet?.critical).num }}</span>
+                    </p>
+                </div>
+            </div>
+            <div class="dialog-footer" style="margin-top: 30px;">
+                <el-button type="plain" class="dialog-footer-button" @click="petClose(petInfo)">
+                    灵宠放生
+                </el-button>
+                <el-button type="primary" class="dialog-footer-button" @click="petCarry(petInfo)">
+                    灵宠出战
+                </el-button>
+            </div>
+        </el-dialog>
         <el-dialog :title="inventoryInfo.name" :visible.sync="inventoryShow" center width="420px">
             <div class="monsterinfo">
                 <div class="monsterinfo-box">
@@ -369,6 +437,9 @@
                 <el-button type="danger" class="dialog-footer-button" @click="deleteData(0)">
                     删除存档
                 </el-button>
+                <a class="el-button dialog-footer-button el-button--primary" href="https://qm.qq.com/q/D23KDtpCQC" target="_blank">
+                    官方群聊
+                </a>
             </div>
         </el-dialog>
         <div class="wm_bg_1" />
@@ -377,17 +448,16 @@
 </template>
 
 <script>
+    // 商店
+    import shop from '@/plugins/shop';
     // 怪物
     import boss from '@/plugins/boss';
     // 装备
     import equip from '@/plugins/equip';
-    import crypto from '@/plugins/crypto';
     // 怪物
     import monster from '@/plugins/monster';
     // 图鉴
     import equipAll from '@/plugins/equipAll';
-    // 商店装备
-    import shop from '@/plugins/shop';
 
     export default {
         data () {
@@ -495,6 +565,10 @@
                 },
                 isLevel: false,
                 actions: [],
+                // 灵宠信息弹窗
+                petShow: false,
+                // 灵宠数据
+                petInfo: {},
                 // 炼器保护
                 protect: false,
                 // 炼器增幅
@@ -546,6 +620,8 @@
                 strengthenInfo: {},
                 isIllustrations: false,
                 inventoryActive: 'weapon',
+                // 灵宠转生勾选状态
+                petReincarnation: false,
                 openEquipItemInfo: null,
                 illustrationsItems: [],
                 illustrationsActive: 'weapon',
@@ -600,17 +676,10 @@
         },
         mounted () {
             // 判断本地有没有玩家存档数据
-            const local = window.localStorage;
-            if (local.vuex) {
-                const vuex = JSON.parse(local.vuex);
-                this.boss = crypto.decryption(vuex.boss);
-                // 防止坏档, 死档
-                if (typeof this.boss == 'string') {
-                    this.boss = {};
-                    // 更新玩家存档
-                    this.$store.commit('setBoss', this.boss);
-                }
-                this.player = crypto.decryption(vuex.player);
+            const local = this.$store.state;
+            if (local) {
+                this.boss = local.boss;
+                this.player = local.player;
                 // 已出战灵宠数据
                 this.player.pet = this.player.pet ? this.player.pet : {};
                 // 灵宠背包数据
@@ -638,25 +707,33 @@
             this.startGame();
         },
         methods: {
-            // 灵宠信息
-            petItemInfo (item) {
-                this.$confirm('', `${item.name}(灵宠)`, {
+            // 放生灵宠
+            petClose (item) {
+                this.$confirm(`你确定要放生<span class="el-tag el-tag--${this.computePetsLevel(item.level)}">${item.name}(${this.levelNames[item.level]})</span>吗?`, '灵宠放生通知', {
                     center: true,
-                    message: `<div class="monsterinfo">
-                        <div class="monsterinfo-box">
-                            <p>境界: ${this.levelNames[item.level]}</p>
-                            <p>气血: ${item.health}</p>
-                            <p>攻击: ${item.attack}</p>
-                            <p>防御: ${item.defense}</p>
-                            <p>闪避率: ${(item.dodge * 100).toFixed(2)}%</p>
-                            <p>暴击率: ${(item.critical * 100).toFixed(2)}%</p>
-                        </div>
-                    </div>`,
-                    confirmButtonText: '出战',
+                    cancelButtonText: '取消放生',
+                    confirmButtonText: '确定放生',
                     dangerouslyUseHTMLString: true
                 }).then(() => {
-                    this.petCarry(item);
+                    // 关闭灵宠信息弹窗
+                    this.petShow = false;
+                    // 增加培养丹数量
+                    this.player.cultivateDan += item.level;
+                    // 删除道具
+                    this.player.pets = this.player.pets.filter(obj => obj.id !== item.id);
+                    // 更新玩家存档
+                    this.$store.commit('setPlayer', this.player);
+                    // 装备出售通知
+                    this.notify({
+                        title: `${item.name}已成功放生`,
+                        message: `对方临走时赠与了你${item.level}个培养丹`
+                    });
                 }).catch(() => { });
+            },
+            // 灵宠信息
+            petItemInfo (item) {
+                this.petShow = true;
+                this.petInfo = item;
             },
             // 灵宠收回
             petRetract () {
@@ -685,6 +762,8 @@
                     // 收回当前出战的灵宠
                     this.player.pets.push(this.player.pet);
                 }
+                // 关闭灵宠信息弹窗
+                this.petShow = false;
                 // 出战当前选择的灵宠
                 this.player.pet = petItem;
                 // 更新玩家属性，添加当前出战灵宠的属性加成
@@ -703,22 +782,23 @@
             },
             // 计算灵宠升级所需消耗
             petConsumption (lv) {
-                return lv * 200;
+                const cost = this.petReincarnation ? 10 : 1;
+                return lv * 200 * cost;
             },
             // 灵宠升级
             petUpgrade (item) {
                 // 计算灵宠升级所需材料数量
                 const consume = this.petConsumption(item.level);
-                // 如果灵宠培养到了满级
-                if (item.level >= this.maxLv) {
+                // 如果勾选了灵宠转生但是灵宠等级没满
+                if (this.petReincarnation && this.maxLv > item.level) {
                     // 发送通知
-                    this.$notify({ title: '灵宠培养提示', message: '灵宠境界已满', position: 'top-left' });
+                    this.notify({ title: '灵宠培养提示', message: '灵宠境界未满无法转生', position: 'top-left' });
                     return;
                 }
                 // 如果培养丹不足
                 if (consume > this.player.cultivateDan) {
                     // 发送通知
-                    this.$notify({ title: '灵宠培养提示', message: '培养丹不足, 进行无法培养', position: 'top-left' });
+                    this.notify({ title: '灵宠培养提示', message: '培养丹不足, 进行无法培养', position: 'top-left' });
                     return;
                 }
                 // 灵宠培养确认弹窗
@@ -736,8 +816,21 @@
                     const defense = Math.floor(item.defense * 0.2);
                     // 暴击
                     const critical = parseFloat(item.critical * 0.2);
+                    // 如果勾选了转生并且当前等级已满
+                    if (item.level == this.maxLv) {
+                        // 重置灵宠等级
+                        this.player.pet.level = 1;
+                        // 增加灵宠转生次数
+                        this.player.pet.reincarnation++;
+                        // 发送通知
+                        this.notify({ title: '灵宠培养提示', message: '灵宠转生成功, 已重置灵宠境界', position: 'top-left' });
+                    } else {
+                        // 增加灵宠等级
+                        this.player.pet.level++;
+                        // 发送通知
+                        this.notify({ title: '灵宠培养提示', message: '灵宠培养成功', position: 'top-left' });
+                    }
                     // 增加灵宠属性
-                    this.player.pet.level++;
                     this.player.pet.dodge += dodge;
                     this.player.pet.attack += attack;
                     this.player.pet.health += health;
@@ -780,22 +873,22 @@
                         health,
                         attack,
                         defense,
-                        // 培养等级
-                        nourish: 0,
-                        critical
+                        critical,
+                        // 转生
+                        reincarnation: 0
                     });
                     // 恢复回合数
                     this.guashaRounds = 10;
                     // 跳转背包相关页
                     this.inventoryActive = 'pet';
                     // 发送提示
-                    this.$notify({ title: '收服灵宠提示', message: `收服${item.name}成功` });
+                    this.notify({ title: '收服灵宠提示', message: `收服${item.name}成功` });
                     // 更新玩家存档
                     this.$store.commit('setPlayer', this.player);
                     // 如果没有收服
                 } else {
                     // 发送提示
-                    this.$notify({ title: '收服灵宠提示', message: `收服${item.name}失败` });
+                    this.notify({ title: '收服灵宠提示', message: `收服${item.name}失败` });
                     // 触发战斗
                     this.fightMonster();
                 }
@@ -847,7 +940,7 @@
                 // 如果炼器石不足
                 if (calculateCost > player.strengtheningStone) {
                     // 发送通知
-                    this.$notify({ title: '炼器提示', message: '炼器石不足, 进行无法炼器操作', position: 'top-left' });
+                    this.notify({ title: '炼器提示', message: '炼器石不足, 进行无法炼器操作', position: 'top-left' });
                     return;
                 }
                 // 炼器确认弹窗
@@ -904,7 +997,7 @@
                         // 增加炼器等级
                         item.strengthen++;
                         // 发送炼器成功通知
-                        this.$notify({ title: '炼器提示', message: '炼器成功', position: 'top-left' });
+                        this.notify({ title: '炼器提示', message: '炼器成功', position: 'top-left' });
                     } else {
                         // 如果炼器等级等于或大于15级并且未开启炼器保护
                         if (item.strengthen >= 15 && !this.protect) {
@@ -922,7 +1015,7 @@
                             this.strengthenShow = false;
                         }
                         // 发送炼器失败通知
-                        this.$notify({ title: '炼器提示', message: item.strengthen >= 15 && !this.protect ? '炼器失败, 装备已自动销毁' : '炼器失败', position: 'top-left' });
+                        this.notify({ title: '炼器提示', message: item.strengthen >= 15 && !this.protect ? '炼器失败, 装备已自动销毁' : '炼器失败', position: 'top-left' });
                     }
                     // 扣除炼器石
                     this.player.strengtheningStone -= calculateCost;
@@ -965,9 +1058,9 @@
                             <p>类型: ${this.genre[item.type]}</p>
                             <p>境界: ${this.levelNames[item.level]}</p>
                             <p>品质: ${this.levels[item.quality]}</p>
-                            <p>气血: ${item.health}</p>
-                            <p>攻击: ${item.attack}</p>
-                            <p>防御: ${item.defense}</p>
+                            <p>气血: ${this.formatNumberToChineseUnit(item.health)}</p>
+                            <p>攻击: ${this.formatNumberToChineseUnit(item.attack)}</p>
+                            <p>防御: ${this.formatNumberToChineseUnit(item.defense)}</p>
                             <p>闪避率: ${(item.dodge * 100).toFixed(2) ?? 0}%</p>
                             <p>暴击率: ${(item.critical * 100).toFixed(2) ?? 0}%</p>
                         </div>
@@ -1000,9 +1093,9 @@
                     this.$store.commit('setPlayer', this.player);
                     // 跳转背包相关页
                     this.inventoryActive = item.type;
-                    this.$notify({ title: '购买提示', message: `您成功花费${this.shopPrice}鸿蒙石购买${item.name}` });
+                    this.notify({ title: '购买提示', message: `您成功花费${this.shopPrice}鸿蒙石购买${item.name}` });
                 } else {
-                    this.$notify({ title: '购买提示', message: '购买失败, 鸿蒙石不足' });
+                    this.notify({ title: '购买提示', message: '购买失败, 鸿蒙石不足' });
                 }
             },
             // 重置
@@ -1021,16 +1114,10 @@
                 const reader = new FileReader();
                 reader.onload = (e) => {
                     try {
-                        const data = JSON.parse(e.target.result);
-                        if (data.boss) {
-                            this.boss = crypto.decryption(data.boss);
-                            this.$store.commit('setBoss', this.boss);
-                        }
-                        this.player = crypto.decryption(data.player);
-                        this.$store.commit('setPlayer', this.player);
+                        localStorage.setItem('vuex', e.target.result);
                         location.reload(1);
                     } catch (err) {
-                        this.$notify.error({
+                        this.notify.error({
                             title: '数据导入失败',
                             message: `错误信息:${err}`
                         });
@@ -1085,7 +1172,7 @@
                         const inventory = this.player.inventory;
                         const length = inventory.filter(equipment => !equipment.lock).length;
                         if (!length) {
-                            this.$notify({
+                            this.notify({
                                 title: '背包装备出售提示',
                                 message: '背包内并没有可以售卖的非锁定装备'
                             });
@@ -1104,7 +1191,7 @@
                         // 清空背包内所有未锁定装备
                         this.player.inventory = inventory.filter(obj => obj.lock === true);
                         this.$store.commit('setPlayer', this.player);
-                        this.$notify({
+                        this.notify({
                             title: '背包装备出售提示',
                             message: `背包内所有非锁定装备已成功出售, 你获得了${strengtheningStoneTotal}个炼器石`
                         });
@@ -1164,7 +1251,7 @@
             // 攻击世界boss
             fightBoss () {
                 if (this.player.level < this.maxLv) {
-                    this.$notify({
+                    this.notify({
                         title: `你的境界尚未达到${this.levelNames[this.maxLv]}`,
                         message: `${this.boss.name}对于你的挑战不屑一顾`
                     });
@@ -1205,7 +1292,7 @@
                 this.player.health -= monsterHarm;
 
                 // 如果boss没有闪避，扣除boss气血
-                if (!isPlayerHit) this.boss.health -= playerHarm;
+                if (isPlayerHit) this.boss.health -= playerHarm;
 
                 this.player.health = Math.max(0, this.player.health);
                 this.boss.health = Math.max(0, this.boss.health);
@@ -1221,25 +1308,16 @@
                         // 增加鸿蒙石
                         this.player.currency += 10;
                         // 获得鸿蒙石通知
-                        this.$notify({ title: '道具获得提示', message: '你获得了10颗鸿蒙石' });
+                        this.notify({ title: '道具获得提示', message: '你获得了10颗鸿蒙石' });
                         this.openEquipItemInfo = equipItem;
                         // 跳转背包相关页
                         this.inventoryActive = equipItem.type;
                         // 玩家获得道具
                         if (equipItem?.name) this.player.inventory.push(equipItem);
                         // 修改boss状态
-                        this.boss = {
-                            // boss名字
-                            name: this.boss.name,
-                            // boss介绍
-                            desc: this.boss.desc,
-                            // 战胜时间
-                            time: Math.floor(Date.now() / 1000),
-                            // 血量
-                            health: 0,
-                            // 是否战胜
-                            conquer: true
-                        };
+                        this.boss.time = Math.floor(Date.now() / 1000);
+                        this.boss.health = 0;
+                        this.boss.conquer = true;
                         this.$store.commit('setBoss', this.boss);
                         this.actions = [
                             {
@@ -1250,7 +1328,7 @@
                             }
                         ];
                     } else if (this.player.health <= 0) {
-                        this.$notify({ title: this.boss.name, message: this.boss.text });
+                        this.notify({ title: this.boss.name, message: this.boss.text });
                         this.storyText = '你因为太弱被击败了。'
                         this.actions = [
                             {
@@ -1261,7 +1339,7 @@
                             }
                         ];
                     } else {
-                        const dodgeText = !isPlayerHit ? `你攻击了${this.boss.name}，${isCritical ? '触发暴击' : ''}造成了${playerHarm}点伤害，剩余${this.boss.health}气血。` : `你攻击了${this.boss.name}，对方闪避了你的攻击，你未造成伤害，剩余${this.boss.health}气血。 `;
+                        const dodgeText = isPlayerHit ? `你攻击了${this.boss.name}，${isCritical ? '触发暴击' : ''}造成了${playerHarm}点伤害，剩余${this.boss.health}气血。` : `你攻击了${this.boss.name}，对方闪避了你的攻击，你未造成伤害，剩余${this.boss.health}气血。 `;
                         this.storyText = `${this.guashaRounds}回合 / 100回合<br>${dodgeText}<br>${this.boss.name}攻击了你，${isMCritical ? '触发暴击' : ''}造成了${monsterHarm}点伤害`;
                         this.actions = [
                             { text: '发起战斗', handler: this.fightBoss },
@@ -1278,7 +1356,7 @@
                     }
                 } else {
                     this.guashaRounds = 10;
-                    this.$notify({ title: this.boss.name, message: this.boss.text });
+                    this.notify({ title: this.boss.name, message: this.boss.text });
                     this.storyText = `回合结束, 你未战胜${this.monster.name}你输了。`;
                     this.actions = [
                         { text: '回到家里', type: 'success', handler: this.startGame }
@@ -1295,15 +1373,13 @@
                 const bossLv = this.maxLv * this.player.reincarnation + this.maxLv;
                 // 如果boss血量为空
                 if (!this.boss.health) {
-                    // 如果没有击败boss并且boss生成的时间大于等于10分钟
-                    if (!this.boss.conquer && time >= 10 || isNaN(time)) {
+                    if (this.boss.conquer && time < 10) {
+                        this.notify({ title: '提示', message: 'BOSS还未刷新' });
+                        return;
+                    } else {
                         this.boss = boss.drawPrize(bossLv);
                         // 存档boss信息
                         this.$store.commit('setBoss', this.boss);
-                        // 如果击败了boss并且boss生成的时间小于10分钟
-                    } else if (this.boss.conquer && time < 10) {
-                        this.$notify({ title: '提示', message: 'BOSS还未刷新' });
-                        return;
                     }
                 }
                 this.isBoss = true;
@@ -1316,7 +1392,12 @@
                             this.startGame();
                         }
                     },
-                    { text: '攻击BOSS', type: 'danger', handler: this.fightBoss }
+                    {
+                        text: '攻击BOSS', type: 'danger', handler: () => {
+                            this.isBoss = false;
+                            this.fightBoss();
+                        }
+                    }
                 ];
                 // 更新boss信息
             },
@@ -1344,9 +1425,9 @@
                             <p>炼器: +${info.strengthen}</p>
                             <p>境界: ${this.levelNames[info.level]}</p>
                             <p>品质: ${this.levels[info.quality]}</p>
-                            <p>气血: ${Math.floor(info.health)}</p>
-                            <p>攻击: ${Math.floor(info.attack)}</p>
-                            <p>防御: ${Math.floor(info.defense)}</p>
+                            <p>气血: ${this.formatNumberToChineseUnit(info.health)}</p>
+                            <p>攻击: ${this.formatNumberToChineseUnit(info.attack)}</p>
+                            <p>防御: ${this.formatNumberToChineseUnit(info.defense)}</p>
                             <p>闪避率: ${(info.dodge * 100).toFixed(2)}%</p>
                             <p>暴击率: ${(info.critical * 100).toFixed(2)}%</p>
                             <p>获得率: ${info.prize}%</p>
@@ -1373,7 +1454,7 @@
                     else if (timesLeft == 0) {
                         // 修改礼包领取状态
                         this.player.isNewbie = true;
-                        this.$notify({ title: '新手礼包领取提示', message: '新手礼包领取成功!' });
+                        this.notify({ title: '新手礼包领取提示', message: '新手礼包领取成功!' });
                     }
                     // 终止
                     else return;
@@ -1408,7 +1489,7 @@
                     this.player.points--;
                     // 更新玩家存档
                     this.$store.commit('setPlayer', this.player);
-                    this.$notify({ title: '加点提示', message: `${typeNames[type]}加点成功` });
+                    this.notify({ title: '加点提示', message: `${typeNames[type]}加点成功` });
                 }
             },
             // 转生突破
@@ -1439,14 +1520,14 @@
                             this.$store.commit('setPlayer', this.player);
                         }).catch(() => { });
                     } else {
-                        this.$notify({
+                        this.notify({
                             title: '未满足转生条件',
                             message: `需要通过击败<span style="color: #f56c6c;">(${this.player.taskNum} / ${reincarnation})</span>个敌人证道转生`,
                             dangerouslyUseHTMLString: true
                         });
                     }
                 } else {
-                    this.$notify({
+                    this.notify({
                         title: '未满足转生条件',
                         message: `境界需要达到<span style="color: #f56c6c;">${this.levelNames[this.maxLv]}</span>才能满足转生条件`,
                         dangerouslyUseHTMLString: true
@@ -1460,7 +1541,7 @@
                     if (this.player.cultivation >= this.player.maxCultivation) {
                         // 如果玩家等级大于10并且击杀数低于当前等级
                         if (this.player.level > 10 && this.player.level > this.player.taskNum) {
-                            this.$notify({
+                            this.notify({
                                 title: '当前境界修为已满',
                                 message: `需要通过击败<span style="color: #f56c6c;">(${this.player.taskNum} / ${this.player.level})</span>个敌人证道突破`,
                                 dangerouslyUseHTMLString: true
@@ -1523,7 +1604,7 @@
             // 探索逻辑
             explore () {
                 if (this.player.level < 10) {
-                    this.$notify({ title: '实力不足提示', message: `外面太危险了, 请突破到${this.levelNames[10]}再出去吧!` });
+                    this.notify({ title: '实力不足提示', message: `外面太危险了, 请突破到${this.levelNames[10]}再出去吧!` });
                     return;
                 }
                 this.guashaRounds = 10;
@@ -1565,9 +1646,9 @@
                     message: `<div class="monsterinfo">
                         <div class="monsterinfo-box">
                             <p>境界: ${this.player.level == 0 ? this.levelNames[this.player.level + 1] : this.levelNames[this.player.level]}</p>
-                            <p>气血: ${this.monster.health}</p>
-                            <p>攻击: ${this.monster.attack}</p>
-                            <p>防御: ${this.monster.defense}</p>
+                            <p>气血: ${this.formatNumberToChineseUnit(this.monster.health)}</p>
+                            <p>攻击: ${this.formatNumberToChineseUnit(this.monster.attack)}</p>
+                            <p>防御: ${this.formatNumberToChineseUnit(this.monster.defense)}</p>
                             <p>闪避率: ${(this.monster.dodge * 100).toFixed(2) ?? 0}%</p>
                             <p>暴击率: ${(this.monster.critical * 100).toFixed(2) ?? 0}%</p>
                             <p>收服率: ${this.calculateCaptureRate()}%</p>
@@ -1666,7 +1747,7 @@
                         // 增加培养丹
                         this.player.cultivateDan++;
                         // 发送提示
-                        this.$notify({ title: '击败提示', message: `击败${this.monster.name}后你获得了1颗培养丹` });
+                        this.notify({ title: '击败提示', message: `击败${this.monster.name}后你获得了1颗培养丹` });
                         this.findTreasure(this.monster.name);
                         this.actions = [
                             { text: '回到家里', type: 'success', handler: this.startGame },
@@ -1777,7 +1858,7 @@
                     // 更新玩家存档
                     this.$store.commit('setPlayer', this.player);
                     // 装备出售通知
-                    this.$notify({
+                    this.notify({
                         title: '背包装备售卖提示',
                         message: `${item.name}已成功卖出, 你获得了${item.level}个炼器石`
                     });
@@ -1789,7 +1870,7 @@
                 inventoryItem.lock = !inventoryItem.lock;
                 // 更新玩家存档
                 this.$store.commit('setPlayer', this.player);
-                this.$notify({
+                this.notify({
                     title: !inventoryItem.lock ? '装备解锁提示' : '装备锁定提示',
                     message: !inventoryItem.lock ? '装备解锁成功' : '装备锁定成功'
                 });
@@ -1802,33 +1883,12 @@
             // 装备信息
             equipmentInfo (type) {
                 const equipment = this.player.equipment[type];
-                if (!equipment) return;
-                this.$confirm('', equipment.name, {
-                    center: true,
-                    message: `<div class="monsterinfo">
-                        <div class="monsterinfo-box">
-                            <p>类型: ${this.genre[type] ?? '未知'}</p>
-                            <p>炼器: ${equipment.strengthen ? '+' + equipment.strengthen : 0}</p>
-                            <p>境界: ${this.levelNames[equipment.level]}</p>
-                            <p>品质: ${this.levels[equipment.quality] ?? '未知'}</p>
-                            <p>气血: ${equipment.health}</p>
-                            <p>攻击: ${equipment.attack}</p>
-                            <p>防御: ${equipment.defense}</p>
-                            <p>闪避率: ${(equipment.dodge * 100).toFixed(2) ?? 0}%</p>
-                            <p>暴击率: ${(equipment.critical * 100).toFixed(2) ?? 0}%</p>
-                        </div>
-                    </div>`,
-                    cancelButtonText: '确定',
-                    confirmButtonText: '炼器',
-                    dangerouslyUseHTMLString: true
-                }).then(() => {
-                    // 打开炼器弹窗
-                    this.strengthenShow = true;
-                    // 需要炼器的装备信息
-                    this.strengthenInfo = equipment;
-                    // 炼器等级
-                    this.player.equipment[type].strengthen = equipment.strengthen ? equipment.strengthen : 0;
-                }).catch(() => { });
+                // 打开炼器弹窗
+                this.strengthenShow = true;
+                // 需要炼器的装备信息
+                this.strengthenInfo = equipment;
+                // 炼器等级
+                this.player.equipment[type].strengthen = equipment.strengthen ? equipment.strengthen : 0;
             },
             // 发现的装备信息
             openEquipmentInfo () {
@@ -1841,9 +1901,9 @@
                             <p>类型: ${this.genre[equipment.type] ?? '未知'}</p>
                             <p>境界: ${this.levelNames[equipment.level]}</p>
                             <p>品质: ${this.levels[equipment.quality] ?? '未知'}</p>
-                            <p>气血: ${equipment.health}</p>
-                            <p>攻击: ${equipment.attack}</p>
-                            <p>防御: ${equipment.defense}</p>
+                            <p>气血: ${this.formatNumberToChineseUnit(equipment.health)}</p>
+                            <p>攻击: ${this.formatNumberToChineseUnit(equipment.attack)}</p>
+                            <p>防御: ${this.formatNumberToChineseUnit(equipment.defense)}</p>
                             <p>闪避率: ${(equipment.dodge * 100).toFixed(2) ?? 0}%</p>
                             <p>暴击率: ${(equipment.critical * 100).toFixed(2) ?? 0}%</p>
                         </div>
@@ -1856,7 +1916,7 @@
                 const inventoryItem = this.getObjectById(id, this.player.inventory);
                 // 如果当前装备境界大于人物的境界
                 if (inventoryItem.level > this.player.level) {
-                    this.$notify.error({ title: '当前境界不足', message: '无法穿戴该装备' });
+                    this.notify.error({ title: '当前境界不足', message: '无法穿戴该装备' });
                     return;
                 }
                 // 如果当前类型的装备已经穿戴，则将其放回背包
@@ -1915,6 +1975,11 @@
                 // 防御
                 this.player.defense = this.player.defense + defense;
             },
+            // 定义Notification
+            notify (data) {
+                this.$notify.closeAll();
+                this.$notify(data);
+            }
         }
     };
 </script>
@@ -1955,7 +2020,7 @@
         justify-content: center;
     }
 
-    .dialog-footer-button:nth-child(n+2) {
+    .dialog-footer-button:nth-child(2) {
         margin-right: 10px;
     }
 
@@ -2131,7 +2196,8 @@
             width: 100%;
         }
 
-        .dialog-footer-button:nth-child(2) {
+        .dialog-footer-button:nth-child(2),
+        .dialog-footer-button:nth-child(5) {
             position: relative;
             right: 10px;
         }
@@ -2209,6 +2275,10 @@
 </style>
 
 <style>
+    a {
+        text-decoration: none;
+    }
+
     .monsterinfo {
         display: flex;
         justify-content: center;

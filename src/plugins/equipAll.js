@@ -17,11 +17,11 @@ const All = {
             const Health = this.calculateCompoundGrowth(10000 * lv, 20, 0.1);
             const CriticalHitrate = this.calculateCompoundGrowth(0.1, 20, 0.1);
             const attrs = {
-                attack: ['weapon', 'accessory', 'sutra'].includes(type) ? Attack * multiplier : 0,
-                health: ['armor', 'accessory', 'sutra'].includes(type) ? Health * multiplier : 0,
+                attack: ['weapon', 'accessory', 'sutra'].includes(type) ? Math.floor(Attack * multiplier) : 0,
+                health: ['armor', 'accessory', 'sutra'].includes(type) ? Math.floor(Health * multiplier) : 0,
                 critical: ['weapon', 'accessory', 'sutra'].includes(type) ? CriticalHitrate * multiplier : 0,
                 dodge: ['accessory', 'sutra'].includes(type) ? CriticalHitrate * multiplier : 0,
-                defense: ['accessory', 'sutra'].includes(type) ? Attack * multiplier : 0
+                defense: ['accessory', 'sutra'].includes(type) ? Math.floor(Attack * multiplier) : 0
             };
             return attrs[attribute];
         };

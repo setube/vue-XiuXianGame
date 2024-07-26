@@ -229,7 +229,7 @@
                 </div>
             </div>
         </el-drawer>
-        <el-drawer title="炼器" :visible.sync="strengthenShow" direction="rtl" class="strengthen">
+        <el-drawer title="装备炼器" :visible.sync="strengthenShow" direction="rtl" class="strengthen">
             <div class="strengthen-box" v-if="strengthenShow">
                 <div class="attributes">
                     <div class="attribute-box">
@@ -421,7 +421,7 @@
                 </el-button>
             </div>
         </el-dialog>
-        <el-dialog title="游戏数据管理" :visible.sync="show" width="600px">
+        <el-dialog title="数据管理" :visible.sync="show" width="600px">
             <div class="dialog-footer">
                 <el-button class="dialog-footer-button" @click="deleteData(1)">
                     出售装备
@@ -793,7 +793,7 @@
                 const cost = this.petReincarnation ? 10 : 1;
                 // 转生次数
                 const reincarnation = this.player.pet.reincarnation ? lv * 200 : 1;
-                return (lv * 200  + reincarnation) * cost;
+                return (lv * 200 + reincarnation) * cost;
             },
             // 灵宠升级
             petUpgrade (item) {
@@ -983,16 +983,13 @@
                             case 'weapon':
                                 item.attack += attack;
                                 item.critical += critical;
-                                player.attack += attack;
-                                player.critical += critical;
+                                this.playerAttribute(0, attack, 0, critical, 0);
                                 break;
                             // 如果是防具
                             case 'armor':
                                 item.health += health;
                                 item.defense += defense;
-                                player.health += health;
-                                player.defense += defense;
-                                player.maxHealth += health;
+                                this.playerAttribute(0, 0, health, 0, defense);
                                 break;
                             // 如果是灵宝或法器
                             case 'accessory':
@@ -1002,12 +999,7 @@
                                 item.health += health;
                                 item.defense += defense;
                                 item.critical += critical;
-                                player.dodge += dodge;
-                                player.attack += attack;
-                                player.health += health;
-                                player.defense += defense;
-                                player.critical += critical;
-                                player.maxHealth += health;
+                                this.playerAttribute(dodge, attack, health, critical, defense);
                                 break;
                             default:
                                 break;
@@ -1022,13 +1014,9 @@
                             // 移除销毁当前装备
                             player.equipment[item.type] = {};
                             // 扣除已销毁装备增加的属性
-                            player.dodge -= item.dodge; // 闪避
-                            player.attack -= item.attack; // 攻击
-                            player.health = player.maxHealth; // 血量
-                            player.defense -= item.defense; // 防御
-                            player.critical -= item.critical; // 暴击
-                            item.strengthen = 0; // 炼器等级清零
-                            player.maxHealth -= item.health; // 最高血量
+                            this.playerAttribute(-item.dodge, -item.attack, -item.health, -item.critical, -item.defense);
+                            // 炼器等级清零
+                            item.strengthen = 0;
                             // 关闭炼器弹窗
                             this.strengthenShow = false;
                         }
@@ -1254,9 +1242,9 @@
                     message: `<div class="monsterinfo">
                         <div class="monsterinfo-box">
                             <p>境界: ${this.levelNames[info.level]}</p>
-                            <p>气血: ${info.health}</p>
-                            <p>攻击: ${info.attack}</p>
-                            <p>防御: ${info.defense}</p>
+                            <p>气血: ${this.formatNumberToChineseUnit(info.health)}</p>
+                            <p>攻击: ${this.formatNumberToChineseUnit(info.attack)}</p>
+                            <p>防御: ${this.formatNumberToChineseUnit(info.defense)}</p>
                             <p>闪避率: ${(info.dodge * 100).toFixed(2)}%</p>
                             <p>暴击率: ${(info.critical * 100).toFixed(2)}%</p>
                             <p>鸿蒙石掉落: 10颗</p>

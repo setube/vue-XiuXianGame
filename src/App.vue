@@ -1648,10 +1648,10 @@
                 }
 
                 // 怪物没有闪避
-                if (!isMHit) this.player.health -= monsterHarm;
+                if (isMHit) this.player.health -= monsterHarm;
 
                 // 玩家没有闪避
-                if (!isPHit) this.monster.health -= playerHarm;
+                if (isPHit) this.monster.health -= playerHarm;
 
                 this.player.health = Math.max(0, this.player.health);
                 this.monster.health = Math.max(0, this.monster.health);
@@ -1680,9 +1680,9 @@
                         ];
                     } else {
                         // 玩家
-                        const dodgeText1 = isPHit ? `你攻击了${this.monster.name}，对方闪避了你的攻击，你未造成伤害，剩余${this.monster.health}气血。` : `你攻击了${this.monster.name}，${isCritical ? '触发暴击' : ''}造成了${playerHarm}点伤害，剩余${this.monster.health}气血。`;
+                        const dodgeText1 = !isPHit ? `你攻击了${this.monster.name}，对方闪避了你的攻击，你未造成伤害，剩余${this.monster.health}气血。` : `你攻击了${this.monster.name}，${isCritical ? '触发暴击' : ''}造成了${playerHarm}点伤害，剩余${this.monster.health}气血。`;
                         // 野怪
-                        const dodgeText2 = isMHit ? `${this.monster.name}攻击了你，你闪避了对方的攻击，对方未造成伤害。` : `${this.monster.name}攻击了你，${isMCritical ? '触发暴击' : ''}造成了${monsterHarm}点伤害`;
+                        const dodgeText2 = !isMHit ? `${this.monster.name}攻击了你，你闪避了对方的攻击，对方未造成伤害。` : `${this.monster.name}攻击了你，${isMCritical ? '触发暴击' : ''}造成了${monsterHarm}点伤害`;
                         this.storyText = `${this.guashaRounds}回合 / 10回合<br>${dodgeText1}<br>${dodgeText2}`;
                         this.actions = [
                             { text: '发起战斗', handler: this.fightMonster },

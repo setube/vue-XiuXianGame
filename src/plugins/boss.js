@@ -65,12 +65,12 @@ const boss = {
                     name: names[Math.floor(Math.random() * names.length)], //装备名字
                     type: quality, // 装备类型
                     level: lv, // 装备等级
-                    dodge: ['accessory', 'sutra'].includes(quality) ? Criticalhitrate.toFixed(4) : 0, // 闪避率
+                    dodge: ['accessory', 'sutra'].includes(quality) ? Criticalhitrate : 0, // 闪避率
                     attack: ['weapon', 'accessory', 'sutra'].includes(quality) ? Attack : 0, // 攻击力
                     health: ['armor', 'accessory', 'sutra'].includes(quality) ? Health : 0, // 血量
                     quality: 'danger', // 装备品质
                     defense: ['accessory', 'sutra'].includes(quality) ? Attack : 0, // 装备防御
-                    critical: ['weapon', 'accessory', 'sutra'].includes(quality) ? Criticalhitrate.toFixed(4) : 0, // 暴击率
+                    critical: ['weapon', 'accessory', 'sutra'].includes(quality) ? Criticalhitrate : 0, // 暴击率
                 };
             }
         }

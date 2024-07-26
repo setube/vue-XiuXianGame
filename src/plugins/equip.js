@@ -39,11 +39,11 @@ const equips = {
                 const qualityMultiplier = { info: 1.2, success: 2, primary: 3, purple: 5, warning: 7, danger: 10 };
                 const multiplier = qualityMultiplier[quality];
                 // 装备属性
-                baseEquip.dodge = parseFloat((baseEquip.dodge * multiplier).toFixed(4)); // 闪避
+                baseEquip.dodge = parseFloat((baseEquip.dodge * multiplier)); // 闪避
                 baseEquip.attack = Math.floor(baseEquip.attack * multiplier); // 攻击
                 baseEquip.health = Math.floor(baseEquip.health * multiplier); // 血量
                 baseEquip.defense = Math.floor(baseEquip.defense * multiplier); // 防御
-                baseEquip.critical = parseFloat((baseEquip.critical * multiplier).toFixed(4)); // 暴击
+                baseEquip.critical = parseFloat((baseEquip.critical * multiplier)); // 暴击
                 return baseEquip;
             }
         }
@@ -157,42 +157,18 @@ const equips = {
         return this.drawPrize(lv, 'sutra', names_a, names_b, names_c, names_d, names_e, names_f, isNewbie);
     },
     equip_Attack (lv) {
-        if (lv >= 0 || lv <= 9) {
-            return this.getRandomInt(10, 50) * lv;
-        } else if (lv >= 10 || lv <= 19) {
-            return this.getRandomInt(50, 100) * lv;
-        } else if (lv >= 20 || lv <= 29) {
-            return this.getRandomInt(100, 500) * lv;
-        } else if (lv >= 30 || lv <= 40) {
-            return this.getRandomInt(500, 1000) * lv;
-        }
+        return this.getRandomInt(10, 50) * lv;
     },
     equip_Health (lv) {
-        if (lv >= 0 || lv <= 9) {
-            return this.getRandomInt(100, 500) * lv;
-        } else if (lv >= 10 || lv <= 19) {
-            return this.getRandomInt(500, 1000) * lv;
-        } else if (lv >= 20 || lv <= 29) {
-            return this.getRandomInt(1000, 5000) * lv;
-        } else if (lv >= 30 || lv <= 40) {
-            return this.getRandomInt(5000, 10000) * lv;
-        }
+        return this.getRandomInt(100, 500) * lv;
     },
-    equip_Criticalhitrate (lv) {
-        if (lv >= 0 || lv <= 9) {
-            return this.getRandomFloatInRange(0.001, 0.005);
-        } else if (lv >= 10 || lv <= 19) {
-            return this.getRandomFloatInRange(0.005, 0.01);
-        } else if (lv >= 20 || lv <= 29) {
-            return this.getRandomFloatInRange(0.01, 0.05);
-        } else if (lv >= 30 || lv <= 40) {
-            return this.getRandomFloatInRange(0.05, 0.1);
-        }
+    equip_Criticalhitrate () {
+        return this.getRandomFloatInRange(0.001, 0.005);
     },
     // equip_Defense (lv, isNewbie = true) {
-    //     if (lv >= 1 || lv <= 5) {
+    //     if (lv >= 1 && lv <= 5) {
     //         return this.getRandomInt(15, 150) * lv;
-    //     } else if (lv >= 6 || lv <= 10) {
+    //     } else if (lv >= 6 && lv <= 10) {
     //         return this.getRandomInt(150, 300) * lv;
     //     } else {
     //         return this.getRandomInt(300, 500) * lv;

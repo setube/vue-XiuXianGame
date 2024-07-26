@@ -16,7 +16,7 @@ const monsters = {
             '混沌始元尊', '乾坤造物主', '宇宙创生神', '万灵始祖皇', '鸿蒙创世者',
             '无极造化君', '太虚衍化神', '元始天尊祖', '虚空造物圣', '界域开辟者'
         ];
-        if (lv >= 1 && lv <= 9) {
+        if (lv >= 0 && lv <= 9) {
             return names_a[Math.floor(Math.random() * names_a.length)];
         } else if (lv >= 10 && lv <= 19) {
             return names_b[Math.floor(Math.random() * names_b.length)];
@@ -27,29 +27,45 @@ const monsters = {
         }
     },
     monster_Attack (lv) {
-        if (lv < 40) {
+        if (lv >= 0 || lv <= 9) {
             return this.getRandomInt(50, 150) * lv;
+        } else if (lv >= 10 || lv <= 19) {
+            return this.getRandomInt(300, 500) * lv;
+        } else if (lv >= 20 || lv <= 29) {
+            return this.getRandomInt(1000, 5000) * lv;
         } else {
             return this.getRandomInt(10000, 50000) * lv;
         }
     },
     monster_Health (lv) {
-        if (lv < 40) {
+        if (lv >= 0 || lv <= 9) {
             return this.getRandomInt(100, 500) * lv;
+        } else if (lv >= 10 || lv <= 19) {
+            return this.getRandomInt(1000, 1500) * lv;
+        } else if (lv >= 20 || lv <= 29) {
+            return this.getRandomInt(5000, 10000) * lv;
         } else {
             return this.getRandomInt(50000, 100000) * lv;
         }
     },
     monster_Defense (lv) {
-        if (lv < 40) {
+        if (lv >= 0 || lv <= 9) {
             return this.getRandomInt(1, 15) * lv;
+        } else if (lv >= 10 || lv <= 19) {
+            return this.getRandomInt(15, 30) * lv;
+        } else if (lv >= 20 || lv <= 29) {
+            return this.getRandomInt(30, 50) * lv;
         } else {
             return this.getRandomInt(500, 1000) * lv;
         }
     },
     monster_Criticalhitrate (lv) {
-        if (lv < 40) {
+        if (lv >= 0 || lv <= 9) {
             return this.getRandomFloatInRange(0.001, 0.01);
+        } else if (lv >= 10 || lv <= 19) {
+            return this.getRandomFloatInRange(0.01, 0.05);
+        } else if (lv >= 20 || lv <= 29) {
+            return this.getRandomFloatInRange(0.05, 0.1);
         } else {
             return this.getRandomFloatInRange(0.1, 0.5);
         }

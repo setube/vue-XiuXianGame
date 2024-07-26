@@ -17,7 +17,6 @@ const All = {
             const Health = this.calculateCompoundGrowth(10000 * lv, 20, 0.1);
             const CriticalHitrate = this.calculateCompoundGrowth(0.1, 20, 0.1);
             const attrs = {
-                hit: ['accessory', 'sutra'].includes(type) ? CriticalHitrate * multiplier : 0,
                 attack: ['weapon', 'accessory', 'sutra'].includes(type) ? Attack * multiplier : 0,
                 health: ['armor', 'accessory', 'sutra'].includes(type) ? Health * multiplier : 0,
                 critical: ['weapon', 'accessory', 'sutra'].includes(type) ? CriticalHitrate * multiplier : 0,
@@ -31,7 +30,6 @@ const All = {
             name: genre[type],
             data: data.flatMap((subtype, kk) =>
                 subtype.map(name => ({
-                    hit: getAttribute(type, lv, 'hit', quality[kk]),
                     name,
                     type,
                     level: lv,

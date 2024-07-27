@@ -724,10 +724,12 @@
                 }).then(() => {
                     // 灵宠转生次数
                     const reincarnation = item.reincarnation ? item.reincarnation : 1;
+                    // 获得的培养丹数量
+                    const num = item.level * reincarnation;
                     // 关闭灵宠信息弹窗
                     this.petShow = false;
                     // 增加培养丹数量
-                    this.player.cultivateDan += item.level * reincarnation;
+                    this.player.cultivateDan += num;
                     // 删除道具
                     this.player.pets = this.player.pets.filter(obj => obj.id !== item.id);
                     // 更新玩家存档
@@ -735,7 +737,7 @@
                     // 装备出售通知
                     this.notify({
                         title: `${item.name}已成功放生`,
-                        message: `对方临走时赠与了你${item.level * reincarnation}个培养丹`
+                        message: `对方临走时赠与了你${num}个培养丹`
                     });
                 }).catch(() => { });
             },
@@ -1755,7 +1757,7 @@
                         // 增加击杀数量
                         this.player.taskNum++;
                         // 增加培养丹
-                        const reincarnation = this.player.reincarnation ? 1 * this.player.reincarnation : 1
+                        const reincarnation = this.player.reincarnation ? 1 + 1 * this.player.reincarnation : 1
                         this.player.cultivateDan += reincarnation;
                         // 发送提示
                         this.notify({ title: '击败提示', message: `击败${this.monster.name}后你获得了${reincarnation}颗培养丹` });

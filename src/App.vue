@@ -1755,9 +1755,10 @@
                         // 增加击杀数量
                         this.player.taskNum++;
                         // 增加培养丹
-                        this.player.cultivateDan = this.player.reincarnation ? this.player.reincarnation : 1;
+                        const reincarnation = this.player.reincarnation ? 1 * this.player.reincarnation : 1
+                        this.player.cultivateDan += reincarnation;
                         // 发送提示
-                        this.notify({ title: '击败提示', message: `击败${this.monster.name}后你获得了1颗培养丹` });
+                        this.notify({ title: '击败提示', message: `击败${this.monster.name}后你获得了${reincarnation}颗培养丹` });
                         this.findTreasure(this.monster.name);
                         this.actions = [
                             { text: '回到家里', type: 'success', handler: this.startGame },
@@ -1871,7 +1872,7 @@
                     // 装备出售通知
                     this.notify({
                         title: '背包装备售卖提示',
-                        message: `${item.name}已成功卖出, 你获得了${item.level}个炼器石`
+                        message: `${item.name}已成功卖出, 你获得了${num}个炼器石`
                     });
                 }).catch(() => { });
             },

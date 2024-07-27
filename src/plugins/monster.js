@@ -27,28 +27,28 @@ const monsters = {
         }
     },
     monster_Attack (lv) {
-        if (lv < 40) {
+        if (lv <= 40) {
             return this.getRandomInt(50, 150) * lv;
         } else {
             return this.getRandomInt(10000, 50000) * lv;
         }
     },
     monster_Health (lv) {
-        if (lv < 40) {
+        if (lv <= 40) {
             return this.getRandomInt(100, 500) * lv;
         } else {
             return this.getRandomInt(50000, 100000) * lv;
         }
     },
     monster_Defense (lv) {
-        if (lv < 40) {
+        if (lv <= 40) {
             return this.getRandomInt(1, 15) * lv;
         } else {
             return this.getRandomInt(500, 1000) * lv;
         }
     },
     monster_Criticalhitrate (lv) {
-        if (lv < 40) {
+        if (lv <= 40) {
             return this.getRandomFloatInRange(0.001, 0.01);
         } else {
             return this.getRandomFloatInRange(0.1, 0.5);

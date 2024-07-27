@@ -21,7 +21,7 @@ const All = {
                 health: ['armor', 'accessory', 'sutra'].includes(type) ? Math.floor(Health * multiplier) : 0,
                 critical: ['weapon', 'accessory', 'sutra'].includes(type) ? CriticalHitrate * multiplier : 0,
                 dodge: ['accessory', 'sutra'].includes(type) ? CriticalHitrate * multiplier : 0,
-                defense: ['accessory', 'sutra'].includes(type) ? Math.floor(Attack * multiplier) : 0
+                defense: ['armor', 'accessory', 'sutra'].includes(type) ? Math.floor(Attack * multiplier) : 0
             };
             return attrs[attribute];
         };

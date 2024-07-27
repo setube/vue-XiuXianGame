@@ -287,7 +287,7 @@
                             <i :class="calculateDifference(petInfo.level, player.pet?.level).icon" />
                         </span>
                         <span class="value">
-                            {{ petInfo.level > parseInt(player.pet?.level || 1) ? levelNames[petInfo.level] : levelNames[player.pet?.level] }}
+                            {{ petInfo.level > parseInt(player.pet?.level || 0) ? levelNames[petInfo.level] : levelNames[player.pet?.level] }}
                         </span>
                     </p>
                     <p>
@@ -722,10 +722,12 @@
                     confirmButtonText: '确定放生',
                     dangerouslyUseHTMLString: true
                 }).then(() => {
+                    // 灵宠转生次数
+                    const reincarnation = item.reincarnation ? item.reincarnation : 1;
                     // 关闭灵宠信息弹窗
                     this.petShow = false;
                     // 增加培养丹数量
-                    this.player.cultivateDan += item.level;
+                    this.player.cultivateDan += item.level * reincarnation;
                     // 删除道具
                     this.player.pets = this.player.pets.filter(obj => obj.id !== item.id);
                     // 更新玩家存档
@@ -733,7 +735,7 @@
                     // 装备出售通知
                     this.notify({
                         title: `${item.name}已成功放生`,
-                        message: `对方临走时赠与了你${item.level}个培养丹`
+                        message: `对方临走时赠与了你${item.level * reincarnation}个培养丹`
                     });
                 }).catch(() => { });
             },
@@ -1485,17 +1487,19 @@
                     defense: '防御',
                 }
                 if (this.player.points > 0) {
+                    const num = this.player.reincarnation ? this.player.reincarnation * 10 : 1;
+                    const numText = type == 'attack' || type == 'defense' ? 50 * num : 100 * num;
                     // 如果是攻击
-                    if (type == 'attack') this.player.attack += 50;
+                    if (type == 'attack') this.playerAttribute(0, numText, 0, 0, 0);
                     // 如果是防御
-                    else if (type == 'defense') this.player.defense += 50;
+                    else if (type == 'defense') this.playerAttribute(0, 0, 0, 0, numText);
                     // 如果是血量
-                    else if (type == 'health') this.player.maxHealth += 100;
+                    else if (type == 'health') this.playerAttribute(0, 0, numText, 0, 0);
                     // 扣除点数
                     this.player.points--;
                     // 更新玩家存档
                     this.$store.commit('setPlayer', this.player);
-                    this.notify({ title: '加点提示', message: `${typeNames[type]}加点成功` });
+                    this.notify({ title: '加点提示', message: `加点成功${typeNames[type]}增加了${numText}点` });
                 }
             },
             // 转生突破
@@ -1751,7 +1755,7 @@
                         // 增加击杀数量
                         this.player.taskNum++;
                         // 增加培养丹
-                        this.player.cultivateDan++;
+                        this.player.cultivateDan = this.player.reincarnation ? this.player.reincarnation : 1;
                         // 发送提示
                         this.notify({ title: '击败提示', message: `击败${this.monster.name}后你获得了1颗培养丹` });
                         this.findTreasure(this.monster.name);
@@ -1857,8 +1861,9 @@
                     confirmButtonText: '确定出售',
                     dangerouslyUseHTMLString: true
                 }).then(() => {
+                    const num = item.level + item.level * this.player.reincarnation / 10;
                     // 增加炼器石数量
-                    this.player.strengtheningStone += item.level;
+                    this.player.strengtheningStone += num;
                     // 删除道具
                     this.player.inventory = this.player.inventory.filter(obj => obj.id !== item.id);
                     // 更新玩家存档

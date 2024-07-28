@@ -56,13 +56,13 @@ export default new Vuex.Store(
                 // 装备
                 equipment: {
                     // 法宝
-                    sutra: null,
+                    sutra: {},
                     // 护甲
-                    armor: null,
+                    armor: {},
                     // 武器
-                    weapon: null,
+                    weapon: {},
                     // 饰品
-                    accessory: null
+                    accessory: {}
                 },
                 // 当前修为
                 cultivation: 0,

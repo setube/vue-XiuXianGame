@@ -529,13 +529,13 @@
                     // 装备
                     equipment: {
                         // 法器
-                        sutra: null,
+                        sutra: {},
                         // 护甲
-                        armor: null,
+                        armor: {},
                         // 神兵
-                        weapon: null,
+                        weapon: {},
                         // 灵宝
-                        accessory: null
+                        accessory: {}
                     },
                     // 当前修为
                     cultivation: 0,
@@ -622,7 +622,7 @@
                 inventoryActive: 'weapon',
                 // 灵宠转生勾选状态
                 petReincarnation: false,
-                openEquipItemInfo: null,
+                openEquipItemInfo: {},
                 illustrationsItems: [],
                 illustrationsActive: 'weapon',
                 illustrationsInfoData: [],
@@ -837,7 +837,7 @@
                     // 暴击
                     const critical = parseFloat(item.critical * 0.2);
                     // 如果勾选了转生并且当前等级已满
-                    if (item.level == this.maxLv) {
+                    if (item.level >= this.maxLv) {
                         // 重置灵宠等级
                         this.player.pet.level = 1;
                         // 取消转生勾选
@@ -957,10 +957,8 @@
                 const successRate = this.calculateEnhanceSuccessRate(item);
                 // 炼器消耗道具数量
                 const calculateCost = this.calculateCost(item);
-                // 玩家信息
-                let player = this.player;
                 // 如果炼器石不足
-                if (calculateCost > player.strengtheningStone) {
+                if (calculateCost > this.player.strengtheningStone) {
                     // 发送通知
                     this.notify({ title: '炼器提示', message: '炼器石不足, 进行无法炼器操作', position: 'top-left' });
                     return;
@@ -1016,7 +1014,7 @@
                         // 如果炼器等级等于或大于15级并且未开启炼器保护
                         if (item.strengthen >= 15 && !this.protect) {
                             // 移除销毁当前装备
-                            player.equipment[item.type] = {};
+                            this.player.equipment[item.type] = {};
                             // 扣除已销毁装备增加的属性
                             this.playerAttribute(-item.dodge, -item.attack, -item.health, -item.critical, -item.defense);
                             // 炼器等级清零
@@ -1191,10 +1189,8 @@
                         // 关闭弹窗
                         this.show = false;
                         // 计算未锁定装备的等级总和
-                        const strengtheningStoneTotal = inventory.filter(equipment => !equipment.lock).reduce((acc, equipment) => {
-                            // 确保 level 是一个数字
-                            const level = Number(equipment.level) || 0;
-                            return acc + level;
+                        const strengtheningStoneTotal = inventory.filter(equipment => !equipment.lock).reduce((acc, item) => {
+                            return item.level + Math.floor(item.level * this.player.reincarnation / 10);
                         }, 0);
                         // 增加炼器石数量
                         this.player.strengtheningStone += strengtheningStoneTotal
@@ -1512,7 +1508,7 @@
                 // 如果击杀数大于等于转生次数 * 100
                 if (this.player.level == this.maxLv) {
                     if (this.player.taskNum >= reincarnation) {
-                        this.$confirm('转生前请务必准备好大乘境的装备,避免转生后无法完成突破条件', '转生提醒', {
+                        this.$confirm('转生前请务必确认自己的实力是否足够战胜转生后的对手, 避免导致卡档', '转生提醒', {
                             center: true,
                             cancelButtonText: '再攒攒装备',
                             confirmButtonText: '知道了, 我会对我的操作负责',
@@ -1820,7 +1816,7 @@
                 this.ismonster = false;
                 this.isequipment = true;
                 const randomInt = equip.getRandomInt(1, 5);
-                let equipItem = null;
+                let equipItem = {};
                 let exp = Math.floor(this.player.maxCultivation / 100);
                 exp = exp ? exp : 1;
                 // 如果没有满级
@@ -1864,7 +1860,7 @@
                     confirmButtonText: '确定出售',
                     dangerouslyUseHTMLString: true
                 }).then(() => {
-                    const num = item.level + item.level * this.player.reincarnation / 10;
+                    const num = item.level + Math.floor(item.level * this.player.reincarnation / 10);
                     // 增加炼器石数量
                     this.player.strengtheningStone += num;
                     // 删除道具
@@ -1967,7 +1963,7 @@
                 // 添加装备到背包里
                 inventory.push(equipment[type]);
                 // 清空身上当前类型的装备
-                equipment[type] = null;
+                equipment[type] = {};
                 // 更新玩家存档
                 this.$store.commit('setPlayer', this.player);
             },

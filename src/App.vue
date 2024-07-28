@@ -1248,7 +1248,8 @@
                         this.show = false;
                         // 计算未锁定装备的等级总和
                         const strengtheningStoneTotal = inventory.filter(equipment => !equipment.lock).reduce((total, item) => {
-                            const level = item.level + Math.floor(item.level * this.player.reincarnation / 10)
+                            let level = item.level + item.level * this.player.reincarnation / 10;
+                            level = Number(level) || 0;
                             return total + level;
                         }, 0);
                         // 增加炼器石数量

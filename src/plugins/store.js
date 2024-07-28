@@ -45,7 +45,7 @@ export default new Vuex.Store(
                 defense: 10,
                 // 已击杀数量
                 taskNum: 0,
-                // 混沌石数量
+                // 鸿蒙石数量
                 currency: 0,
                 // 总血量
                 maxHealth: 100,

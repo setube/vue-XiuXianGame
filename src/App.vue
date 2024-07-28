@@ -689,23 +689,24 @@
         mounted () {
             // 判断本地有没有玩家存档数据
             const local = this.$store.state;
+            // 获取网页宽度
             this.innerWidth = window.innerWidth;
             if (local) {
                 this.boss = local.boss;
                 this.player = local.player;
-                window.player = this.player;
-                // 已出战灵宠数据
-                this.player.pet = this.player.pet ? this.player.pet : {};
-                // 灵宠背包数据
-                this.player.pets = this.player.pets ? this.player.pets : [];
-                // 鸿蒙石数量
-                this.player.currency = this.player.currency ? this.player.currency : 0;
-                // 培养丹数量
-                this.player.cultivateDan = this.player.cultivateDan ? this.player.cultivateDan : 0;
-                // 转生次数
-                this.player.reincarnation = this.player.reincarnation ? this.player.reincarnation : 0;
-                // 强化石数量
-                this.player.strengtheningStone = this.player.strengtheningStone ? this.player.strengtheningStone : 0;
+                // 初始化玩家属性
+                this.player.level = this.player.level ? this.player.level : 0; // 等级
+                this.player.dodge = this.player.dodge ? this.player.dodge : 0; // 闪避
+                this.player.attack = this.player.attack ? this.player.attack : 10; // 攻击
+                this.player.health = this.player.health ? this.player.health : 100; // 血量
+                this.player.defense = this.player.defense ? this.player.defense : 0; // 防御
+                this.player.maxHealth = this.player.maxHealth ? this.player.maxHealth : 100; // 总血量
+                this.player.pet = this.player.pet ? this.player.pet : {}; // 已出战灵宠数据
+                this.player.pets = this.player.pets ? this.player.pets : []; // 灵宠背包数据
+                this.player.currency = this.player.currency ? this.player.currency : 0; // 鸿蒙石数量
+                this.player.cultivateDan = this.player.cultivateDan ? this.player.cultivateDan : 0; // 培养丹数量
+                this.player.reincarnation = this.player.reincarnation ? this.player.reincarnation : 0; // 转生次数
+                this.player.strengtheningStone = this.player.strengtheningStone ? this.player.strengtheningStone : 0; // 强化石数量
                 // 转换灵宠背包里的转生次数
                 if (this.player.pets.length) {
                     this.player.pets.forEach(item => {
@@ -2029,6 +2030,11 @@
             },
             // 玩家属性操作
             playerAttribute (dodge = 0, attack = 0, health = 0, critical = 0, defense = 0) {
+                dodge = dodge ? parseFloat(dodge) : 0;
+                attack = attack ? Math.floor(attack) : 0;
+                health = health ? Math.floor(health) : 0;
+                defense = defense ? Math.floor(defense) : 0;
+                critical = critical ? parseFloat(critical) : 0;
                 // 闪避
                 this.player.dodge = this.player.dodge + dodge;
                 // 攻击

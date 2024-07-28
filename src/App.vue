@@ -1144,7 +1144,7 @@
                         // 刷新页面
                         location.reload(1);
                     } catch (err) {
-                        this.notify.error({
+                        this.notify({
                             title: '数据导入失败',
                             message: `错误信息:${err}`
                         });

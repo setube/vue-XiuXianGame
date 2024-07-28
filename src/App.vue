@@ -1983,7 +1983,7 @@
                 const inventoryItem = this.getObjectById(id, this.player.inventory);
                 // 如果当前装备境界大于人物的境界
                 if (inventoryItem.level > this.player.level) {
-                    this.notify.error({ title: '当前境界不足', message: '无法穿戴该装备' });
+                    this.notify({ title: '当前境界不足', message: '无法穿戴该装备' });
                     return;
                 }
                 // 如果当前类型的装备已经穿戴，则将其放回背包
@@ -2030,11 +2030,12 @@
             },
             // 玩家属性操作
             playerAttribute (dodge = 0, attack = 0, health = 0, critical = 0, defense = 0) {
-                dodge = dodge ? parseFloat(dodge) : 0;
-                attack = attack ? Math.floor(attack) : 0;
-                health = health ? Math.floor(health) : 0;
-                defense = defense ? Math.floor(defense) : 0;
-                critical = critical ? parseFloat(critical) : 0;
+                // 初始化传进来的属性值
+                dodge = isNaN(dodge) || !dodge ? 0 : parseFloat(dodge);
+                attack = isNaN(attack) || !attack ? 0 : Math.floor(attack);
+                health = isNaN(health) || !health ? 0 : Math.floor(health);
+                defense = isNaN(defense) || !defense ? 0 : Math.floor(defense);
+                critical = isNaN(critical) || !critical ? 0 : parseFloat(critical);
                 // 闪避
                 this.player.dodge = this.player.dodge + dodge;
                 // 攻击

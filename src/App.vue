@@ -924,8 +924,11 @@
                 } else {
                     // 发送提示
                     this.notify({ title: '收服灵宠提示', message: `收服${item.name}失败` });
-                    // 触发战斗
-                    this.fightMonster();
+                    // 修改按钮
+                    this.actions = [
+                        { text: '发起战斗', handler: this.fightMonster },
+                        { text: '立马撤退', handler: this.runAway }
+                    ];
                 }
             },
             // 计算收服灵宠成功概率
@@ -1243,8 +1246,9 @@
                         // 关闭弹窗
                         this.show = false;
                         // 计算未锁定装备的等级总和
-                        const strengtheningStoneTotal = inventory.filter(equipment => !equipment.lock).reduce((acc, item) => {
-                            return item.level + Math.floor(item.level * this.player.reincarnation / 10);
+                        const strengtheningStoneTotal = inventory.filter(equipment => !equipment.lock).reduce((total, item) => {
+                            const level = item.level + Math.floor(item.level * this.player.reincarnation / 10)
+                            return total + level;
                         }, 0);
                         // 增加炼器石数量
                         this.player.strengtheningStone += strengtheningStoneTotal

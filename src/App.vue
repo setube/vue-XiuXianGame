@@ -1987,7 +1987,7 @@
                     return;
                 }
                 // 如果当前类型的装备已经穿戴，则将其放回背包
-                if (this.player.equipment[type]) {
+                if (JSON.stringify(this.player.equipment[type]) != '{}') {
                     const equipment = this.player.equipment[type];
                     // 更新玩家属性，移除当前穿戴装备的属性加成
                     this.playerAttribute(-equipment.dodge, -equipment.attack, -equipment.health, -equipment.critical, -equipment.defense);

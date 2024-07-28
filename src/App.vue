@@ -181,7 +181,7 @@
                 </div>
             </div>
             <div class="bbh">
-                当前游戏版本0.6.7
+                当前游戏版本0.6.8
             </div>
         </div>
         <el-drawer title="修仙境界表" :visible.sync="isLevel" direction="ltr" class="levels">
@@ -426,14 +426,22 @@
                 <el-button class="dialog-footer-button" @click="deleteData(1)">
                     出售装备
                 </el-button>
-                <el-button type="info" class="dialog-footer-button" @click="exportData">
+                <el-button type="info" class="dialog-footer-button computer" @click="exportData('computer')" v-if="innerWidth > 750">
                     导出存档
                 </el-button>
-                <el-upload action="#" class="dialog-upload" :http-request="importData" :show-file-list="false" accept="application/json">
+                <el-button type="info" class="dialog-footer-button mobile" @click="exportData('mobile')" v-else>
+                    导出存档
+                </el-button>
+                <el-upload action="#" class="dialog-upload computer" :http-request="importData" :show-file-list="false" accept="application/json" v-if="innerWidth > 750">
                     <el-button type="warning" class="dialog-footer-button">
                         导入存档
                     </el-button>
                 </el-upload>
+                <div class="dialog-upload mobile" v-else>
+                    <el-button type="warning" class="dialog-footer-button" @click="importMobileData">
+                        导入存档
+                    </el-button>
+                </div>
                 <el-button type="danger" class="dialog-footer-button" @click="deleteData(0)">
                     删除存档
                 </el-button>
@@ -601,6 +609,10 @@
                 ],
                 storyText: '',
                 ismonster: false,
+                // 当前网页宽度
+                innerWidth: 0,
+                // 移动端导入的数据
+                mobileData: '',
                 isequipment: false,
                 // 灵宠信息弹窗
                 petItemShow: false,
@@ -677,6 +689,7 @@
         mounted () {
             // 判断本地有没有玩家存档数据
             const local = this.$store.state;
+            this.innerWidth = window.innerWidth;
             if (local) {
                 this.boss = local.boss;
                 this.player = local.player;
@@ -1116,13 +1129,15 @@
                     this.exportData();
                 }).catch(() => { });
             },
-            // 导入存档
+            // 电脑导入存档
             importData (data) {
                 const file = data.file;
                 const reader = new FileReader();
                 reader.onload = (e) => {
                     try {
+                        // 导入存档
                         localStorage.setItem('vuex', e.target.result);
+                        // 刷新页面
                         location.reload(1);
                     } catch (err) {
                         this.notify.error({
@@ -1133,33 +1148,75 @@
                 };
                 reader.readAsText(file);
             },
+            // 手机导入存档
+            importMobileData () {
+                const h = this.$createElement;
+                this.$msgbox({
+                    title: '存档导入',
+                    message: h('div', { attrs: { class: 'el-textarea' } }, [h('textarea', {
+                        on: {
+                            input: (value) => {
+                                this.mobileData = value.target.value;
+                            }
+                        },
+                        attrs: {
+                            rows: 5,
+                            class: 'el-textarea__inner',
+                            placeholder: '请粘贴从其他设备复制存档数据到这里',
+                            autocomplete: 'off'
+                        },
+                        value: ''
+                    })]),
+                    showCancelButton: true,
+                    confirmButtonText: '导入'
+                }).then(() => {
+                    // 导入存档
+                    localStorage.setItem('vuex', this.mobileData);
+                    // 发送提示
+                    this.notify({ title: '提示', message: '存档导入成功' });
+                    // 刷新页面
+                    location.reload(1);
+                }).catch(() => { });
+            },
             // 导出存档
-            exportData () {
-                const today = new Date();
-                const year = today.getFullYear();
-                const month = String(today.getMonth() + 1).padStart(2, '0');
-                const day = String(today.getDate()).padStart(2, '0');
-                const hours = String(today.getHours()).padStart(2, '0');
-                const minutes = String(today.getMinutes()).padStart(2, '0');
-                const seconds = String(today.getSeconds()).padStart(2, '0');
-                // 判断是否苹果设备
-                const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-                const blob = new Blob([localStorage.getItem('vuex')], { type: 'application/json;charset=utf-8' });
-                const name = `文字修仙小游戏存档${year}-${month}-${day} ${hours}:${minutes}:${seconds}.json`;
-                if (isIOS) {
-                    const reader = new FileReader();
-                    reader.readAsDataURL(blob);
-                    reader.onload = function () {
-                        const url = reader.result;
-                        const a = document.createElement('a');
-                        a.style.display = 'none';
-                        document.body.appendChild(a);
-                        a.href = url;
-                        a.download = name;
-                        a.click();
-                        window.URL.revokeObjectURL(url);
-                    };
+            exportData (type) {
+                // 是否为移动端
+                if (type == 'mobile') {
+                    const h = this.$createElement;
+                    this.$msgbox({
+                        title: '存档导出',
+                        message: h('div', { attrs: { class: 'el-textarea' } }, [h('textarea', {
+                            on: {
+                                input: localStorage.vuex
+                            },
+                            attrs: {
+                                rows: 5,
+                                class: 'el-textarea__inner',
+                                placeholder: '存档数据',
+                                autocomplete: 'off'
+                            },
+                            value: localStorage.vuex,
+                            domProps: {
+                                value: localStorage.vuex
+                            }
+                        })]),
+                        showCancelButton: true,
+                        confirmButtonText: '复制'
+                    }).then(() => {
+                        this.$copyText(localStorage.vuex).then(() => {
+                            this.notify({ title: '提示', message: '存档复制成功' });
+                        });
+                    }).catch(() => { });
                 } else {
+                    const today = new Date();
+                    const year = today.getFullYear();
+                    const month = String(today.getMonth() + 1).padStart(2, '0');
+                    const day = String(today.getDate()).padStart(2, '0');
+                    const hours = String(today.getHours()).padStart(2, '0');
+                    const minutes = String(today.getMinutes()).padStart(2, '0');
+                    const seconds = String(today.getSeconds()).padStart(2, '0');
+                    const blob = new Blob([localStorage.getItem('vuex')], { type: 'application/json;charset=utf-8' });
+                    const name = `文字修仙小游戏存档${year}-${month}-${day} ${hours}:${minutes}:${seconds}.json`;
                     const url = URL.createObjectURL(blob);
                     const downloadLink = document.createElement('a');
                     downloadLink.href = url;
@@ -1180,10 +1237,7 @@
                         const inventory = this.player.inventory;
                         const length = inventory.filter(equipment => !equipment.lock).length;
                         if (!length) {
-                            this.notify({
-                                title: '背包装备出售提示',
-                                message: '背包内并没有可以售卖的非锁定装备'
-                            });
+                            this.notify({ title: '背包装备出售提示', message: '背包内并没有可以售卖的非锁定装备' });
                             return;
                         }
                         // 关闭弹窗
@@ -1197,11 +1251,9 @@
                         // 清空背包内所有未锁定装备
                         this.player.inventory = inventory.filter(obj => obj.lock === true);
                         this.$store.commit('setPlayer', this.player);
-                        this.notify({
-                            title: '背包装备出售提示',
-                            message: `背包内所有非锁定装备已成功出售, 你获得了${strengtheningStoneTotal}个炼器石`
-                        });
+                        this.notify({ title: '背包装备出售提示', message: `背包内所有非锁定装备已成功出售, 你获得了${strengtheningStoneTotal}个炼器石` });
                     } else {
+                        this.notify({ title: '提示', message: '存档删除成功' });
                         // 清空存档
                         localStorage.removeItem('vuex');
                         // 刷新页面

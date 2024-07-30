@@ -694,7 +694,6 @@
             if (local) {
                 this.boss = local.boss;
                 this.player = local.player;
-                window.player = this.player;
                 // 初始化玩家属性
                 this.player.level = this.player.level ? this.player.level : 0; // 等级
                 this.player.dodge = this.player.dodge ? this.player.dodge : 0; // 闪避

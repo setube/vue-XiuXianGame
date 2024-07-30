@@ -90,45 +90,12 @@
                         </div>
                     </div>
                     <div class="equip-box">
-                        <div class="tag equip-item">
-                            <span class="equip">
-                                <span>神兵: </span>
-                                <el-tag v-if="player.equipment.weapon?.name" :type="player.equipment.weapon?.quality" :closable="player.equipment.weapon?.name ? true : false" @close="equipmentClose('weapon')" @click="equipmentInfo('weapon')">
-                                    {{ player.equipment.weapon?.name }}{{ player.equipment.weapon?.strengthen ? '+' + player.equipment.weapon?.strengthen : '' }}
-                                </el-tag>
-                                <span v-else>无</span>
-                            </span>
-                            <span class="equip">
-                                <span>护甲: </span>
-                                <el-tag v-if="player.equipment.armor?.name" :type="player.equipment.armor?.quality" :closable="player.equipment.armor?.name ? true : false" @close="equipmentClose('armor')" @click="equipmentInfo('armor')">
-                                    {{ player.equipment.armor?.name }}{{ player.equipment.armor?.strengthen ? '+' + player.equipment.armor?.strengthen : '' }}
-                                </el-tag>
-                                <span v-else>无</span>
-                            </span>
-                        </div>
-                        <div class="tag equip-item">
-                            <span class="equip">
-                                <span>灵宝: </span>
-                                <el-tag v-if="player.equipment.accessory?.name" :type="player.equipment.accessory?.quality" :closable="player.equipment.accessory?.name ? true : false" @close="equipmentClose('accessory')" @click="equipmentInfo('accessory')">
-                                    {{ player.equipment.accessory?.name }}{{ player.equipment.accessory?.strengthen ? '+' + player.equipment.accessory?.strengthen : '' }}
-                                </el-tag>
-                                <span v-else>无</span>
-                            </span>
-                            <span class="equip">
-                                <span>法器: </span>
-                                <el-tag v-if="player.equipment.sutra?.name" :type="player.equipment.sutra?.quality" :closable="player.equipment.sutra?.name ? true : false" @close="equipmentClose('sutra')" @click="equipmentInfo('sutra')">
-                                    {{ player.equipment.sutra?.name }}{{ player.equipment.sutra?.strengthen ? '+' + player.equipment.sutra?.strengthen : '' }}
-                                </el-tag>
-                                <span v-else>无</span>
-                            </span>
-                        </div>
-                        <div class="tag equip-item">
-                            <span class="equip">
-                                <span>灵宠: </span>
-                                <el-tag class="pet" v-if="player.pet?.name" :type="computePetsLevel(player.pet?.level)" closable @close="petRetract" @click="petItemShow = true">{{ player.pet?.name }}({{levelNames[player.pet.level]}})</el-tag>
-                                <span v-else>无</span>
-                            </span>
-                        </div>
+                        
+						<EquipBox :player="player" 
+							@equipmentInfo="equipmentInfo" @equipmentClose="equipmentClose"
+							@petShow="petItemShow=true" @petRetract="petRetract"
+						></EquipBox>
+						
                         <div class="tag inventory-box">
                             <el-tabs v-model="inventoryActive" :stretch="true" @tab-click="tabClick">
                                 <el-tab-pane :label="i.name" :name="i.type" v-for="(i, k) in backPackItem" :key="k">
@@ -466,8 +433,18 @@
     import monster from '@/plugins/monster';
     // 图鉴
     import equipAll from '@/plugins/equipAll';
-
+	
+	// 装备展示
+	import EquipBox from './components/EquipBox.vue'
+	
+	// 一些工具方法
+	import util from './plugins/mixin.js'
+	
     export default {
+		components: {
+			EquipBox
+		},
+		mixins: [util],
         data () {
             return {
                 // 弹窗
@@ -797,13 +774,6 @@
                 this.player.pets = this.player.pets.filter(i => i.id !== item.id);
                 // 更新玩家存档
                 this.$store.commit('setPlayer', this.player);
-            },
-            // 计算灵宠等级
-            computePetsLevel (lv) {
-                if (lv >= 1 && lv <= 9) return 'success';
-                if (lv >= 10 && lv <= 19) return 'primary';
-                if (lv >= 20 && lv <= 29) return 'warning';
-                if (lv >= 30) return 'danger';
             },
             // 计算灵宠升级所需消耗
             petConsumption (lv) {
@@ -2198,7 +2168,7 @@
 
     .equip-box {
         padding: 0 3px;
-        margin-top: 4px;
+        /* margin-top: 4px; */
         display: flex;
         flex-direction: column;
     }

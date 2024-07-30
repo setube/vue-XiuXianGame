@@ -11,6 +11,7 @@
     "autoprefixer": "^10.4.19",
     "core-js": "^3.8.3",
     "crypto-js": "^4.2.0",
+    "element-ui": "^2.15.14",
     "postcss": "^8.4.39",
     "vue": "^2.6.14",
     "vue-clipboard2": "^0.3.3",

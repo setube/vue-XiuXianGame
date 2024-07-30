@@ -73,10 +73,10 @@
                                 <i class="el-icon-circle-plus-outline" v-if="player.points > 0" @click="attributePoints('defense')" />
                             </div>
                             <div class="tag attribute">
-                                闪避率: {{ player.dodge > 0 ? (player.dodge * 100).toFixed(2) : 0 }}%
+                                闪避率: {{ player.dodge > 0 ? (player.dodge * 100 > 100 ? 100 : (player.dodge * 100).toFixed(2)) : 0 }}%
                             </div>
                             <div class="tag attribute">
-                                暴击率: {{ player.critical > 0 ? (player.critical * 100).toFixed(2) : 0 }}%
+                                暴击率: {{ player.critical > 0 ? (player.critical * 100 > 100 ? 100 : (player.critical * 100).toFixed(2)) : 0 }}%
                             </div>
                             <div class="tag attribute" @click="notify({title: '获得方式', message: '可以通过击败世界Boss后获得'})">
                                 鸿蒙石: {{ formatNumberToChineseUnit(player.currency) }}
@@ -181,7 +181,7 @@
                 </div>
             </div>
             <div class="bbh">
-                当前游戏版本0.6.8
+                当前游戏版本0.6.9
             </div>
         </div>
         <el-drawer title="修仙境界表" :visible.sync="isLevel" direction="ltr" class="levels">
@@ -206,10 +206,10 @@
                             防御: {{ formatNumberToChineseUnit(player.pet.defense) }}
                         </div>
                         <div class="tag attribute">
-                            闪避率: {{ player.pet.dodge > 0 ? (player.pet.dodge * 100).toFixed(2) : 0 }}%
+                            闪避率: {{ player.pet.dodge > 0 ? (player.pet.dodge * 100 > 100 ? 100 : (player.pet.dodge * 100).toFixed(2)) : 0 }}%
                         </div>
                         <div class="tag attribute">
-                            暴击率: {{ player.pet.critical > 0 ? (player.pet.critical * 100).toFixed(2) : 0 }}%
+                            暴击率: {{ player.pet.critical > 0 ? (player.pet.critical * 100 > 100 ? 100 : (player.pet.critical * 100).toFixed(2)) : 0 }}%
                         </div>
                         <div class="tag attribute" @click="notify({title: '获得方式', message: '可以通过探索秘境获得', position: 'top-left'})">
                             拥有培养丹: {{ formatNumberToChineseUnit(player.cultivateDan) }}
@@ -246,10 +246,10 @@
                             防御: {{ formatNumberToChineseUnit(strengthenInfo.defense) }}
                         </div>
                         <div class="tag attribute">
-                            闪避率: {{ strengthenInfo.dodge > 0 ? (strengthenInfo.dodge * 100).toFixed(2) : 0 }}%
+                            闪避率: {{ strengthenInfo.dodge > 0 ? (strengthenInfo.dodge * 100 > 100 ? 100 : (strengthenInfo.dodge * 100).toFixed(2)) : 0 }}%
                         </div>
                         <div class="tag attribute">
-                            暴击率: {{ strengthenInfo.critical > 0 ? (strengthenInfo.critical * 100).toFixed(2) : 0 }}%
+                            暴击率: {{ strengthenInfo.critical > 0 ? (strengthenInfo.critical * 100 > 100 ? 100 : (strengthenInfo.critical * 100).toFixed(2)) : 0 }}%
                         </div>
                         <div class="tag attribute">
                             炼器等级: {{ strengthenInfo.strengthen ?? 0 }}
@@ -319,14 +319,14 @@
                         <span class="value">{{ calculateDifference(petInfo.defense, player.pet?.defense).num }}</span>
                     </p>
                     <p>
-                        <span class="description">闪避率: {{ (petInfo.dodge * 100).toFixed(2) ?? 0 }}%</span>
+                        <span class="description">闪避率: {{ petInfo.dodge > 0 ? (petInfo.dodge * 100 > 100 ? 100 : (petInfo.dodge * 100).toFixed(2)) : 0 }}%</span>
                         <span class="icon">
                             <i :class="calculateDifference(petInfo.dodge, player.pet?.dodge).icon" />
                         </span>
                         <span class="value">{{ calculateDifference(petInfo.dodge, player.pet?.dodge).num }}</span>
                     </p>
                     <p>
-                        <span class="description">暴击率: {{ (petInfo.critical * 100).toFixed(2) ?? 0 }}%</span>
+                        <span class="description">暴击率: {{ petInfo.critical > 0 ? (petInfo.critical * 100 > 100 ? 100 : (petInfo.critical * 100).toFixed(2)) : 0 }}%</span>
                         <span class="icon">
                             <i :class="calculateDifference(petInfo.critical, player.pet?.critical).icon" />
                         </span>
@@ -397,14 +397,14 @@
                         <span class="value">{{ calculateDifference(inventoryInfo.defense, player.equipment[inventoryInfo.type]?.defense).num }}</span>
                     </p>
                     <p>
-                        <span class="description">闪避率: {{ (inventoryInfo.dodge * 100).toFixed(2) ?? 0 }}%</span>
+                        <span class="description">闪避率: {{ inventoryInfo.dodge > 0 ? (inventoryInfo.dodge * 100 > 100 ? 100 : (inventoryInfo.dodge * 100).toFixed(2)) : 0 }}%</span>
                         <span class="icon">
                             <i :class="calculateDifference(inventoryInfo.dodge, player.equipment[inventoryInfo.type]?.dodge).icon" />
                         </span>
                         <span class="value">{{ calculateDifference(inventoryInfo.dodge, player.equipment[inventoryInfo.type]?.dodge).num }}</span>
                     </p>
                     <p>
-                        <span class="description">暴击率: {{ (inventoryInfo.critical * 100).toFixed(2) ?? 0 }}%</span>
+                        <span class="description">暴击率: {{ inventoryInfo.critical > 0 ? (inventoryInfo.critical * 100 > 100 ? 100 : (inventoryInfo.critical * 100).toFixed(2)) : 0 }}%</span>
                         <span class="icon">
                             <i :class="calculateDifference(inventoryInfo.critical, player.equipment[inventoryInfo.type]?.critical).icon" />
                         </span>
@@ -694,6 +694,7 @@
             if (local) {
                 this.boss = local.boss;
                 this.player = local.player;
+                window.player = this.player;
                 // 初始化玩家属性
                 this.player.level = this.player.level ? this.player.level : 0; // 等级
                 this.player.dodge = this.player.dodge ? this.player.dodge : 0; // 闪避
@@ -703,10 +704,10 @@
                 this.player.maxHealth = this.player.maxHealth ? this.player.maxHealth : 100; // 总血量
                 this.player.pet = this.player.pet ? this.player.pet : {}; // 已出战灵宠数据
                 this.player.pets = this.player.pets ? this.player.pets : []; // 灵宠背包数据
-                this.player.currency = this.player.currency ? this.player.currency : 0; // 鸿蒙石数量
-                this.player.cultivateDan = this.player.cultivateDan ? this.player.cultivateDan : 0; // 培养丹数量
+                this.player.currency = this.player.currency ? Math.floor(this.player.currency) : 0; // 鸿蒙石数量
+                this.player.cultivateDan = this.player.cultivateDan ? Math.floor(this.player.cultivateDan) : 0; // 培养丹数量
                 this.player.reincarnation = this.player.reincarnation ? this.player.reincarnation : 0; // 转生次数
-                this.player.strengtheningStone = this.player.strengtheningStone ? this.player.strengtheningStone : 0; // 强化石数量
+                this.player.strengtheningStone = this.player.strengtheningStone ? Math.floor(this.player.strengtheningStone) : 0; // 炼器石数量
                 // 转换灵宠背包里的转生次数
                 if (this.player.pets.length) {
                     this.player.pets.forEach(item => {
@@ -817,6 +818,12 @@
             petUpgrade (item) {
                 // 计算灵宠升级所需材料数量
                 const consume = this.petConsumption(item.level);
+                // 如果灵宠转生次数大于等于1次
+                if (item.reincarnation >= 1 && item.level >= this.maxLv) {
+                    // 发送通知
+                    this.notify({ title: '灵宠培养提示', message: '灵宠培养已达极限', position: 'top-left' });
+                    return;
+                }
                 // 如果勾选了灵宠转生但是灵宠等级没满
                 if (this.petReincarnation && this.maxLv > item.level) {
                     // 发送通知
@@ -980,6 +987,12 @@
                     this.notify({ title: '炼器提示', message: '炼器石不足, 进行无法炼器操作', position: 'top-left' });
                     return;
                 }
+                // 如果炼器等级已满
+                if (item.strengthen == 22) {
+                    // 发送通知
+                    this.notify({ title: '炼器提示', message: '当前装备炼器等级已满', position: 'top-left' });
+                    return;
+                }
                 // 炼器确认弹窗
                 this.$confirm(item.strengthen >= 15 && !this.protect ? `当前装备炼器等级已达到+${item.strengthen}, 如果炼器失败该装备会销毁, 请问还需要炼器吗?` : '你确定要炼器吗?', '炼器提示', {
                     cancelButtonText: '我点错了',
@@ -1058,8 +1071,9 @@
             calculateDifference (item1, item2) {
                 item1 = item1 || 0;
                 item2 = item2 || 0;
+                const Float = item1 - parseFloat(item2) < -1 ? -1 : (item1 - parseFloat(item2) > 1 ? 1 : item1 - parseFloat(item2));
                 const ojb = {
-                    num: this.isFloat(item1) || this.isFloat(item2) ? ((item1 - parseFloat(item2)) * 100).toFixed(2) + '%' : item1 - parseInt(item2),
+                    num: this.isFloat(item1) || this.isFloat(item2) ? (Float * 100).toFixed(2) + '%' : item1 - parseInt(item2),
                     icon: item1 > item2 ? 'success el-icon-caret-top' : (item1 == item2 ? '' : 'danger el-icon-caret-bottom'),
                 };
                 ojb.num = ojb.num == 0 ? '' : ojb.num
@@ -1086,8 +1100,8 @@
                             <p>气血: ${this.formatNumberToChineseUnit(item.health)}</p>
                             <p>攻击: ${this.formatNumberToChineseUnit(item.attack)}</p>
                             <p>防御: ${this.formatNumberToChineseUnit(item.defense)}</p>
-                            <p>闪避率: ${(item.dodge * 100).toFixed(2) ?? 0}%</p>
-                            <p>暴击率: ${(item.critical * 100).toFixed(2) ?? 0}%</p>
+                            <p>闪避率: ${item.dodge > 0 ? (item.dodge * 100 > 100 ? 100 : (item.dodge * 100).toFixed(2)) : 0}%</p>
+                            <p>暴击率: ${item.critical > 0 ? (item.critical * 100 > 100 ? 100 : (item.critical * 100).toFixed(2)) : 0}%</p>
                         </div>
                     </div>`,
                     cancelButtonText: '取消购买',
@@ -1099,13 +1113,27 @@
             },
             // 单位转换
             formatNumberToChineseUnit (number) {
-                if (number >= 100000000) {
-                    return (number / 100000000).toFixed(2) + '亿';
-                } else if (number >= 10000) {
-                    return (number / 10000).toFixed(2) + '万';
-                } else {
-                    return number.toString();
+                // 中文单位数组，从小到大
+                const units = ['', '万', '亿', '兆', '京', '垓', '秭', '穰', '沟', '涧', '正', '载', '极'];
+                // 定义 1 万（10000）的 BigInt 形式
+                const bigTenThousand = window.BigInt(10000);
+                // 将输入的数字转换为 BigInt 类型
+                let num = window.BigInt(number);
+                let unitIndex = 0; // 单位的索引
+                let additionalUnits = ''; // 额外单位字符串
+                // 当 num 大于等于 1 万时，进行循环处理
+                while (num >= bigTenThousand) {
+                    num /= bigTenThousand; // 将数字除以 1 万
+                    unitIndex++; // 增加单位索引
+                    // 如果单位索引超过了定义的单位范围，则添加“极”并重置索引
+                    if (unitIndex >= units.length - 1) {
+                        additionalUnits += '极';
+                        unitIndex = 0;
+                    }
                 }
+                // 将数字转换为字符串，并加上对应的中文单位
+                let result = num.toString() + units[unitIndex] + additionalUnits;
+                return result;
             },
             // 购买装备
             shopBuy (item) {
@@ -1250,7 +1278,7 @@
                         const strengtheningStoneTotal = inventory.filter(equipment => !equipment.lock).reduce((total, item) => {
                             let level = item.level + item.level * this.player.reincarnation / 10;
                             level = Number(level) || 0;
-                            return total + level;
+                            return total + Math.floor(level);
                         }, 0);
                         // 增加炼器石数量
                         this.player.strengtheningStone += strengtheningStoneTotal
@@ -1303,8 +1331,8 @@
                             <p>气血: ${this.formatNumberToChineseUnit(info.health)}</p>
                             <p>攻击: ${this.formatNumberToChineseUnit(info.attack)}</p>
                             <p>防御: ${this.formatNumberToChineseUnit(info.defense)}</p>
-                            <p>闪避率: ${(info.dodge * 100).toFixed(2)}%</p>
-                            <p>暴击率: ${(info.critical * 100).toFixed(2)}%</p>
+                            <p>闪避率: ${info.dodge > 0 ? (info.dodge * 100 > 100 ? 100 : (info.dodge * 100).toFixed(2)) : 0}%</p>
+                            <p>暴击率: ${info.critical > 0 ? (info.critical * 100 > 100 ? 100 : (info.critical * 100).toFixed(2)) : 0}%</p>
                             <p>鸿蒙石掉落: 10颗</p>
                             <p>神装掉落率: 100%</p>
                         </div>
@@ -1492,8 +1520,8 @@
                             <p>气血: ${this.formatNumberToChineseUnit(info.health)}</p>
                             <p>攻击: ${this.formatNumberToChineseUnit(info.attack)}</p>
                             <p>防御: ${this.formatNumberToChineseUnit(info.defense)}</p>
-                            <p>闪避率: ${(info.dodge * 100).toFixed(2)}%</p>
-                            <p>暴击率: ${(info.critical * 100).toFixed(2)}%</p>
+                            <p>闪避率: ${info.dodge > 0 ? (info.dodge * 100 > 100 ? 100 : (info.dodge * 100).toFixed(2)) : 0}%</p>
+                            <p>暴击率: ${info.critical > 0 ? (info.critical * 100 > 100 ? 100 : (info.critical * 100).toFixed(2)) : 0}%</p>
                             <p>获得率: ${info.prize}%</p>
                         </div>
                     </div>`,
@@ -1715,8 +1743,8 @@
                             <p>气血: ${this.formatNumberToChineseUnit(this.monster.health)}</p>
                             <p>攻击: ${this.formatNumberToChineseUnit(this.monster.attack)}</p>
                             <p>防御: ${this.formatNumberToChineseUnit(this.monster.defense)}</p>
-                            <p>闪避率: ${(this.monster.dodge * 100).toFixed(2) ?? 0}%</p>
-                            <p>暴击率: ${(this.monster.critical * 100).toFixed(2) ?? 0}%</p>
+                            <p>闪避率: ${this.monster.dodge > 0 ? (this.monster.dodge * 100 > 100 ? 100 : (this.monster.dodge * 100).toFixed(2)) : 0}%</p>
+                            <p>暴击率: ${this.monster.critical > 0 ? (this.monster.critical * 100 > 100 ? 100 : (this.monster.critical * 100).toFixed(2)) : 0}%</p>
                             <p>收服率: ${this.calculateCaptureRate()}%</p>
                         </div>
                     </div>`,

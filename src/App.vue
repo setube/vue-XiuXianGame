@@ -891,7 +891,7 @@
                 // 成功几率
                 const successRate = this.calculateCaptureRate();
                 // 是否成功收服
-                const isSuccess = successRate == monster.getRandomInt(1, successRate);
+                const isSuccess = successRate >= monster.getRandomInt(1, 100);
                 // 如果成功收服
                 if (isSuccess) {
                     // 收服后的属性根据收服前的成功率算
@@ -1593,7 +1593,7 @@
                 // 如果击杀数大于等于转生次数 * 100
                 if (this.player.level == this.maxLv) {
                     if (this.player.taskNum >= reincarnation) {
-                        this.$confirm('转生前请务必确认自己的实力是否足够战胜转生后的对手, 避免导致卡档', '转生提醒', {
+                        this.$confirm('1转之后的怪物属性是1转前的百倍<br>转生前请务必确认自己的实力是否足够战胜转生后的对手, 避免导致卡档', '转生提醒', {
                             center: true,
                             cancelButtonText: '再攒攒装备',
                             confirmButtonText: '知道了, 我会对我的操作负责',
@@ -2376,6 +2376,10 @@
 </style>
 
 <style>
+    body {
+        background: #fff;
+    }
+
     a {
         text-decoration: none;
     }

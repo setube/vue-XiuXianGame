@@ -22,5 +22,47 @@ Vue, Vuex, Element-ui
 # 在线体验
 https://setube.github.io/vue-XiuXianGame
 
+---
+# Docker
+
+Docker Build:
+```
+docker build -t setube/vue-xiuxiangame -f Dockerfile .
+```
+
+Docker Run:
+```
+docker run -p 8080:8080 setube/vue-xiuxiangame
+```
+
+Docker Image Pull (From TencentCloud)
+```
+docker pull ccr.ccs.tencentyun.com/wuchen/vue-xiuxiangame:0.6.9
+```
+
+RUN:
+
+```
+docker run -p 8080:8080 ccr.ccs.tencentyun.com/wuchen/vue-xiuxiangame:0.6.9
+```
+
+Docker Compose (Example)
+```docker-compose.yaml
+version: '3.9'
+services:
+    vue-xiuxiangame:
+        image: vue-xiuxiangame:0.6.9
+        # You can also change it to ccr.ccs.tencentyun.com/wuchen/vue-xiuxiangame:0.6.9
+        ports:
+            - '8080:8080'
+        container_name: xiuxian0
+        tty: true
+        stdin_open: true
+```
+
+**Tip: When using NGINX as a reverse proxy, please note that the request address is `localhost` or `127.0.0.1`**
+
+---
+
 # 碎碎念
 大佬们如果觉得好玩的话可以给我这个项目点个免费的star吗?拜托拜托这对我真的很重要!~

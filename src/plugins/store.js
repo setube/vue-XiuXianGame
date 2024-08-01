@@ -45,6 +45,8 @@ export default new Vuex.Store(
                 defense: 10,
                 // 已击杀数量
                 taskNum: 0,
+                // 版本号
+                version: 0.700,
                 // 鸿蒙石数量
                 currency: 0,
                 // 总血量
@@ -64,6 +66,8 @@ export default new Vuex.Store(
                     // 饰品
                     accessory: {}
                 },
+                // 成就
+                achievement: [],
                 // 当前修为
                 cultivation: 0,
                 // 培养丹数量
@@ -73,8 +77,10 @@ export default new Vuex.Store(
                 // 下个等级所需修为
                 maxCultivation: 100,
                 // 强化石数量
-                strengtheningStone: 0
-            },
+                strengtheningStone: 0,
+                // 批量出售装备设置
+                sellingEquipmentData: []
+            }
         },
         mutations: {
             setBoss (state, data) {

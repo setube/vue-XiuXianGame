@@ -14,11 +14,11 @@ const shop = {
             const Health = 10000 * lv;
             const CriticalHitrate = 0.1;
             const attrs = {
+                dodge: ['accessory', 'sutra'].includes(type) ? CriticalHitrate * multiplier : 0,
                 attack: ['weapon', 'accessory', 'sutra'].includes(type) ? Attack * multiplier : 0,
                 health: ['armor', 'accessory', 'sutra'].includes(type) ? Health * multiplier : 0,
-                critical: ['weapon', 'accessory', 'sutra'].includes(type) ? CriticalHitrate * multiplier : 0,
-                dodge: ['accessory', 'sutra'].includes(type) ? CriticalHitrate * multiplier : 0,
-                defense: ['armor', 'accessory', 'sutra'].includes(type) ? Attack * multiplier : 0
+                defense: ['armor', 'accessory', 'sutra'].includes(type) ? Attack * multiplier : 0,
+                critical: ['weapon', 'accessory', 'sutra'].includes(type) ? CriticalHitrate * multiplier : 0
             };
             return attrs[attribute];
         };
@@ -31,11 +31,19 @@ const shop = {
                 type,
                 lock: true,
                 level: lv,
+                dodge: getAttribute(type, lv, 'dodge'),
                 attack: getAttribute(type, lv, 'attack'),
                 health: getAttribute(type, lv, 'health'),
-                critical: getAttribute(type, lv, 'critical'),
-                dodge: getAttribute(type, lv, 'dodge'),
                 defense: getAttribute(type, lv, 'defense'),
+                critical: getAttribute(type, lv, 'critical'),
+                // 初始数据
+                initial: {
+                    dodge: getAttribute(type, lv, 'dodge'), // 闪避率
+                    attack: getAttribute(type, lv, 'attack'), // 攻击力
+                    health: getAttribute(type, lv, 'health'), // 血量
+                    defense: getAttribute(type, lv, 'defense'), // 装备防御
+                    critical: getAttribute(type, lv, 'critical') // 暴击率
+                },
                 quality: 'pink'
             }))
         }));

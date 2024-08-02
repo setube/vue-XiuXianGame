@@ -17,11 +17,11 @@ const All = {
             const Health = this.calculateCompoundGrowth(10000 * lv, 20, 0.1);
             const CriticalHitrate = this.calculateCompoundGrowth(0.1, 20, 0.1);
             const attrs = {
+                dodge: ['accessory', 'sutra'].includes(type) ? CriticalHitrate * multiplier : 0,
                 attack: ['weapon', 'accessory', 'sutra'].includes(type) ? Math.floor(Attack * multiplier) : 0,
                 health: ['armor', 'accessory', 'sutra'].includes(type) ? Math.floor(Health * multiplier) : 0,
-                critical: ['weapon', 'accessory', 'sutra'].includes(type) ? CriticalHitrate * multiplier : 0,
-                dodge: ['accessory', 'sutra'].includes(type) ? CriticalHitrate * multiplier : 0,
-                defense: ['armor', 'accessory', 'sutra'].includes(type) ? Math.floor(Attack * multiplier) : 0
+                defense: ['armor', 'accessory', 'sutra'].includes(type) ? Math.floor(Attack * multiplier) : 0,
+                critical: ['weapon', 'accessory', 'sutra'].includes(type) ? CriticalHitrate * multiplier : 0
             };
             return attrs[attribute];
         };
@@ -34,11 +34,11 @@ const All = {
                     type,
                     level: lv,
                     prize: prize[quality[kk]],
+                    dodge: getAttribute(type, lv, 'dodge', quality[kk]),
                     attack: getAttribute(type, lv, 'attack', quality[kk]),
                     health: getAttribute(type, lv, 'health', quality[kk]),
-                    critical: getAttribute(type, lv, 'critical', quality[kk]),
-                    dodge: getAttribute(type, lv, 'dodge', quality[kk]),
                     defense: getAttribute(type, lv, 'defense', quality[kk]),
+                    critical: getAttribute(type, lv, 'critical', quality[kk]),
                     quality: quality[kk],
                     strengthen: 20
                 }))

@@ -38,7 +38,6 @@ const equips = {
                         dodge: ['accessory', 'sutra'].includes(type) ? this.equip_Criticalhitrate(lv) : 0, // 闪避率
                         attack: ['weapon', 'accessory', 'sutra'].includes(type) ? this.equip_Attack(lv) : 0, // 攻击力
                         health: ['armor', 'accessory', 'sutra'].includes(type) ? this.equip_Health(lv) : 0, // 血量
-                        quality, // 装备品质
                         defense: ['armor', 'accessory', 'sutra'].includes(type) ? this.equip_Attack(lv) : 0, // 装备防御
                         critical: ['weapon', 'accessory', 'sutra'].includes(type) ? this.equip_Criticalhitrate(lv) : 0, // 暴击率
                     },

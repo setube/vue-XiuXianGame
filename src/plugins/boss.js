@@ -2,15 +2,15 @@ const boss = {
     drawPrize (lv) {
         const bossInfo = this.boss_Names();
         // 血量
-        const health = this.getRandomInt(10000, 50000) * lv;
+        const health = this.getRandomInt(50000, 100000) * lv;
         // 攻击
-        const attack = this.getRandomInt(1000, 5000) * lv;
+        const attack = this.getRandomInt(5000, 10000) * lv;
         // 防御
-        const defense = this.getRandomInt(500, 5000) * lv;
+        const defense = this.getRandomInt(1000, 10000) * lv;
         // 闪避
-        const dodge = this.getRandomFloatInRange(0.1, 1);
+        const dodge = this.getRandomFloatInRange(0.5, 1);
         // 暴击
-        const critical = this.getRandomFloatInRange(0.1, 1);
+        const critical = this.getRandomFloatInRange(0.5, 1);
         return {
             name: bossInfo.name,
             text: this.boss_Text(),
@@ -68,6 +68,14 @@ const boss = {
                     attack: ['weapon', 'accessory', 'sutra'].includes(quality) ? Attack : 0, // 攻击力
                     health: ['armor', 'accessory', 'sutra'].includes(quality) ? Health : 0, // 血量
                     quality: 'danger', // 装备品质
+                    // 初始数据
+                    initial: {
+                        dodge: ['accessory', 'sutra'].includes(quality) ? Criticalhitrate : 0, // 闪避率
+                        attack: ['weapon', 'accessory', 'sutra'].includes(quality) ? Attack : 0, // 攻击力
+                        health: ['armor', 'accessory', 'sutra'].includes(quality) ? Health : 0, // 血量
+                        defense: ['accessory', 'sutra'].includes(quality) ? Attack : 0, // 装备防御
+                        critical: ['weapon', 'accessory', 'sutra'].includes(quality) ? Criticalhitrate : 0, // 暴击率
+                    },
                     defense: ['accessory', 'sutra'].includes(quality) ? Attack : 0, // 装备防御
                     critical: ['weapon', 'accessory', 'sutra'].includes(quality) ? Criticalhitrate : 0, // 暴击率
                 };
@@ -76,27 +84,27 @@ const boss = {
     },
     // boss语录
     boss_Text () {
-        const text = [  
-            '你的时代已经结束，现在，是我主宰一切的时候了。',  
-            '你的努力，终究只是为我铺就了通往胜利的道路。',  
-            '战胜你，对我来说不过是举手之劳，你的实力，不过如此。',  
-            '你的生命，在我的手中如蝼蚁般脆弱，你的死亡，只是我计划中的一环。',  
-            '你的失败，证明了我的智慧与力量无可匹敌，而你，只是我的垫脚石。',  
-            '你的存在，曾让我感到一丝威胁，但现在，你已成为我脚下的尘埃。',  
-            '你的勇气可嘉，但可惜，勇气并不能改变结果，你最终还是败在了我的脚下。',  
-            '你的死，将是我传奇中的一笔，而你，将永远被我踩在脚下。',  
-            '你的挣扎与反抗，不过是徒劳无功，你的命运，早已注定。',  
-            '你的终结，是我迈向更高峰的开始，你的存在，对我来说已无任何意义。',  
-            '你的死亡，将证明我的强大与不可战胜，而你，将永远成为我的手下败将。',  
-            '你的遗言，对我来说毫无意义，因为你已经无法再影响我的计划。',  
-            '你的逝去，只是宇宙间的一次微小波动，而我，将继续书写我的传奇。',  
-            '你的失败，是我成功路上的一个注脚，而你，将永远无法摆脱这个污点。',  
-            '你的生命之火已经熄灭，而我，将继续燃烧，照亮整个世界。',  
-            '你的死亡，让我更加坚信自己的道路是正确的，而你，只是我路上的一个过客。',  
-            '你的存在，曾让我有过一丝犹豫，但现在，我已经没有任何顾虑，因为我已经彻底战胜了你。',  
-            '你的终结，是我力量的证明，而你，将永远无法逃脱这个宿命。',  
-            '你的死亡，将是我成就伟大事业的基石，而你，将永远被世人遗忘。',  
-            '你的挑战，虽然激烈，但终究无法撼动我的地位，你的死亡，只是我辉煌人生中的一个注脚。'  
+        const text = [
+            '你的时代已经结束，现在，是我主宰一切的时候了。',
+            '你的努力，终究只是为我铺就了通往胜利的道路。',
+            '战胜你，对我来说不过是举手之劳，你的实力，不过如此。',
+            '你的生命，在我的手中如蝼蚁般脆弱，你的死亡，只是我计划中的一环。',
+            '你的失败，证明了我的智慧与力量无可匹敌，而你，只是我的垫脚石。',
+            '你的存在，曾让我感到一丝威胁，但现在，你已成为我脚下的尘埃。',
+            '你的勇气可嘉，但可惜，勇气并不能改变结果，你最终还是败在了我的脚下。',
+            '你的死，将是我传奇中的一笔，而你，将永远被我踩在脚下。',
+            '你的挣扎与反抗，不过是徒劳无功，你的命运，早已注定。',
+            '你的终结，是我迈向更高峰的开始，你的存在，对我来说已无任何意义。',
+            '你的死亡，将证明我的强大与不可战胜，而你，将永远成为我的手下败将。',
+            '你的遗言，对我来说毫无意义，因为你已经无法再影响我的计划。',
+            '你的逝去，只是宇宙间的一次微小波动，而我，将继续书写我的传奇。',
+            '你的失败，是我成功路上的一个注脚，而你，将永远无法摆脱这个污点。',
+            '你的生命之火已经熄灭，而我，将继续燃烧，照亮整个世界。',
+            '你的死亡，让我更加坚信自己的道路是正确的，而你，只是我路上的一个过客。',
+            '你的存在，曾让我有过一丝犹豫，但现在，我已经没有任何顾虑，因为我已经彻底战胜了你。',
+            '你的终结，是我力量的证明，而你，将永远无法逃脱这个宿命。',
+            '你的死亡，将是我成就伟大事业的基石，而你，将永远被世人遗忘。',
+            '你的挑战，虽然激烈，但终究无法撼动我的地位，你的死亡，只是我辉煌人生中的一个注脚。'
         ];
         return text[Math.floor(Math.random() * text.length)];
     },
@@ -116,7 +124,7 @@ const boss = {
         return boss[Math.floor(Math.random() * boss.length)];
     },
     getRandomInt (min, max) {
-        min = Math.ceil(min); 
+        min = Math.ceil(min);
         max = Math.floor(max);
         return Math.floor(Math.random() * (max - min + 1)) + min;
     },

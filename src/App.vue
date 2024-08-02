@@ -44,7 +44,9 @@
                                             <el-tag>{{ item.name }}</el-tag>
                                         </div>
                                     </div>
-                                    <div class="achievement-content" v-else>此类成就暂未发布</div>
+                                    <div class="achievement-content" v-else>
+                                        此类成就暂未发布
+                                    </div>
                                 </el-tab-pane>
                             </el-tabs>
                         </el-tab-pane>
@@ -138,7 +140,7 @@
                         <div class="tag equip-item">
                             <span class="equip">
                                 <span>灵宠: </span>
-                                <el-tag class="pet" v-if="player.pet?.name" :type="computePetsLevel(player.pet?.level)" closable @close="petRetract" @click="petItemShow = true">{{ player.pet?.name }}({{levelNames[player.pet.level]}})</el-tag>
+                                <el-tag class="pet" v-if="player.pet?.name" :type="computePetsLevel(player.pet?.level)" closable @close="petRetract" @click="petItemShow = true">{{ player.pet?.name }}({{ levelNames[player.pet.level] }})</el-tag>
                                 <span v-else>无</span>
                             </span>
                         </div>
@@ -150,7 +152,7 @@
                                             <template v-for="item in player.inventory">
                                                 <el-tag class="inventory-item" v-if="item.type == i.type" :key="item.id" :type="item?.quality" :closable="!item.lock" @close="inventoryClose(item)" @click="inventory(item.id, item.type)">
                                                     <i :class="item.lock ? 'el-icon-lock' : 'el-icon-unlock'" />
-                                                    {{ item?.name }}{{item?.strengthen ? '+' + item?.strengthen : ''}}
+                                                    {{ item?.name }}{{ item?.strengthen ? '+' + item?.strengthen : '' }}
                                                 </el-tag>
                                             </template>
                                         </div>
@@ -165,7 +167,7 @@
                                     <div class="inventory-content">
                                         <template v-for="(item, index) in player.pets">
                                             <el-tag class="inventory-item" :type="computePetsLevel(item.level)" :key="index" @click="petItemInfo(item)">
-                                                {{ item.name }}({{levelNames[item.level]}})
+                                                {{ item.name }}({{ levelNames[item.level] }})
                                             </el-tag>
                                         </template>
                                     </div>
@@ -194,7 +196,7 @@
                 </div>
             </div>
             <div class="bbh">
-                当前游戏版本{{player.version}}
+                当前游戏版本{{ player.version }}
             </div>
         </div>
         <el-drawer title="修仙境界表" :visible.sync="isLevel" direction="ltr" class="levels">
@@ -204,7 +206,9 @@
         </el-drawer>
         <el-dialog title="批量出售设置" :visible.sync="sellingEquipmentShow" width="600px">
             <el-checkbox-group v-model="player.sellingEquipmentData" @change="sellingEquipmentDataChange">
-                <el-checkbox v-for="(item, index) in AllEquipmenType" :label="item" :key="index">{{levels[item]}}</el-checkbox>
+                <el-checkbox v-for="(item, index) in AllEquipmenType" :label="item" :key="index">
+                    {{ levels[item] }}
+                </el-checkbox>
             </el-checkbox-group>
             <div class="dialog-footer" style="margin-top: 20px;">
                 <el-button class="dialog-footer-button" @click="sellingEquipment">
@@ -217,7 +221,7 @@
                 <div class="attributes">
                     <div class="attribute-box">
                         <div class="tag attribute">
-                            境界: {{ levelNames[player.pet.level] }} ({{player.pet.reincarnation || 0}}转)
+                            境界: {{ levelNames[player.pet.level] }} ({{ player.pet.reincarnation || 0 }}转)
                         </div>
                         <div class="tag attribute">
                             根骨: {{ player.pet.rootBone }}
@@ -581,12 +585,12 @@
                     // 成就
                     achievement: {
                         pet: [
-                            { id: 1, state: false},
-                            { id: 2, state: false},
-                            { id: 3, state: false},
-                            { id: 4, state: false},
-                            { id: 5, state: false},
-                            { id: 6, state: false},
+                            { id: 1, state: false },
+                            { id: 2, state: false },
+                            { id: 3, state: false },
+                            { id: 4, state: false },
+                            { id: 5, state: false },
+                            { id: 6, state: false },
                         ],
                         monster: [],
                         equipment: []
@@ -817,7 +821,7 @@
                     </div>`,
                     confirmButtonText: '知道了',
                     dangerouslyUseHTMLString: true
-                }).then(() => {}).catch(() => { });
+                }).then(() => { }).catch(() => { });
             },
             // 批量出售装备
             sellingEquipment () {
@@ -969,7 +973,7 @@
                 // 计算灵宠升级所需材料数量
                 const consume = this.petConsumption(item.level);
                 // 如果勾选了灵宠转生但是人物转生不等于灵宠转生
-                if (this.petReincarnation && this.player.reincarnation != this.player.pet.reincarnation) {
+                if (this.petReincarnation && this.player.reincarnation < this.player.pet.reincarnation) {
                     // 发送通知
                     this.notify({ title: '灵宠培养提示', message: '灵宠转生不能高于人物转生', position: 'top-left' });
                     return;
@@ -1086,7 +1090,7 @@
                     achievement.pet().forEach(item => {
                         // 气血神宠
                         if (health == item.health && petAchievement.find(i => i.id == item.id)) {
-                            if (!petAchievement.find(i => i.id == item.id)) this.player.achievement.pet.push({id: item.id});
+                            if (!petAchievement.find(i => i.id == item.id)) this.player.achievement.pet.push({ id: item.id });
                             // 增加培养丹
                             this.player.cultivateDan += item.award;
                             // 发送通知
@@ -1094,7 +1098,7 @@
                         }
                         // 攻击神宠
                         if (attack == item.attack) {
-                            if (!petAchievement.find(i => i.id == item.id)) this.player.achievement.pet.push({id: item.id});
+                            if (!petAchievement.find(i => i.id == item.id)) this.player.achievement.pet.push({ id: item.id });
                             // 增加培养丹
                             this.player.cultivateDan += item.award;
                             // 发送通知
@@ -1102,7 +1106,7 @@
                         }
                         // 防御神宠
                         if (defense == item.defense) {
-                            if (!petAchievement.find(i => i.id == item.id)) this.player.achievement.pet.push({id: item.id});
+                            if (!petAchievement.find(i => i.id == item.id)) this.player.achievement.pet.push({ id: item.id });
                             // 增加培养丹
                             this.player.cultivateDan += item.award;
                             // 发送通知
@@ -1110,7 +1114,7 @@
                         }
                         // 闪避神宠
                         if (dodge == item.dodge) {
-                            if (!petAchievement.find(i => i.id == item.id)) this.player.achievement.pet.push({id: item.id});
+                            if (!petAchievement.find(i => i.id == item.id)) this.player.achievement.pet.push({ id: item.id });
                             // 增加培养丹
                             this.player.cultivateDan += item.award;
                             // 发送通知
@@ -1118,7 +1122,7 @@
                         }
                         // 暴击神宠
                         if (critical == item.critical) {
-                            if (!petAchievement.find(i => i.id == item.id)) this.player.achievement.pet.push({id: item.id});
+                            if (!petAchievement.find(i => i.id == item.id)) this.player.achievement.pet.push({ id: item.id });
                             // 增加培养丹
                             this.player.cultivateDan += item.award;
                             // 发送通知
@@ -1126,7 +1130,7 @@
                         }
                         // 灵宠天花板
                         if (dodge == item.dodge && health == item.health && attack == item.attack && defense == item.defense && critical == item.critical) {
-                            if (!petAchievement.find(i => i.id == item.id)) this.player.achievement.pet.push({id: item.id});
+                            if (!petAchievement.find(i => i.id == item.id)) this.player.achievement.pet.push({ id: item.id });
                             // 增加培养丹
                             this.player.cultivateDan += item.award;
                             // 发送通知
@@ -1645,8 +1649,8 @@
                     // 恢复默认回合数
                     this.guashaRounds = 10;
                     // 恢复boss血量
-                    this.boss.health = this.boss.maxhealth;
-                    this.notify({ title: this.boss.name, message: this.boss.text });
+                    this.boss.health = this.boss.maxhealth; +
+                        this.notify({ title: this.boss.name, message: this.boss.text });
                     this.storyText = `回合结束, 你未战胜${this.monster.name}你输了。`;
                     this.actions = [
                         { text: '回到家里', type: 'success', handler: this.startGame }
@@ -1657,19 +1661,30 @@
             },
             // 世界BOSS
             assaultBoss () {
-                // boss生成的时间
+                // boss生成的时间  
                 const time = this.getMinuteDifference(this.boss.time);
-                // boss难度根据玩家最高等级 + 转生次数
+                // boss难度根据玩家最高等级 + 转生次数  
                 const bossLv = this.maxLv * this.player.reincarnation + this.maxLv;
-                // 如果boss生成时间大于等于10分钟
-                if (time >= 10) {
-                    // 自动生成boss
-                    this.boss = boss.drawPrize(bossLv);
-                    // 存档boss信息
-                    this.$store.commit('setBoss', this.boss);
+                // 检查boss的血量和时间  
+                if (this.boss.health > 0) {
+                    // 如果boss还有血量，允许玩家挑战  
+                    if (time >= 10) {
+                        // boss没有血量但时间大于等于10分钟，重新生成boss  
+                        this.boss = boss.drawPrize(bossLv);
+                        // 存档boss信息  
+                        this.$store.commit('setBoss', this.boss);
+                    }
+                    // 如果boss没有血量  
                 } else {
-                    this.notify({ title: '提示', message: 'BOSS还未刷新' });
-                    return;
+                    if (time >= 10 || this.boss.time == 0) {
+                        // boss没有血量但时间大于等于10分钟，重新生成boss  
+                        this.boss = boss.drawPrize(bossLv);
+                        // 存档boss信息  
+                        this.$store.commit('setBoss', this.boss);
+                    } else {
+                        this.notify({ title: '提示', message: 'BOSS还未刷新，请等待10分钟后再次挑战' });
+                        return;
+                    }
                 }
                 this.isBoss = true;
                 this.storyText = '';
@@ -2545,6 +2560,7 @@
             margin-left: 0 !important;
             margin-top: 10px;
         }
+
         .Illustrations .inventory-content {
             height: 300px;
         }

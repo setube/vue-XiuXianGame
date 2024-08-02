@@ -30,14 +30,14 @@ const monsters = {
         if (lv <= 40) {
             return this.getRandomInt(50, 150) * lv;
         } else {
-            return this.getRandomInt(1000, 5000) * lv;
+            return this.getRandomInt(10000, 50000) * lv;
         }
     },
     monster_Health (lv) {
         if (lv <= 40) {
             return this.getRandomInt(100, 500) * lv;
         } else {
-            return this.getRandomInt(5000, 10000) * lv;
+            return this.getRandomInt(10000, 50000) * lv;
         }
     },
     monster_Defense (lv) {
@@ -51,7 +51,7 @@ const monsters = {
         if (lv <= 40) {
             return this.getRandomFloatInRange(0.001, 0.01);
         } else {
-            return this.getRandomFloatInRange(0.1, 0.5);
+            return this.getRandomFloatInRange(0.1, 1);
         }
     },
     getRandomInt (min, max) {

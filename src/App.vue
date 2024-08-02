@@ -580,7 +580,14 @@
                     },
                     // 成就
                     achievement: {
-                        pet: [],
+                        pet: [
+                            { id: 1, state: false},
+                            { id: 2, state: false},
+                            { id: 3, state: false},
+                            { id: 4, state: false},
+                            { id: 5, state: false},
+                            { id: 6, state: false},
+                        ],
                         monster: [],
                         equipment: []
                     },
@@ -961,6 +968,12 @@
             petUpgrade (item) {
                 // 计算灵宠升级所需材料数量
                 const consume = this.petConsumption(item.level);
+                // 如果勾选了灵宠转生但是人物转生不等于灵宠转生
+                if (this.petReincarnation && this.player.reincarnation != this.player.pet.reincarnation) {
+                    // 发送通知
+                    this.notify({ title: '灵宠培养提示', message: '灵宠转生不能高于人物转生', position: 'top-left' });
+                    return;
+                }
                 // 如果勾选了灵宠转生但是灵宠等级没满
                 if (this.petReincarnation && this.maxLv > item.level) {
                     // 发送通知
@@ -1072,48 +1085,48 @@
                     // 完成成就
                     achievement.pet().forEach(item => {
                         // 气血神宠
-                        if (health == item.health && petAchievement.find(i => i.id == item.id && !i.state)) {
-                            this.player.achievement.pet.push({id: item.id, state: true});
+                        if (health == item.health && petAchievement.find(i => i.id == item.id)) {
+                            if (!petAchievement.find(i => i.id == item.id)) this.player.achievement.pet.push({id: item.id});
                             // 增加培养丹
                             this.player.cultivateDan += item.award;
                             // 发送通知
                             this.notify({ title: '获得成就提示', message: `恭喜你完成了${item.name}成就` });
                         }
                         // 攻击神宠
-                        if (attack == item.attack && petAchievement.find(i => i.id == item.id && !i.state)) {
-                            this.player.achievement.pet.push({id: item.id, state: true});
+                        if (attack == item.attack) {
+                            if (!petAchievement.find(i => i.id == item.id)) this.player.achievement.pet.push({id: item.id});
                             // 增加培养丹
                             this.player.cultivateDan += item.award;
                             // 发送通知
                             this.notify({ title: '获得成就提示', message: `恭喜你完成了${item.name}成就` });
                         }
                         // 防御神宠
-                        if (defense == item.defense && petAchievement.find(i => i.id == item.id && !i.state)) {
-                            this.player.achievement.pet.push({id: item.id, state: true});
+                        if (defense == item.defense) {
+                            if (!petAchievement.find(i => i.id == item.id)) this.player.achievement.pet.push({id: item.id});
                             // 增加培养丹
                             this.player.cultivateDan += item.award;
                             // 发送通知
                             this.notify({ title: '获得成就提示', message: `恭喜你完成了${item.name}成就` });
                         }
                         // 闪避神宠
-                        if (dodge == item.dodge && petAchievement.find(i => i.id == item.id && !i.state)) {
-                            this.player.achievement.pet.push({id: item.id, state: true});
+                        if (dodge == item.dodge) {
+                            if (!petAchievement.find(i => i.id == item.id)) this.player.achievement.pet.push({id: item.id});
                             // 增加培养丹
                             this.player.cultivateDan += item.award;
                             // 发送通知
                             this.notify({ title: '获得成就提示', message: `恭喜你完成了${item.name}成就` });
                         }
                         // 暴击神宠
-                        if (critical == item.critical && petAchievement.find(i => i.id == item.id && !i.state)) {
-                            this.player.achievement.pet.push({id: item.id, state: true});
+                        if (critical == item.critical) {
+                            if (!petAchievement.find(i => i.id == item.id)) this.player.achievement.pet.push({id: item.id});
                             // 增加培养丹
                             this.player.cultivateDan += item.award;
                             // 发送通知
                             this.notify({ title: '获得成就提示', message: `恭喜你完成了${item.name}成就` });
                         }
                         // 灵宠天花板
-                        if (dodge == item.dodge && health == item.health && attack == item.attack && defense == item.defense && critical == item.critical && petAchievement.find(i => i.id == item.id && !i.state)) {
-                            this.player.achievement.pet.push({id: item.id, state: true});
+                        if (dodge == item.dodge && health == item.health && attack == item.attack && defense == item.defense && critical == item.critical) {
+                            if (!petAchievement.find(i => i.id == item.id)) this.player.achievement.pet.push({id: item.id});
                             // 增加培养丹
                             this.player.cultivateDan += item.award;
                             // 发送通知

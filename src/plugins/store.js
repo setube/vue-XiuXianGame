@@ -67,7 +67,11 @@ export default new Vuex.Store(
                     accessory: {}
                 },
                 // 成就
-                achievement: [],
+                achievement: {
+                    pet: [],
+                    monster: [],
+                    equipment: []
+                },
                 // 当前修为
                 cultivation: 0,
                 // 培养丹数量

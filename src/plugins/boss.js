@@ -2,9 +2,9 @@ const boss = {
     drawPrize (lv) {
         const bossInfo = this.boss_Names();
         // 血量
-        const health = this.getRandomInt(100000, 500000) * lv;
+        const health = this.getRandomInt(10000, 50000) * lv;
         // 攻击
-        const attack = this.getRandomInt(10000, 50000) * lv;
+        const attack = this.getRandomInt(1000, 5000) * lv;
         // 防御
         const defense = this.getRandomInt(500, 5000) * lv;
         // 闪避

@@ -1661,16 +1661,15 @@
                 const time = this.getMinuteDifference(this.boss.time);
                 // boss难度根据玩家最高等级 + 转生次数
                 const bossLv = this.maxLv * this.player.reincarnation + this.maxLv;
-                // 如果boss血量为空
-                if (!this.boss.health) {
-                    if (this.boss.conquer && time < 10) {
-                        this.notify({ title: '提示', message: 'BOSS还未刷新' });
-                        return;
-                    } else {
-                        this.boss = boss.drawPrize(bossLv);
-                        // 存档boss信息
-                        this.$store.commit('setBoss', this.boss);
-                    }
+                // 如果boss生成时间大于等于10分钟
+                if (time >= 10) {
+                    // 自动生成boss
+                    this.boss = boss.drawPrize(bossLv);
+                    // 存档boss信息
+                    this.$store.commit('setBoss', this.boss);
+                } else {
+                    this.notify({ title: '提示', message: 'BOSS还未刷新' });
+                    return;
                 }
                 this.isBoss = true;
                 this.storyText = '';

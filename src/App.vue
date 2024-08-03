@@ -1802,7 +1802,6 @@
                     this.player.points--;
                     // 更新玩家存档
                     this.$store.commit('setPlayer', this.player);
-                    this.notify({ title: '加点提示', message: `加点成功${typeNames[type]}增加了${numText}点` });
                 }
             },
             // 转生突破

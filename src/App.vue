@@ -966,16 +966,17 @@
                 if (JSON.stringify(this.player.pet) != '{}') {
                     const itemInfo = this.player.pet;
                     // 更新玩家属性，移除出战灵宠的属性加成
-                    this.playerAttribute(-itemInfo.dodge, -itemInfo.attack, -itemInfo.health, -itemInfo.critical, -itemInfo.defense);
+                    this.playerAttribute(petItem.dodge - itemInfo.dodge, petItem.attack - itemInfo.attack, petItem.health - itemInfo.health, petItem.critical - itemInfo.critical, petItem.defense - itemInfo.defense);
                     // 收回当前出战的灵宠
                     this.player.pets.push(this.player.pet);
+                }else{
+                    // 更新玩家属性，添加当前出战灵宠的属性加成
+                    this.playerAttribute(petItem.dodge, petItem.attack, petItem.health, petItem.critical, petItem.defense);
                 }
                 // 关闭灵宠信息弹窗
                 this.petShow = false;
                 // 出战当前选择的灵宠
                 this.player.pet = petItem;
-                // 更新玩家属性，添加当前出战灵宠的属性加成
-                this.playerAttribute(petItem.dodge, petItem.attack, petItem.health, petItem.critical, petItem.defense);
                 // 从灵宠背包中移除这个灵宠
                 this.player.pets = this.player.pets.filter(i => i.id !== item.id);
                 // 更新玩家存档
@@ -2242,14 +2243,14 @@
                 if (JSON.stringify(this.player.equipment[type]) != '{}') {
                     const equipment = this.player.equipment[type];
                     // 更新玩家属性，移除当前穿戴装备的属性加成
-                    this.playerAttribute(-equipment.dodge, -equipment.attack, -equipment.health, -equipment.critical, -equipment.defense);
+                    this.playerAttribute(inventoryItem.dodge - equipment.dodge, inventoryItem.attack - equipment.attack, inventoryItem.health - equipment.health, inventoryItem.critical - equipment.critical, inventoryItem.defense - equipment.defense);
                     // 将当前装备放回背包
                     this.player.inventory.push(equipment);
+                }else{
+                    this.playerAttribute(inventoryItem.dodge, inventoryItem.attack, inventoryItem.health, inventoryItem.critical, inventoryItem.defense);
                 }
                 // 装备新装备
                 this.player.equipment[type] = inventoryItem;
-                // 更新玩家属性，添加当前装备的属性加成
-                this.playerAttribute(inventoryItem.dodge, inventoryItem.attack, inventoryItem.health, inventoryItem.critical, inventoryItem.defense);
                 // 从背包中移除新装备
                 this.player.inventory = this.player.inventory.filter(item => item.id !== id);
                 // 重置类型

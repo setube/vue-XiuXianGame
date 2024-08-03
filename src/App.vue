@@ -2302,7 +2302,7 @@
                 this.player.defense = this.player.defense + defense;
                 
                 // 记录变化
-                if (dodge != 0) this.changes.dodge = (dodge.toFixed*100).toFixed(2);
+                if (dodge != 0) this.changes.dodge = (dodge*100).toFixed(2);
                 if (attack != 0) this.changes.attack = attack;
                 if (health != 0) this.changes.health = health;
                 if (defense != 0) this.changes.defense = defense;

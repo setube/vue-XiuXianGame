@@ -41,7 +41,7 @@
                                 <el-tab-pane :label="i.name" :name="i.type" v-for="(i, k) in achievementAll" :key="k">
                                     <div class="achievement-content" v-if="i.data.length > 0">
                                         <div class="achievement-item" v-for="(item, index) in i.data" :key="index" @click="achievementInfo(item)">
-                                            <el-tag>{{ item.name }}</el-tag>
+                                            <el-tag :style="getTagClass(i.type,item.id)">{{ item.name }}</el-tag>
                                         </div>
                                     </div>
                                     <div class="achievement-content" v-else>
@@ -805,6 +805,11 @@
             this.startGame();
         },
         methods: {
+            //我的成就页面处返回的style
+            getTagClass(type,index) {
+              const achievements1 = this.player.achievement[type] || [];
+              return Array.isArray(achievements1) && achievements1.some(ach => ach.id === index) ? 'border:1px solid green;color:green' : 'color:gray';
+            },
             // 成就详细
             achievementInfo (item) {
                 this.$confirm('', `${item.name}`, {
@@ -1049,6 +1054,9 @@
                 const isSuccess = successRate >= monster.getRandomInt(1, 100);
                 // 如果成功收服
                 if (isSuccess) {
+                    // 发送提示
+                    this.notify({ title: '收服灵宠提示', message: `收服${item.name}成功` });
+                    
                     // 收服后的属性根据收服前的成功率算
                     const newProperties = (100 - successRate) * 0.5;
                     // 攻击
@@ -1086,63 +1094,36 @@
                     });
                     // 玩家灵宠成就
                     const petAchievement = this.player.achievement.pet;
+                    
+                    // 检查成就条件是否达成
+                    const checkAchievement = (item) => {
+                      const conditions = item.condition;
+                      return (
+                        (conditions.health === 0 || conditions.health <= health) &&
+                        (conditions.attack === 0 || conditions.attack <= attack) &&
+                        (conditions.defense === 0 || conditions.defense <= defense) &&
+                        (conditions.dodge === 0 || conditions.dodge <= dodge.toFixed(2)) &&
+                        (conditions.critical === 0 || conditions.critical <= critical.toFixed(2))
+                      );
+                    };
+
                     // 完成成就
                     achievement.pet().forEach(item => {
-                        // 气血神宠
-                        if (health == item.health && petAchievement.find(i => i.id == item.id)) {
-                            if (!petAchievement.find(i => i.id == item.id)) this.player.achievement.pet.push({ id: item.id });
-                            // 增加培养丹
-                            this.player.cultivateDan += item.award;
-                            // 发送通知
-                            this.notify({ title: '获得成就提示', message: `恭喜你完成了${item.name}成就` });
-                        }
-                        // 攻击神宠
-                        if (attack == item.attack) {
-                            if (!petAchievement.find(i => i.id == item.id)) this.player.achievement.pet.push({ id: item.id });
-                            // 增加培养丹
-                            this.player.cultivateDan += item.award;
-                            // 发送通知
-                            this.notify({ title: '获得成就提示', message: `恭喜你完成了${item.name}成就` });
-                        }
-                        // 防御神宠
-                        if (defense == item.defense) {
-                            if (!petAchievement.find(i => i.id == item.id)) this.player.achievement.pet.push({ id: item.id });
-                            // 增加培养丹
-                            this.player.cultivateDan += item.award;
-                            // 发送通知
-                            this.notify({ title: '获得成就提示', message: `恭喜你完成了${item.name}成就` });
-                        }
-                        // 闪避神宠
-                        if (dodge == item.dodge) {
-                            if (!petAchievement.find(i => i.id == item.id)) this.player.achievement.pet.push({ id: item.id });
-                            // 增加培养丹
-                            this.player.cultivateDan += item.award;
-                            // 发送通知
-                            this.notify({ title: '获得成就提示', message: `恭喜你完成了${item.name}成就` });
-                        }
-                        // 暴击神宠
-                        if (critical == item.critical) {
-                            if (!petAchievement.find(i => i.id == item.id)) this.player.achievement.pet.push({ id: item.id });
-                            // 增加培养丹
-                            this.player.cultivateDan += item.award;
-                            // 发送通知
-                            this.notify({ title: '获得成就提示', message: `恭喜你完成了${item.name}成就` });
-                        }
-                        // 灵宠天花板
-                        if (dodge == item.dodge && health == item.health && attack == item.attack && defense == item.defense && critical == item.critical) {
-                            if (!petAchievement.find(i => i.id == item.id)) this.player.achievement.pet.push({ id: item.id });
-                            // 增加培养丹
-                            this.player.cultivateDan += item.award;
-                            // 发送通知
-                            this.notify({ title: '获得成就提示', message: `恭喜你完成了${item.name}成就` });
-                        }
+                      // 检查成就条件是否达成并且成就尚未完成
+                      if (checkAchievement(item) && !petAchievement.find(i => i.id === item.id)) {
+                        // 添加成就
+                        this.player.achievement.pet.push({ id: item.id });
+                        // 增加培养丹
+                        this.player.cultivateDan += item.award;
+                        // 发送通知
+                        this.notify({ title: '获得成就提示', message: `恭喜你完成了${item.name}成就` });
+                      }
                     });
+
                     // 恢复回合数
                     this.guashaRounds = 10;
                     // 跳转背包相关页
                     this.inventoryActive = 'pet';
-                    // 发送提示
-                    this.notify({ title: '收服灵宠提示', message: `收服${item.name}成功` });
                     // 更新玩家存档
                     this.$store.commit('setPlayer', this.player);
                     // 如果没有收服

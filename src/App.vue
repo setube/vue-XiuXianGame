@@ -2755,10 +2755,12 @@
     
     .positive-change {
       color: red;
+      font-size: 1.2em;
     }
     
     .negative-change {
       color: green;
+      font-size: 1.2em;
     }
     
     @keyframes floatUp {

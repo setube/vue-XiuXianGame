@@ -1784,11 +1784,6 @@
             },
             // 属性加点
             attributePoints (type) {
-                const typeNames = {
-                    attack: '攻击',
-                    health: '气血',
-                    defense: '防御',
-                }
                 if (this.player.points > 0) {
                     const num = this.player.reincarnation ? this.player.reincarnation * 10 : 1;
                     const numText = type == 'attack' || type == 'defense' ? 50 * num : 100 * num;

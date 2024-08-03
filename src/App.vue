@@ -76,22 +76,37 @@
                                 修为: {{ calculatePercentageDifference(player.maxCultivation, player.cultivation).toFixed(2) }}%
                             </div>
                             <div class="tag attribute">
-                                气血: {{ formatNumberToChineseUnit(player.health) }} / {{ formatNumberToChineseUnit(player.maxHealth) }}
-                                <i class="el-icon-circle-plus-outline" v-if="player.points > 0" @click="attributePoints('health')" />
+                              气血: {{ formatNumberToChineseUnit(player.health) }} / {{ formatNumberToChineseUnit(player.maxHealth) }}
+                              <i class="el-icon-circle-plus-outline" v-if="player.points > 0" @click="attributePoints('health')" />
+                              <span v-if="changes.health" :class="{'change-indicator': true, 'positive-change': changes.health > 0, 'negative-change': changes.health < 0}">
+                                {{ changes.health > 0 ? '+' : '' }}{{ changes.health }}
+                              </span>
                             </div>
                             <div class="tag attribute">
-                                攻击: {{ formatNumberToChineseUnit(player.attack) }}
-                                <i class="el-icon-circle-plus-outline" v-if="player.points > 0" @click="attributePoints('attack')" />
+                              攻击: {{ formatNumberToChineseUnit(player.attack) }}
+                              <i class="el-icon-circle-plus-outline" v-if="player.points > 0" @click="attributePoints('attack')" />
+                              <span v-if="changes.attack" :class="{'change-indicator': true, 'positive-change': changes.attack > 0, 'negative-change': changes.attack < 0}">
+                                {{ changes.attack > 0 ? '+' : '' }}{{ changes.attack }}
+                              </span>
                             </div>
                             <div class="tag attribute">
-                                防御: {{ formatNumberToChineseUnit(player.defense) }}
-                                <i class="el-icon-circle-plus-outline" v-if="player.points > 0" @click="attributePoints('defense')" />
+                              防御: {{ formatNumberToChineseUnit(player.defense) }}
+                              <i class="el-icon-circle-plus-outline" v-if="player.points > 0" @click="attributePoints('defense')" />
+                              <span v-if="changes.defense" :class="{'change-indicator': true, 'positive-change': changes.defense > 0, 'negative-change': changes.defense < 0}">
+                                {{ changes.defense > 0 ? '+' : '' }}{{ changes.defense }}
+                              </span>
                             </div>
                             <div class="tag attribute">
-                                闪避率: {{ player.dodge > 0 ? (player.dodge * 100 > 100 ? 100 : (player.dodge * 100).toFixed(2)) : 0 }}%
+                              闪避率: {{ player.dodge > 0 ? (player.dodge * 100 > 100 ? 100 : (player.dodge * 100).toFixed(2)) : 0 }}%
+                              <span v-if="changes.dodge" :class="{'change-indicator': true, 'positive-change': changes.dodge > 0, 'negative-change': changes.dodge < 0}">
+                                {{ changes.dodge > 0 ? '+' : '' }}{{ changes.dodge }}
+                              </span>
                             </div>
                             <div class="tag attribute">
-                                暴击率: {{ player.critical > 0 ? (player.critical * 100 > 100 ? 100 : (player.critical * 100).toFixed(2)) : 0 }}%
+                              暴击率: {{ player.critical > 0 ? (player.critical * 100 > 100 ? 100 : (player.critical * 100).toFixed(2)) : 0 }}%
+                              <span v-if="changes.critical" :class="{'change-indicator': true, 'positive-change': changes.critical > 0, 'negative-change': changes.critical < 0}">
+                                {{ changes.critical > 0 ? '+' : '' }}{{ changes.critical }}
+                              </span>
                             </div>
                             <div class="tag attribute" @click="notify({title: '获得方式', message: '可以通过击败世界Boss后获得'})">
                                 鸿蒙石: {{ formatNumberToChineseUnit(player.currency) }}
@@ -607,6 +622,14 @@
                     strengtheningStone: 0,
                     // 批量出售装备设置
                     sellingEquipmentData: []
+                },
+                //5属性实时变化
+                changes: {
+                  health: null,
+                  attack: null,
+                  defense: null,
+                  dodge: null,
+                  critical: null
                 },
                 // 野怪属性
                 monster: {
@@ -2276,6 +2299,22 @@
                 this.player.critical = this.player.critical + critical;
                 // 防御
                 this.player.defense = this.player.defense + defense;
+                
+                // 记录变化
+                if (dodge != 0) this.changes.dodge = (dodge.toFixed*100).toFixed(2);
+                if (attack != 0) this.changes.attack = attack;
+                if (health != 0) this.changes.health = health;
+                if (defense != 0) this.changes.defense = defense;
+                if (critical != 0) this.changes.critical = (critical*100).toFixed(2);
+            
+                // 设置定时器在1秒后移除变化提示
+                setTimeout(() => {
+                  this.changes.dodge = null;
+                  this.changes.attack = null;
+                  this.changes.health = null;
+                  this.changes.defense = null;
+                  this.changes.critical = null;
+                }, 1000);
             },
             // 定义Notification
             notify (data) {
@@ -2706,5 +2745,29 @@
         .el-dialog {
             width: 70% !important;
         }
+    }
+
+    .change-indicator {
+      position: absolute;
+      animation: floatUp 3s ease-out;
+    }
+    
+    .positive-change {
+      color: red;
+    }
+    
+    .negative-change {
+      color: green;
+    }
+    
+    @keyframes floatUp {
+      0% {
+        opacity: 1;
+        transform: translateY(0);
+      }
+      100% {
+        opacity: 0;
+        transform: translateY(-20px);
+      }
     }
 </style>

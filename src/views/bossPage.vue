@@ -1,53 +1,28 @@
 <template>
-  <div class="cultivate">
-    <div class="boss">
-      <div class="boss-box">
-        <span
-          class="el-tag el-tag--warning"
-          @click="openBossInfo"
-        >{{ boss.name }}</span>
-        <el-alert
-          class="desc"
-          :title="boss.desc"
-          :closable="false"
-          type="error"
-        />
-      </div>
+    <div class="cultivate">
+        <div class="boss">
+            <div class="boss-box">
+                <span class="el-tag el-tag--warning" @click="openBossInfo">{{ boss.name }}</span>
+                <el-alert class="desc" :title="boss.desc" :closable="false" type="error" />
+            </div>
+        </div>
+        <div class="storyText">
+            <div class="storyText-box" ref="storyText">
+                <p class="fighting" v-if="isFighting">
+                    {{ guashaRounds }}回合 / 100回合
+                </p>
+                <p v-for="(item, index) in texts" :key="index" v-html="item" />
+            </div>
+        </div>
+        <div class="actions">
+            <el-button type="danger" @click="startFightBoss" :disabled="isEnd">
+                发起战斗
+            </el-button>
+            <el-button type="success" @click="$router.push('/')">
+                回家疗伤
+            </el-button>
+        </div>
     </div>
-    <div class="storyText">
-      <div
-        class="storyText-box"
-        ref="storyText"
-      >
-        <p
-          class="fighting"
-          v-if="isFighting"
-        >
-          {{ guashaRounds }}回合 / 100回合
-        </p>
-        <p
-          v-for="(item, index) in texts"
-          :key="index"
-          v-html="item"
-        />
-      </div>
-    </div>
-    <div class="actions">
-      <el-button
-        type="danger"
-        @click="startFightBoss"
-        :disabled="isEnd"
-      >
-        发起战斗
-      </el-button>
-      <el-button
-        type="success"
-        @click="$router.push('/')"
-      >
-        回家疗伤
-      </el-button>
-    </div>
-  </div>
 </template>
 
 <script>
@@ -78,14 +53,17 @@
         methods: {
             // 开始攻击
             startFightBoss () {
+                this.isEnd = true;
                 this.timerId = setInterval(() => {
                     this.fightBoss();
                 }, 300);
             },
             // 停止攻击
             stopFightBoss () {
-                clearInterval(this.timerId);
-                this.timerId = null;
+                if (this.timerId) {
+                    clearInterval(this.timerId);
+                    this.timerId = null;
+                }
             },
             // boss信息
             openBossInfo () {
@@ -177,6 +155,7 @@
                         this.boss.health = 0;
                         this.boss.conquer = true;
                         this.stopFightBoss();
+                        this.openEquipmentInfo(equipItem)
                         this.$store.commit('setBoss', this.boss);
                     } else if (this.player.health <= 0) {
                         this.isEnd = true;
@@ -201,6 +180,31 @@
                 }
                 // 更新玩家存档
                 this.$store.commit('setPlayer', this.player);
+            },
+            openEquipmentInfo (item) {
+                this.$confirm('', item.name, {
+                    center: true,
+                    message: `<div class="monsterinfo">
+                        <div class="monsterinfo-box">
+                            <p>类型: ${this.$genre[item.type] ?? '未知'}</p>
+                            <p>境界: ${this.$levelNames[item.level]}</p>
+                            <p>品质: ${this.$levels[item.quality] ?? '未知'}</p>
+                            <p>气血: ${this.$formatNumberToChineseUnit(item.health)}</p>
+                            <p>攻击: ${this.$formatNumberToChineseUnit(item.attack)}</p>
+                            <p>防御: ${this.$formatNumberToChineseUnit(item.defense)}</p>
+                            <p>闪避率: ${(item.dodge * 100).toFixed(2) ?? 0}%</p>
+                            <p>暴击率: ${(item.critical * 100).toFixed(2) ?? 0}%</p>
+                        </div>
+                    </div>`,
+                    showClose: false,
+                    closeOnClickModal: false,
+                    closeOnPressEscape: false,
+                    dangerouslyUseHTMLString: true
+                }).then(() => {
+                    this.$router.push('/');
+                }).catch(() => {
+                    this.$router.push('/');
+                });
             },
             // 世界BOSS
             assaultBoss () {

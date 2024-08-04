@@ -1,774 +1,519 @@
 <template>
-  <div class="index">
-    <div class="index-box">
-      <div class="story">
-        <p>{{ storyText }}</p>
-      </div>
-      <div class="attributes">
-        <div class="attribute-box">
-          <div
-            class="tag attribute"
-            @click="isLevel = true"
-          >
-            境界: {{ $levelNames[player.level] }} ({{ player.reincarnation || 0 }}转)
-          </div>
-          <div
-            class="tag attribute"
-            v-if="player.level >= this.$maxLv"
-          >
-            修为: 登峰造极
-          </div>
-          <div
-            class="tag attribute"
-            v-else
-            @click="$notify({title: '修为提示', message: `您距离${$levelNames[player.level + 1]}境界还需${$formatNumberToChineseUnit(player.maxCultivation - player.cultivation)}点修为`})"
-          >
-            修为: {{ calculatePercentageDifference(player.maxCultivation, player.cultivation).toFixed(2) }}%
-          </div>
-          <div class="tag attribute">
-            气血: {{ $formatNumberToChineseUnit(player.health) }} / {{ $formatNumberToChineseUnit(player.maxHealth) }}
-            <i
-              class="el-icon-circle-plus-outline"
-              v-if="player.points > 0"
-              @click="attributePoints('health')"
-            />
-          </div>
-          <div class="tag attribute">
-            攻击: {{ $formatNumberToChineseUnit(player.attack) }}
-            <i
-              class="el-icon-circle-plus-outline"
-              v-if="player.points > 0"
-              @click="attributePoints('attack')"
-            />
-          </div>
-          <div class="tag attribute">
-            防御: {{ $formatNumberToChineseUnit(player.defense) }}
-            <i
-              class="el-icon-circle-plus-outline"
-              v-if="player.points > 0"
-              @click="attributePoints('defense')"
-            />
-          </div>
-          <div class="tag attribute">
-            闪避率: {{ player.dodge > 0 ? (player.dodge * 100 > 100 ? 100 : (player.dodge * 100).toFixed(2)) : 0 }}%
-          </div>
-          <div class="tag attribute">
-            暴击率: {{ player.critical > 0 ? (player.critical * 100 > 100 ? 100 : (player.critical * 100).toFixed(2)) : 0 }}%
-          </div>
-          <div
-            class="tag attribute"
-            @click="$notify({title: '获得方式', message: '可以通过击败世界Boss后获得'})"
-          >
-            鸿蒙石: {{ $formatNumberToChineseUnit(player.currency) }}
-          </div>
-          <div
-            class="tag attribute"
-            @click="$notify({title: '获得方式', message: '可以通过出售装备可获得'})"
-          >
-            炼器石: {{ $formatNumberToChineseUnit(player.strengtheningStone) }}
-          </div>
-          <div
-            class="tag attribute"
-            @click="$notify({title: '获得方式', message: '可以通过探索秘境可获得'})"
-          >
-            培养丹: {{ $formatNumberToChineseUnit(player.cultivateDan) }}
-          </div>
-        </div>
-      </div>
-      <div class="equip-box">
-        <div
-          class="tag equip-item"
-          @click="$notify({title: '获得方式', message: '每提成一次境界可以获得3点境界点'})"
-        >
-          <span class="equip">境界点: {{ player.points ? player.points : 0 }}</span>
-        </div>
-        <div class="tag equip-item">
-          <span class="equip">
-            <span>神兵: </span>
-            <el-tag
-              v-if="player.equipment.weapon?.name"
-              :type="player.equipment.weapon?.quality"
-              :closable="player.equipment.weapon?.name ? true : false"
-              @close="equipmentClose('weapon')"
-              @click="equipmentInfo('weapon')"
-            >
-              {{ player.equipment.weapon?.name }}{{ player.equipment.weapon?.strengthen ? '+' + player.equipment.weapon?.strengthen : '' }}
-            </el-tag>
-            <span v-else>无</span>
-          </span>
-          <span class="equip">
-            <span>护甲: </span>
-            <el-tag
-              v-if="player.equipment.armor?.name"
-              :type="player.equipment.armor?.quality"
-              :closable="player.equipment.armor?.name ? true : false"
-              @close="equipmentClose('armor')"
-              @click="equipmentInfo('armor')"
-            >
-              {{ player.equipment.armor?.name }}{{ player.equipment.armor?.strengthen ? '+' + player.equipment.armor?.strengthen : '' }}
-            </el-tag>
-            <span v-else>无</span>
-          </span>
-        </div>
-        <div class="tag equip-item">
-          <span class="equip">
-            <span>灵宝: </span>
-            <el-tag
-              v-if="player.equipment.accessory?.name"
-              :type="player.equipment.accessory?.quality"
-              :closable="player.equipment.accessory?.name ? true : false"
-              @close="equipmentClose('accessory')"
-              @click="equipmentInfo('accessory')"
-            >
-              {{ player.equipment.accessory?.name }}{{ player.equipment.accessory?.strengthen ? '+' + player.equipment.accessory?.strengthen : '' }}
-            </el-tag>
-            <span v-else>无</span>
-          </span>
-          <span class="equip">
-            <span>法器: </span>
-            <el-tag
-              v-if="player.equipment.sutra?.name"
-              :type="player.equipment.sutra?.quality"
-              :closable="player.equipment.sutra?.name ? true : false"
-              @close="equipmentClose('sutra')"
-              @click="equipmentInfo('sutra')"
-            >
-              {{ player.equipment.sutra?.name }}{{ player.equipment.sutra?.strengthen ? '+' + player.equipment.sutra?.strengthen : '' }}
-            </el-tag>
-            <span v-else>无</span>
-          </span>
-        </div>
-        <div class="tag equip-item">
-          <span class="equip">
-            <span>灵宠: </span>
-            <el-tag
-              class="pet"
-              v-if="player.pet?.name"
-              :type="computePetsLevel(player.pet?.level)"
-              closable
-              @close="petRetract"
-              @click="petItemShow = true"
-            >
-              {{ player.pet?.name }}({{ $levelNames[player.pet.level] }})
-            </el-tag>
-            <span v-else>无</span>
-          </span>
-        </div>
-        <div class="tag inventory-box">
-          <el-tabs
-            v-model="inventoryActive"
-            :stretch="true"
-            @tab-click="tabClick"
-          >
-            <el-tab-pane
-              :label="i.name"
-              :name="i.type"
-              v-for="(i, k) in backPackItem"
-              :key="k"
-            >
-              <div class="inventory-content">
-                <div v-if="player.inventory.length">
-                  <template v-for="item in player.inventory">
-                    <el-tag
-                      class="inventory-item"
-                      v-if="item.type == i.type"
-                      :key="item.id"
-                      :type="item?.quality"
-                      :closable="!item.lock"
-                      @close="inventoryClose(item)"
-                      @click="inventory(item.id, item.type)"
-                    >
-                      <i :class="item.lock ? 'el-icon-lock' : 'el-icon-unlock'" />
-                      {{ item?.name }}{{ item?.strengthen ? '+' + item?.strengthen : '' }}
-                    </el-tag>
-                  </template>
+    <div class="index">
+        <div class="index-box">
+            <div class="story">
+                <p>{{ storyText }}</p>
+            </div>
+            <div class="attributes">
+                <div class="attribute-box">
+                    <div class="tag attribute" @click="isLevel = true">
+                        境界: {{ $levelNames[player.level] }} ({{ player.reincarnation || 0 }}转)
+                    </div>
+                    <div class="tag attribute" v-if="player.level >= this.$maxLv">
+                        修为: 登峰造极
+                    </div>
+                    <div class="tag attribute" v-else @click="$notify({title: '修为提示', message: `您距离${$levelNames[player.level + 1]}境界还需${$formatNumberToChineseUnit(player.maxCultivation - player.cultivation)}点修为`})">
+                        修为: {{ calculatePercentageDifference(player.maxCultivation, player.cultivation).toFixed(2) }}%
+                    </div>
+                    <div class="tag attribute">
+                        气血: {{ $formatNumberToChineseUnit(player.health) }} / {{ $formatNumberToChineseUnit(player.maxHealth) }}
+                        <i class="el-icon-circle-plus-outline" v-if="player.points > 0" @click="attributePoints('health')" />
+                    </div>
+                    <div class="tag attribute">
+                        攻击: {{ $formatNumberToChineseUnit(player.attack) }}
+                        <i class="el-icon-circle-plus-outline" v-if="player.points > 0" @click="attributePoints('attack')" />
+                    </div>
+                    <div class="tag attribute">
+                        防御: {{ $formatNumberToChineseUnit(player.defense) }}
+                        <i class="el-icon-circle-plus-outline" v-if="player.points > 0" @click="attributePoints('defense')" />
+                    </div>
+                    <div class="tag attribute">
+                        闪避率: {{ player.dodge > 0 ? (player.dodge * 100 > 100 ? 100 : (player.dodge * 100).toFixed(2)) : 0 }}%
+                    </div>
+                    <div class="tag attribute">
+                        暴击率: {{ player.critical > 0 ? (player.critical * 100 > 100 ? 100 : (player.critical * 100).toFixed(2)) : 0 }}%
+                    </div>
+                    <div class="tag attribute" @click="$notify({title: '获得方式', message: '可以通过击败世界Boss后获得'})">
+                        鸿蒙石: {{ $formatNumberToChineseUnit(player.currency) }}
+                    </div>
+                    <div class="tag attribute" @click="$notify({title: '获得方式', message: '可以通过出售装备可获得'})">
+                        炼器石: {{ $formatNumberToChineseUnit(player.strengtheningStone) }}
+                    </div>
+                    <div class="tag attribute" @click="$notify({title: '获得方式', message: '可以通过探索秘境可获得'})">
+                        培养丹: {{ $formatNumberToChineseUnit(player.cultivateDan) }}
+                    </div>
                 </div>
-                <div v-else>
-                  <el-tag
-                    type="success"
-                    class="dialog-footer-button"
-                    v-if="!player.isNewbie && player.level < 10"
-                    @click="newbiePack(4)"
-                  >
-                    领取新手礼包
-                  </el-tag>
+            </div>
+            <div class="equip-box">
+                <div class="tag equip-item" @click="$notify({title: '获得方式', message: '每提成一次境界可以获得3点境界点'})">
+                    <span class="equip">境界点: {{ player.points ? player.points : 0 }}</span>
                 </div>
-              </div>
-            </el-tab-pane>
-            <el-tab-pane
-              label="灵宠"
-              name="pet"
-            >
-              <div class="inventory-content">
-                <template v-for="(item, index) in player.pets">
-                  <el-tag
-                    class="inventory-item"
-                    :type="computePetsLevel(item.level)"
-                    closable
-                    :key="index"
-                    @close="petClose(item)"
-                    @click="petItemInfo(item)"
-                  >
-                    {{ item.name }}({{ $levelNames[item.level] }})
-                  </el-tag>
-                </template>
-              </div>
-            </el-tab-pane>
-            <el-tab-pane
-              label="鸿蒙商店"
-              name="shop"
-            >
-              <el-tabs
-                v-model="shopActive"
-                :stretch="true"
-              >
-                <el-tab-pane
-                  :label="i.name"
-                  :name="i.type"
-                  v-for="(i, k) in shopItems"
-                  :key="k"
-                >
-                  <div class="inventory-content">
-                    <template v-for="(item, index) in i.data">
-                      <el-tag
-                        class="inventory-item"
-                        :type="item.quality"
-                        v-if="item.type == i.type"
-                        :key="index"
-                        @click="shopItemInfo(item)"
-                      >
-                        {{ item.name }}
-                      </el-tag>
-                    </template>
-                  </div>
-                </el-tab-pane>
-              </el-tabs>
-            </el-tab-pane>
-          </el-tabs>
+                <div class="tag equip-item">
+                    <span class="equip">
+                        <span>神兵: </span>
+                        <el-tag v-if="player.equipment.weapon?.name" :type="player.equipment.weapon?.quality" :closable="player.equipment.weapon?.name ? true : false" @close="equipmentClose('weapon')" @click="equipmentInfo('weapon')">
+                            {{ player.equipment.weapon?.name }}{{ player.equipment.weapon?.strengthen ? '+' + player.equipment.weapon?.strengthen : '' }}
+                        </el-tag>
+                        <span v-else>无</span>
+                    </span>
+                    <span class="equip">
+                        <span>护甲: </span>
+                        <el-tag v-if="player.equipment.armor?.name" :type="player.equipment.armor?.quality" :closable="player.equipment.armor?.name ? true : false" @close="equipmentClose('armor')" @click="equipmentInfo('armor')">
+                            {{ player.equipment.armor?.name }}{{ player.equipment.armor?.strengthen ? '+' + player.equipment.armor?.strengthen : '' }}
+                        </el-tag>
+                        <span v-else>无</span>
+                    </span>
+                </div>
+                <div class="tag equip-item">
+                    <span class="equip">
+                        <span>灵宝: </span>
+                        <el-tag v-if="player.equipment.accessory?.name" :type="player.equipment.accessory?.quality" :closable="player.equipment.accessory?.name ? true : false" @close="equipmentClose('accessory')" @click="equipmentInfo('accessory')">
+                            {{ player.equipment.accessory?.name }}{{ player.equipment.accessory?.strengthen ? '+' + player.equipment.accessory?.strengthen : '' }}
+                        </el-tag>
+                        <span v-else>无</span>
+                    </span>
+                    <span class="equip">
+                        <span>法器: </span>
+                        <el-tag v-if="player.equipment.sutra?.name" :type="player.equipment.sutra?.quality" :closable="player.equipment.sutra?.name ? true : false" @close="equipmentClose('sutra')" @click="equipmentInfo('sutra')">
+                            {{ player.equipment.sutra?.name }}{{ player.equipment.sutra?.strengthen ? '+' + player.equipment.sutra?.strengthen : '' }}
+                        </el-tag>
+                        <span v-else>无</span>
+                    </span>
+                </div>
+                <div class="tag equip-item">
+                    <span class="equip">
+                        <span>灵宠: </span>
+                        <el-tag class="pet" v-if="player.pet?.name" :type="computePetsLevel(player.pet?.level)" closable @close="petRetract" @click="petItemShow = true">
+                            {{ player.pet?.name }}({{ $levelNames[player.pet.level] }})
+                        </el-tag>
+                        <span v-else>无</span>
+                    </span>
+                </div>
+                <div class="tag inventory-box">
+                    <el-tabs v-model="inventoryActive" :stretch="true" @tab-click="tabClick">
+                        <el-tab-pane :label="i.name" :name="i.type" v-for="(i, k) in backPackItem" :key="k">
+                            <div class="inventory-content">
+                                <div v-if="player.inventory.length">
+                                    <template v-for="item in player.inventory">
+                                        <el-tag class="inventory-item" v-if="item.type == i.type" :key="item.id" :type="item?.quality" :closable="!item.lock" @close="inventoryClose(item)" @click="inventory(item.id, item.type)">
+                                            <i :class="item.lock ? 'el-icon-lock' : 'el-icon-unlock'" />
+                                            {{ item?.name }}{{ item?.strengthen ? '+' + item?.strengthen : '' }}
+                                        </el-tag>
+                                    </template>
+                                </div>
+                                <div v-else>
+                                    <el-tag type="success" class="dialog-footer-button" v-if="!player.isNewbie && player.level < 10" @click="newbiePack(4)">
+                                        领取新手礼包
+                                    </el-tag>
+                                </div>
+                            </div>
+                        </el-tab-pane>
+                        <el-tab-pane label="灵宠" name="pet">
+                            <div class="inventory-content">
+                                <template v-for="(item, index) in player.pets">
+                                    <el-tag class="inventory-item" :type="computePetsLevel(item.level)" closable :key="index" @close="petClose(item)" @click="petItemInfo(item)">
+                                        {{ item.name }}({{ $levelNames[item.level] }})
+                                    </el-tag>
+                                </template>
+                            </div>
+                        </el-tab-pane>
+                        <el-tab-pane label="鸿蒙商店" name="shop">
+                            <el-tabs v-model="shopActive" :stretch="true">
+                                <el-tab-pane :label="i.name" :name="i.type" v-for="(i, k) in shopItems" :key="k">
+                                    <div class="inventory-content">
+                                        <template v-for="(item, index) in i.data">
+                                            <el-tag class="inventory-item" :type="item.quality" v-if="item.type == i.type" :key="index" @click="shopItemInfo(item)">
+                                                {{ item.name }}
+                                            </el-tag>
+                                        </template>
+                                    </div>
+                                </el-tab-pane>
+                            </el-tabs>
+                        </el-tab-pane>
+                    </el-tabs>
+                </div>
+            </div>
+            <div class="actions">
+                <el-button :type="action.type ? action.type : ''" v-for="(action, index) in actions" :key="index" @click="action.handler">
+                    {{ action.text }}
+                </el-button>
+                <el-button @click="show = true">
+                    数据管理
+                </el-button>
+            </div>
         </div>
-      </div>
-      <div class="actions">
-        <el-button
-          :type="action.type ? action.type : ''"
-          v-for="(action, index) in actions"
-          :key="index"
-          @click="action.handler"
-        >
-          {{ action.text }}
-        </el-button>
-        <el-button @click="show = true">
-          数据管理
-        </el-button>
-      </div>
+        <el-drawer title="修仙境界表" :visible.sync="isLevel" direction="ltr" class="levels">
+            <el-tag class="inventory-item" :type="player.level == index ? 'primary' : (index > player.level ? 'danger' : 'success')" :key="index" v-for="(item, index) in $levelNames">
+                {{ item }}
+            </el-tag>
+        </el-drawer>
+        <el-drawer title="灵宠培养" :visible.sync="petItemShow" direction="rtl" class="strengthen">
+            <div class="strengthen-box" v-if="petItemShow">
+                <div class="attributes">
+                    <div class="attribute-box">
+                        <div class="tag attribute">
+                            境界: {{ $levelNames[player.pet.level] }} ({{ player.pet.reincarnation || 0 }}转)
+                        </div>
+                        <div class="tag attribute">
+                            根骨: {{ player.pet.rootBone }}
+                        </div>
+                        <div class="tag attribute">
+                            气血: {{ $formatNumberToChineseUnit(player.pet.health) }}
+                        </div>
+                        <div class="tag attribute">
+                            攻击: {{ $formatNumberToChineseUnit(player.pet.attack) }}
+                        </div>
+                        <div class="tag attribute">
+                            防御: {{ $formatNumberToChineseUnit(player.pet.defense) }}
+                        </div>
+                        <div class="tag attribute">
+                            闪避率: {{ player.pet.dodge > 0 ? (player.pet.dodge * 100 > 100 ? 100 : (player.pet.dodge * 100).toFixed(2)) : 0 }}%
+                        </div>
+                        <div class="tag attribute">
+                            暴击率: {{ player.pet.critical > 0 ? (player.pet.critical * 100 > 100 ? 100 : (player.pet.critical * 100).toFixed(2)) : 0 }}%
+                        </div>
+                        <div class="tag attribute" @click="$notify({title: '获得方式', message: '可以通过探索秘境获得', position: 'top-left'})">
+                            拥有培养丹: {{ $formatNumberToChineseUnit(player.cultivateDan) }}
+                        </div>
+                        <div class="tag attribute">
+                            培养消耗: {{ petConsumption(player.pet.level) }}
+                        </div>
+                    </div>
+                </div>
+                <div class="click-box">
+                    <el-checkbox v-model="petReincarnation">
+                        灵宠转生
+                    </el-checkbox>
+                    <el-button type="primary" @click="petUpgrade(player.pet)">
+                        点击培养
+                    </el-button>
+                </div>
+            </div>
+        </el-drawer>
+        <el-drawer title="装备炼器" :visible.sync="strengthenShow" direction="rtl" class="strengthen">
+            <div class="strengthen-box" v-if="strengthenShow">
+                <div class="attributes">
+                    <div class="attribute-box">
+                        <div class="tag attribute">
+                            境界: {{ $levelNames[strengthenInfo.level] }}
+                        </div>
+                        <div class="tag attribute">
+                            气血: {{ $formatNumberToChineseUnit(strengthenInfo.health) }}
+                        </div>
+                        <div class="tag attribute">
+                            攻击: {{ $formatNumberToChineseUnit(strengthenInfo.attack) }}
+                        </div>
+                        <div class="tag attribute">
+                            防御: {{ $formatNumberToChineseUnit(strengthenInfo.defense) }}
+                        </div>
+                        <div class="tag attribute">
+                            闪避率: {{ strengthenInfo.dodge > 0 ? (strengthenInfo.dodge * 100 > 100 ? 100 : (strengthenInfo.dodge * 100).toFixed(2)) : 0 }}%
+                        </div>
+                        <div class="tag attribute">
+                            暴击率: {{ strengthenInfo.critical > 0 ? (strengthenInfo.critical * 100 > 100 ? 100 : (strengthenInfo.critical * 100).toFixed(2)) : 0 }}%
+                        </div>
+                        <div class="tag attribute">
+                            炼器等级: {{ strengthenInfo.strengthen ?? 0 }}
+                        </div>
+                        <div class="tag attribute">
+                            成功率: {{ (calculateEnhanceSuccessRate(strengthenInfo) * 100).toFixed(2) }}%
+                        </div>
+                        <div class="tag attribute" @click="$notify({title: '获得方式', message: '出售装备可获取', position: 'top-left'})">
+                            拥有炼器石: {{ $formatNumberToChineseUnit(player.strengtheningStone) }}
+                        </div>
+                        <div class="tag attribute">
+                            炼器消耗: {{ calculateCost(strengthenInfo) }}
+                        </div>
+                    </div>
+                </div>
+                <div class="click-box">
+                    <el-checkbox v-model="protect">
+                        炼器保护
+                    </el-checkbox>
+                    <el-checkbox v-model="increase">
+                        炼器增幅
+                    </el-checkbox>
+                    <el-button type="primary" @click="enhance(strengthenInfo)">
+                        点击炼器
+                    </el-button>
+                </div>
+            </div>
+        </el-drawer>
+        <el-dialog :title="petInfo.name" :visible.sync="petShow" center width="420px">
+            <div class="monsterinfo">
+                <div class="monsterinfo-box">
+                    <p>
+                        <span class="description">境界: {{ $levelNames[petInfo?.level] }}</span>
+                        <span class="icon">
+                            <i :class="calculateDifference(petInfo?.level, player.pet?.level).icon" />
+                        </span>
+                        <span class="value">
+                            {{ petInfo.level > parseInt(player.pet?.level || 0) ? $levelNames[petInfo.level] : $levelNames[player.pet?.level] }}
+                        </span>
+                    </p>
+                    <p>
+                        <span class="description">转生: {{ petInfo?.reincarnation || 0 }}</span>
+                        <span class="icon">
+                            <i :class="calculateDifference(petInfo?.reincarnation, player.pet?.reincarnation).icon" />
+                        </span>
+                        <span class="value">{{ calculateDifference(petInfo?.reincarnation, player.pet?.reincarnation).num }}</span>
+                    </p>
+                    <p>
+                        <span class="description">气血: {{ petInfo?.health }}</span>
+                        <span class="icon">
+                            <i :class="calculateDifference(petInfo?.health, player.pet?.health).icon" />
+                        </span>
+                        <span class="value">{{ calculateDifference(petInfo?.health, player.pet?.health).num }}</span>
+                    </p>
+                    <p>
+                        <span class="description">攻击: {{ petInfo?.attack }}</span>
+                        <span class="icon">
+                            <i :class="calculateDifference(petInfo?.attack, player.pet?.attack).icon" />
+                        </span>
+                        <span class="value">{{ calculateDifference(petInfo?.attack, player.pet?.attack).num }}</span>
+                    </p>
+                    <p>
+                        <span class="description">防御: {{ petInfo?.defense }}</span>
+                        <span class="icon">
+                            <i :class="calculateDifference(petInfo?.defense, player.pet?.defense).icon" />
+                        </span>
+                        <span class="value">{{ calculateDifference(petInfo?.defense, player.pet?.defense).num }}</span>
+                    </p>
+                    <p>
+                        <span class="description">闪避率: {{ petInfo?.dodge > 0 ? (petInfo?.dodge * 100 > 100 ? 100 : (petInfo?.dodge * 100).toFixed(2)) : 0 }}%</span>
+                        <span class="icon">
+                            <i :class="calculateDifference(petInfo?.dodge, player.pet?.dodge).icon" />
+                        </span>
+                        <span class="value">{{ calculateDifference(petInfo?.dodge, player?.pet?.dodge).num }}</span>
+                    </p>
+                    <p>
+                        <span class="description">暴击率: {{ petInfo?.critical > 0 ? (petInfo?.critical * 100 > 100 ? 100 : (petInfo?.critical * 100).toFixed(2)) : 0 }}%</span>
+                        <span class="icon">
+                            <i :class="calculateDifference(petInfo?.critical, player.pet?.critical).icon" />
+                        </span>
+                        <span class="value">{{ calculateDifference(petInfo?.critical, player.pet?.critical).num }}</span>
+                    </p>
+                </div>
+            </div>
+            <el-collapse v-model="petCollapse" class="collapse">
+                <el-collapse-item title="基础属性对比" name="1">
+                    <div class="monsterinfo-box">
+                        <p>
+                            <span class="description">气血: {{ petInfo?.initial?.health }}</span>
+                            <span class="icon">
+                                <i :class="calculateDifference(petInfo?.initial?.health, player.pet?.initial?.health).icon" />
+                            </span>
+                            <span class="value">{{ calculateDifference(petInfo?.initial?.health, player.pet?.initial?.health).num }}</span>
+                        </p>
+                        <p>
+                            <span class="description">攻击: {{ petInfo?.initial?.attack }}</span>
+                            <span class="icon">
+                                <i :class="calculateDifference(petInfo?.initial?.attack, player.pet?.initial?.attack).icon" />
+                            </span>
+                            <span class="value">{{ calculateDifference(petInfo?.initial?.attack, player.pet?.initial?.attack).num }}</span>
+                        </p>
+                        <p>
+                            <span class="description">防御: {{ petInfo?.initial?.defense }}</span>
+                            <span class="icon">
+                                <i :class="calculateDifference(petInfo?.initial?.defense, player.pet?.initial?.defense).icon" />
+                            </span>
+                            <span class="value">{{ calculateDifference(petInfo?.initial?.defense, player.pet?.initial?.defense).num }}</span>
+                        </p>
+                        <p>
+                            <span class="description">
+                                闪避率: {{ petInfo?.initial?.dodge > 0 ? (petInfo?.initial?.dodge * 100 > 100 ? 100 : (petInfo?.initial?.dodge * 100).toFixed(2)) : 0 }}%
+                            </span>
+                            <span class="icon">
+                                <i :class="calculateDifference(petInfo?.initial?.dodge, player.pet?.initial?.dodge).icon" />
+                            </span>
+                            <span class="value">{{ calculateDifference(petInfo?.initial?.dodge, player.pet?.initial?.dodge).num }}</span>
+                        </p>
+                        <p>
+                            <span class="description">
+                                暴击率: {{ petInfo?.initial?.critical > 0 ? (petInfo?.initial?.critical * 100 > 100 ? 100 : (petInfo?.initial?.critical * 100).toFixed(2)) : 0 }}%
+                            </span>
+                            <span class="icon">
+                                <i :class="calculateDifference(petInfo?.initial?.critical, player.pet?.initial?.critical).icon" />
+                            </span>
+                            <span class="value">{{ calculateDifference(petInfo?.initial?.critical, player.pet?.initial?.critical).num }}</span>
+                        </p>
+                    </div>
+                </el-collapse-item>
+            </el-collapse>
+            <div class="dialog-footer">
+                <el-button type="plain" class="dialog-footer-button" @click="petClose(petInfo)">
+                    灵宠放生
+                </el-button>
+                <el-button type="primary" class="dialog-footer-button" @click="petCarry(petInfo)">
+                    灵宠出战
+                </el-button>
+            </div>
+        </el-dialog>
+        <el-dialog :title="inventoryInfo.name" :visible.sync="inventoryShow" center width="420px">
+            <div class="monsterinfo" v-if="inventoryShow">
+                <div class="monsterinfo-box">
+                    <p>
+                        <span class="description">类型: {{ $genre[inventoryInfo.type] }}</span>
+                        <span class="icon" />
+                        <span class="value" />
+                    </p>
+                    <p>
+                        <span class="description">炼器: {{ inventoryInfo.strengthen || 0 }}</span>
+                        <span class="icon">
+                            <i :class="calculateDifference(inventoryInfo.strengthen, player.equipment[inventoryInfo.type]?.strengthen).icon" />
+                        </span>
+                        <span class="value">{{ calculateDifference(inventoryInfo.strengthen, player.equipment[inventoryInfo.type]?.strengthen).num }}</span>
+                    </p>
+                    <p>
+                        <span class="description">境界: {{ $levelNames[inventoryInfo.level] }}</span>
+                        <span class="icon">
+                            <i :class="calculateDifference(inventoryInfo.level, player.equipment[inventoryInfo.type]?.level).icon" />
+                        </span>
+                        <span class="value">
+                            {{ inventoryInfo.level > parseInt(player.equipment[inventoryInfo.type]?.level || 1) ? $levelNames[inventoryInfo.level] : $levelNames[player.equipment[inventoryInfo.type]?.level] }}
+                        </span>
+                    </p>
+                    <p>
+                        <span class="description">品质: {{ $levels[inventoryInfo.quality] }}</span>
+                        <span class="icon">
+                            <i :class="calculateDifference(levelsNum[inventoryInfo.quality], levelsNum[player.equipment[inventoryInfo.type]?.quality]).icon" />
+                        </span>
+                        <span class="value">
+                            {{ calculateDifference(levelsNum[inventoryInfo.quality], levelsNum[player.equipment[inventoryInfo.type]?.quality]).num < 0 ? $levels[player.equipment[inventoryInfo.type]?.quality] : $levels[inventoryInfo.quality] }} </span>
+                    </p>
+                    <p>
+                        <span class="description">气血: {{ inventoryInfo?.health }}</span>
+                        <span class="icon">
+                            <i :class="calculateDifference(inventoryInfo?.health, player.equipment[inventoryInfo.type]?.health).icon" />
+                        </span>
+                        <span class="value">{{ calculateDifference(inventoryInfo?.health, player.equipment[inventoryInfo.type]?.health).num }}</span>
+                    </p>
+                    <p>
+                        <span class="description">攻击: {{ inventoryInfo?.attack }}</span>
+                        <span class="icon">
+                            <i :class="calculateDifference(inventoryInfo?.attack, player.equipment[inventoryInfo.type]?.attack).icon" />
+                        </span>
+                        <span class="value">{{ calculateDifference(inventoryInfo?.attack, player.equipment[inventoryInfo.type]?.attack).num }}</span>
+                    </p>
+                    <p>
+                        <span class="description">防御: {{ inventoryInfo?.defense }}</span>
+                        <span class="icon">
+                            <i :class="calculateDifference(inventoryInfo?.defense, player.equipment[inventoryInfo.type]?.defense).icon" />
+                        </span>
+                        <span class="value">{{ calculateDifference(inventoryInfo?.defense, player.equipment[inventoryInfo.type]?.defense).num }}</span>
+                    </p>
+                    <p>
+                        <span class="description">闪避率: {{ inventoryInfo?.dodge > 0 ? (inventoryInfo?.dodge * 100 > 100 ? 100 : (inventoryInfo?.dodge * 100).toFixed(2)) : 0 }}%</span>
+                        <span class="icon">
+                            <i :class="calculateDifference(inventoryInfo?.dodge, player.equipment[inventoryInfo.type]?.dodge).icon" />
+                        </span>
+                        <span class="value">{{ calculateDifference(inventoryInfo?.dodge, player.equipment[inventoryInfo.type]?.dodge).num }}</span>
+                    </p>
+                    <p>
+                        <span class="description">暴击率: {{ inventoryInfo?.critical > 0 ? (inventoryInfo?.critical * 100 > 100 ? 100 : (inventoryInfo?.critical * 100).toFixed(2)) : 0 }}%</span>
+                        <span class="icon">
+                            <i :class="calculateDifference(inventoryInfo?.critical, player.equipment[inventoryInfo.type]?.critical).icon" />
+                        </span>
+                        <span class="value">{{ calculateDifference(inventoryInfo?.critical, player.equipment[inventoryInfo.type]?.critical).num }}</span>
+                    </p>
+                </div>
+            </div>
+            <el-collapse v-model="inventoryCollapse" class="collapse">
+                <el-collapse-item title="基础属性对比" name="1">
+                    <div class="monsterinfo-box">
+                        <p>
+                            <span class="description">气血: {{ inventoryInfo?.initial?.health }}</span>
+                            <span class="icon">
+                                <i :class="calculateDifference(inventoryInfo?.initial?.health, player.equipment[inventoryInfo.type]?.initial?.health).icon" />
+                            </span>
+                            <span class="value">{{ calculateDifference(inventoryInfo?.initial?.health, player.equipment[inventoryInfo.type]?.initial?.health).num }}</span>
+                        </p>
+                        <p>
+                            <span class="description">攻击: {{ inventoryInfo?.initial?.attack }}</span>
+                            <span class="icon">
+                                <i :class="calculateDifference(inventoryInfo?.initial?.attack, player.equipment[inventoryInfo.type]?.initial?.attack).icon" />
+                            </span>
+                            <span class="value">{{ calculateDifference(inventoryInfo?.initial?.attack, player.equipment[inventoryInfo.type]?.initial?.attack).num }}</span>
+                        </p>
+                        <p>
+                            <span class="description">防御: {{ inventoryInfo?.initial?.defense }}</span>
+                            <span class="icon">
+                                <i :class="calculateDifference(inventoryInfo?.initial?.defense, player.equipment[inventoryInfo.type]?.initial?.defense).icon" />
+                            </span>
+                            <span class="value">{{ calculateDifference(inventoryInfo?.initial?.defense, player.equipment[inventoryInfo.type]?.initial?.defense).num }}</span>
+                        </p>
+                        <p>
+                            <span class="description">
+                                闪避率: {{ inventoryInfo?.initial?.dodge > 0 ? (inventoryInfo?.initial?.dodge * 100 > 100 ? 100 : (inventoryInfo?.initial?.dodge * 100).toFixed(2)) : 0 }}%
+                            </span>
+                            <span class="icon">
+                                <i :class="calculateDifference(inventoryInfo?.initial?.dodge, player.equipment[inventoryInfo.type]?.initial?.dodge).icon" />
+                            </span>
+                            <span class="value">{{ calculateDifference(inventoryInfo?.initial?.dodge, player.equipment[inventoryInfo.type]?.initial?.dodge).num }}</span>
+                        </p>
+                        <p>
+                            <span class="description">
+                                暴击率: {{ inventoryInfo?.initial?.critical > 0 ? (inventoryInfo?.initial?.critical * 100 > 100 ? 100 : (inventoryInfo?.initial?.critical * 100).toFixed(2)) : 0 }}%
+                            </span>
+                            <span class="icon">
+                                <i :class="calculateDifference(inventoryInfo?.initial?.critical, player.equipment[inventoryInfo.type]?.initial?.critical).icon" />
+                            </span>
+                            <span class="value">{{ calculateDifference(inventoryInfo?.initial?.critical, player.equipment[inventoryInfo.type]?.initial?.critical).num }}</span>
+                        </p>
+                    </div>
+                </el-collapse-item>
+            </el-collapse>
+            <div class="dialog-footer">
+                <el-button type="plain" class="inventory-button" @click="inventoryClose(inventoryInfo)">
+                    装备出售
+                </el-button>
+                <el-button type="plain" class="inventory-button" @click="inventoryLock(inventoryInfo.id)">
+                    {{ inventoryInfo.lock ? '装备解锁' : '装备锁定' }}
+                </el-button>
+                <el-button type="primary" class="inventory-button" @click="equipItem(inventoryInfo.id, inventoryInfo.type)">
+                    立即装备
+                </el-button>
+            </div>
+        </el-dialog>
+        <el-dialog title="批量出售设置" :visible.sync="sellingEquipmentShow" width="600px">
+            <el-checkbox-group v-model="player.sellingEquipmentData" @change="sellingEquipmentDataChange">
+                <el-checkbox v-for="(item, index) in AllEquipmenType" :label="item" :key="index">
+                    {{ $levels[item] }}
+                </el-checkbox>
+            </el-checkbox-group>
+            <div class="dialog-footer" style="margin-top: 20px;">
+                <el-button class="dialog-footer-button" @click="sellingEquipment">
+                    出售装备
+                </el-button>
+            </div>
+        </el-dialog>
+        <el-dialog title="数据管理" :visible.sync="show" width="600px">
+            <div class="dialog-footer">
+                <el-button type="info" class="dialog-footer-button computer" @click="exportData('computer')" v-if="innerWidth > 750">
+                    导出存档
+                </el-button>
+                <el-button type="info" class="dialog-footer-button mobile" @click="exportData('mobile')" v-else>
+                    导出存档
+                </el-button>
+                <el-upload action="#" class="dialog-upload computer" :http-request="importData" :show-file-list="false" accept="application/json" v-if="innerWidth > 750">
+                    <el-button type="warning" class="dialog-footer-button">
+                        导入存档
+                    </el-button>
+                </el-upload>
+                <div class="dialog-upload mobile" v-else>
+                    <el-button type="warning" class="dialog-footer-button" @click="importMobileData">
+                        导入存档
+                    </el-button>
+                </div>
+                <el-button type="danger" class="dialog-footer-button" @click="deleteData">
+                    删除存档
+                </el-button>
+                <a class="el-button dialog-footer-button el-button--primary" href="https://qm.qq.com/q/D23KDtpCQC" target="_blank">
+                    官方群聊
+                </a>
+            </div>
+        </el-dialog>
     </div>
-    <el-drawer
-      title="修仙境界表"
-      :visible.sync="isLevel"
-      direction="ltr"
-      class="levels"
-    >
-      <el-tag
-        class="inventory-item"
-        :type="player.level == index ? 'primary' : (index > player.level ? 'danger' : 'success')"
-        :key="index"
-        v-for="(item, index) in $levelNames"
-      >
-        {{ item }}
-      </el-tag>
-    </el-drawer>
-    <el-drawer
-      title="灵宠培养"
-      :visible.sync="petItemShow"
-      direction="rtl"
-      class="strengthen"
-    >
-      <div
-        class="strengthen-box"
-        v-if="petItemShow"
-      >
-        <div class="attributes">
-          <div class="attribute-box">
-            <div class="tag attribute">
-              境界: {{ $levelNames[player.pet.level] }} ({{ player.pet.reincarnation || 0 }}转)
-            </div>
-            <div class="tag attribute">
-              根骨: {{ player.pet.rootBone }}
-            </div>
-            <div class="tag attribute">
-              气血: {{ $formatNumberToChineseUnit(player.pet.health) }}
-            </div>
-            <div class="tag attribute">
-              攻击: {{ $formatNumberToChineseUnit(player.pet.attack) }}
-            </div>
-            <div class="tag attribute">
-              防御: {{ $formatNumberToChineseUnit(player.pet.defense) }}
-            </div>
-            <div class="tag attribute">
-              闪避率: {{ player.pet.dodge > 0 ? (player.pet.dodge * 100 > 100 ? 100 : (player.pet.dodge * 100).toFixed(2)) : 0 }}%
-            </div>
-            <div class="tag attribute">
-              暴击率: {{ player.pet.critical > 0 ? (player.pet.critical * 100 > 100 ? 100 : (player.pet.critical * 100).toFixed(2)) : 0 }}%
-            </div>
-            <div
-              class="tag attribute"
-              @click="$notify({title: '获得方式', message: '可以通过探索秘境获得', position: 'top-left'})"
-            >
-              拥有培养丹: {{ $formatNumberToChineseUnit(player.cultivateDan) }}
-            </div>
-            <div class="tag attribute">
-              培养消耗: {{ petConsumption(player.pet.level) }}
-            </div>
-          </div>
-        </div>
-        <div class="click-box">
-          <el-checkbox v-model="petReincarnation">
-            灵宠转生
-          </el-checkbox>
-          <el-button
-            type="primary"
-            @click="petUpgrade(player.pet)"
-          >
-            点击培养
-          </el-button>
-        </div>
-      </div>
-    </el-drawer>
-    <el-drawer
-      title="装备炼器"
-      :visible.sync="strengthenShow"
-      direction="rtl"
-      class="strengthen"
-    >
-      <div
-        class="strengthen-box"
-        v-if="strengthenShow"
-      >
-        <div class="attributes">
-          <div class="attribute-box">
-            <div class="tag attribute">
-              境界: {{ $levelNames[strengthenInfo.level] }}
-            </div>
-            <div class="tag attribute">
-              气血: {{ $formatNumberToChineseUnit(strengthenInfo.health) }}
-            </div>
-            <div class="tag attribute">
-              攻击: {{ $formatNumberToChineseUnit(strengthenInfo.attack) }}
-            </div>
-            <div class="tag attribute">
-              防御: {{ $formatNumberToChineseUnit(strengthenInfo.defense) }}
-            </div>
-            <div class="tag attribute">
-              闪避率: {{ strengthenInfo.dodge > 0 ? (strengthenInfo.dodge * 100 > 100 ? 100 : (strengthenInfo.dodge * 100).toFixed(2)) : 0 }}%
-            </div>
-            <div class="tag attribute">
-              暴击率: {{ strengthenInfo.critical > 0 ? (strengthenInfo.critical * 100 > 100 ? 100 : (strengthenInfo.critical * 100).toFixed(2)) : 0 }}%
-            </div>
-            <div class="tag attribute">
-              炼器等级: {{ strengthenInfo.strengthen ?? 0 }}
-            </div>
-            <div class="tag attribute">
-              成功率: {{ (calculateEnhanceSuccessRate(strengthenInfo) * 100).toFixed(2) }}%
-            </div>
-            <div
-              class="tag attribute"
-              @click="$notify({title: '获得方式', message: '出售装备可获取', position: 'top-left'})"
-            >
-              拥有炼器石: {{ $formatNumberToChineseUnit(player.strengtheningStone) }}
-            </div>
-            <div class="tag attribute">
-              炼器消耗: {{ calculateCost(strengthenInfo) }}
-            </div>
-          </div>
-        </div>
-        <div class="click-box">
-          <el-checkbox v-model="protect">
-            炼器保护
-          </el-checkbox>
-          <el-checkbox v-model="increase">
-            炼器增幅
-          </el-checkbox>
-          <el-button
-            type="primary"
-            @click="enhance(strengthenInfo)"
-          >
-            点击炼器
-          </el-button>
-        </div>
-      </div>
-    </el-drawer>
-    <el-dialog
-      :title="petInfo.name"
-      :visible.sync="petShow"
-      center
-      width="420px"
-    >
-      <div class="monsterinfo">
-        <div class="monsterinfo-box">
-          <p>
-            <span class="description">境界: {{ $levelNames[petInfo.level] }}</span>
-            <span class="icon">
-              <i :class="calculateDifference(petInfo.level, player.pet?.level).icon" />
-            </span>
-            <span class="value">
-              {{ petInfo.level > parseInt(player.pet?.level || 0) ? $levelNames[petInfo.level] : $levelNames[player.pet?.level] }}
-            </span>
-          </p>
-          <p>
-            <span class="description">转生: {{ petInfo.reincarnation || 0 }}</span>
-            <span class="icon">
-              <i :class="calculateDifference(petInfo.reincarnation, player.pet?.reincarnation).icon" />
-            </span>
-            <span class="value">{{ calculateDifference(petInfo.reincarnation, player.pet?.reincarnation).num }}</span>
-          </p>
-          <p>
-            <span class="description">气血: {{ petInfo.health }}</span>
-            <span class="icon">
-              <i :class="calculateDifference(petInfo.health, player.pet?.health).icon" />
-            </span>
-            <span class="value">{{ calculateDifference(petInfo.health, player.pet?.health).num }}</span>
-          </p>
-          <p>
-            <span class="description">攻击: {{ petInfo.attack }}</span>
-            <span class="icon">
-              <i :class="calculateDifference(petInfo.attack, player.pet?.attack).icon" />
-            </span>
-            <span class="value">{{ calculateDifference(petInfo.attack, player.pet?.attack).num }}</span>
-          </p>
-          <p>
-            <span class="description">防御: {{ petInfo.defense }}</span>
-            <span class="icon">
-              <i :class="calculateDifference(petInfo.defense, player.pet?.defense).icon" />
-            </span>
-            <span class="value">{{ calculateDifference(petInfo.defense, player.pet?.defense).num }}</span>
-          </p>
-          <p>
-            <span class="description">闪避率: {{ petInfo.dodge > 0 ? (petInfo.dodge * 100 > 100 ? 100 : (petInfo.dodge * 100).toFixed(2)) : 0 }}%</span>
-            <span class="icon">
-              <i :class="calculateDifference(petInfo.dodge, player.pet?.dodge).icon" />
-            </span>
-            <span class="value">{{ calculateDifference(petInfo.dodge, player.pet?.dodge).num }}</span>
-          </p>
-          <p>
-            <span class="description">暴击率: {{ petInfo.critical > 0 ? (petInfo.critical * 100 > 100 ? 100 : (petInfo.critical * 100).toFixed(2)) : 0 }}%</span>
-            <span class="icon">
-              <i :class="calculateDifference(petInfo.critical, player.pet?.critical).icon" />
-            </span>
-            <span class="value">{{ calculateDifference(petInfo.critical, player.pet?.critical).num }}</span>
-          </p>
-        </div>
-      </div>
-      <el-collapse
-        v-model="petCollapse"
-        class="collapse"
-      >
-        <el-collapse-item
-          title="基础属性对比"
-          name="1"
-        >
-          <div class="monsterinfo-box">
-            <p>
-              <span class="description">气血: {{ petInfo.initial?.health }}</span>
-              <span class="icon">
-                <i :class="calculateDifference(petInfo.initial?.health, player.pet.initial?.health).icon" />
-              </span>
-              <span class="value">{{ calculateDifference(petInfo.initial?.health, player.pet.initial?.health).num }}</span>
-            </p>
-            <p>
-              <span class="description">攻击: {{ petInfo.initial?.attack }}</span>
-              <span class="icon">
-                <i :class="calculateDifference(petInfo.initial?.attack, player.pet.initial?.attack).icon" />
-              </span>
-              <span class="value">{{ calculateDifference(petInfo.initial?.attack, player.pet.initial?.attack).num }}</span>
-            </p>
-            <p>
-              <span class="description">防御: {{ petInfo.initial?.defense }}</span>
-              <span class="icon">
-                <i :class="calculateDifference(petInfo.initial?.defense, player.pet.initial?.defense).icon" />
-              </span>
-              <span class="value">{{ calculateDifference(petInfo.initial?.defense, player.pet.initial?.defense).num }}</span>
-            </p>
-            <p>
-              <span class="description">
-                闪避率: {{ petInfo.initial?.dodge > 0 ? (petInfo.initial?.dodge * 100 > 100 ? 100 : (petInfo.initial?.dodge * 100).toFixed(2)) : 0 }}%
-              </span>
-              <span class="icon">
-                <i :class="calculateDifference(petInfo.initial?.dodge, player.pet.initial?.dodge).icon" />
-              </span>
-              <span class="value">{{ calculateDifference(petInfo.initial?.dodge, player.pet.initial?.dodge).num }}</span>
-            </p>
-            <p>
-              <span class="description">
-                暴击率: {{ petInfo.initial?.critical > 0 ? (petInfo.initial?.critical * 100 > 100 ? 100 : (petInfo.initial?.critical * 100).toFixed(2)) : 0 }}%
-              </span>
-              <span class="icon">
-                <i :class="calculateDifference(petInfo.initial?.critical, player.pet.initial?.critical).icon" />
-              </span>
-              <span class="value">{{ calculateDifference(petInfo.initial?.critical, player.pet.initial?.critical).num }}</span>
-            </p>
-          </div>
-        </el-collapse-item>
-      </el-collapse>
-      <div class="dialog-footer">
-        <el-button
-          type="plain"
-          class="dialog-footer-button"
-          @click="petClose(petInfo)"
-        >
-          灵宠放生
-        </el-button>
-        <el-button
-          type="primary"
-          class="dialog-footer-button"
-          @click="petCarry(petInfo)"
-        >
-          灵宠出战
-        </el-button>
-      </div>
-    </el-dialog>
-    <el-dialog
-      :title="inventoryInfo.name"
-      :visible.sync="inventoryShow"
-      center
-      width="420px"
-    >
-      <div class="monsterinfo">
-        <div class="monsterinfo-box">
-          <p>
-            <span class="description">类型: {{ $genre[inventoryInfo.type] }}</span>
-            <span class="icon" />
-            <span class="value" />
-          </p>
-          <p>
-            <span class="description">炼器: {{ inventoryInfo.strengthen || 0 }}</span>
-            <span class="icon">
-              <i :class="calculateDifference(inventoryInfo.strengthen, player.equipment[inventoryInfo.type]?.strengthen).icon" />
-            </span>
-            <span class="value">{{ calculateDifference(inventoryInfo.strengthen, player.equipment[inventoryInfo.type]?.strengthen).num }}</span>
-          </p>
-          <p>
-            <span class="description">境界: {{ $levelNames[inventoryInfo.level] }}</span>
-            <span class="icon">
-              <i :class="calculateDifference(inventoryInfo.level, player.equipment[inventoryInfo.type]?.level).icon" />
-            </span>
-            <span class="value">
-              {{ inventoryInfo.level > parseInt(player.equipment[inventoryInfo.type]?.level || 1) ? $levelNames[inventoryInfo.level] : $levelNames[player.equipment[inventoryInfo.type]?.level] }}
-            </span>
-          </p>
-          <p>
-            <span class="description">品质: {{ $levels[inventoryInfo.quality] }}</span>
-            <span class="icon">
-              <i :class="calculateDifference(levelsNum[inventoryInfo.quality], levelsNum[player.equipment[inventoryInfo.type]?.quality]).icon" />
-            </span>
-            <span class="value">
-              {{ calculateDifference(levelsNum[inventoryInfo.quality], levelsNum[player.equipment[inventoryInfo.type]?.quality]).num < 0 ? $levels[player.equipment[inventoryInfo.type]?.quality] : $levels[inventoryInfo.quality] }} </span>
-          </p>
-          <p>
-            <span class="description">气血: {{ inventoryInfo.health }}</span>
-            <span class="icon">
-              <i :class="calculateDifference(inventoryInfo.health, player.equipment[inventoryInfo.type]?.health).icon" />
-            </span>
-            <span class="value">{{ calculateDifference(inventoryInfo.health, player.equipment[inventoryInfo.type]?.health).num }}</span>
-          </p>
-          <p>
-            <span class="description">攻击: {{ inventoryInfo.attack }}</span>
-            <span class="icon">
-              <i :class="calculateDifference(inventoryInfo.attack, player.equipment[inventoryInfo.type]?.attack).icon" />
-            </span>
-            <span class="value">{{ calculateDifference(inventoryInfo.attack, player.equipment[inventoryInfo.type]?.attack).num }}</span>
-          </p>
-          <p>
-            <span class="description">防御: {{ inventoryInfo.defense }}</span>
-            <span class="icon">
-              <i :class="calculateDifference(inventoryInfo.defense, player.equipment[inventoryInfo.type]?.defense).icon" />
-            </span>
-            <span class="value">{{ calculateDifference(inventoryInfo.defense, player.equipment[inventoryInfo.type]?.defense).num }}</span>
-          </p>
-          <p>
-            <span class="description">闪避率: {{ inventoryInfo.dodge > 0 ? (inventoryInfo.dodge * 100 > 100 ? 100 : (inventoryInfo.dodge * 100).toFixed(2)) : 0 }}%</span>
-            <span class="icon">
-              <i :class="calculateDifference(inventoryInfo.dodge, player.equipment[inventoryInfo.type]?.dodge).icon" />
-            </span>
-            <span class="value">{{ calculateDifference(inventoryInfo.dodge, player.equipment[inventoryInfo.type]?.dodge).num }}</span>
-          </p>
-          <p>
-            <span class="description">暴击率: {{ inventoryInfo.critical > 0 ? (inventoryInfo.critical * 100 > 100 ? 100 : (inventoryInfo.critical * 100).toFixed(2)) : 0 }}%</span>
-            <span class="icon">
-              <i :class="calculateDifference(inventoryInfo.critical, player.equipment[inventoryInfo.type]?.critical).icon" />
-            </span>
-            <span class="value">{{ calculateDifference(inventoryInfo.critical, player.equipment[inventoryInfo.type]?.critical).num }}</span>
-          </p>
-        </div>
-      </div>
-      <el-collapse
-        v-model="inventoryCollapse"
-        class="collapse"
-      >
-        <el-collapse-item
-          title="基础属性对比"
-          name="1"
-        >
-          <div class="monsterinfo-box">
-            <p>
-              <span class="description">气血: {{ inventoryInfo.initial?.health }}</span>
-              <span class="icon">
-                <i :class="calculateDifference(inventoryInfo.initial?.health, player.equipment[inventoryInfo.type]?.initial.health).icon" />
-              </span>
-              <span class="value">{{ calculateDifference(inventoryInfo.initial?.health, player.equipment[inventoryInfo.type]?.initial.health).num }}</span>
-            </p>
-            <p>
-              <span class="description">攻击: {{ inventoryInfo.initial?.attack }}</span>
-              <span class="icon">
-                <i :class="calculateDifference(inventoryInfo.initial?.attack, player.equipment[inventoryInfo.type]?.initial.attack).icon" />
-              </span>
-              <span class="value">{{ calculateDifference(inventoryInfo.initial?.attack, player.equipment[inventoryInfo.type]?.initial.attack).num }}</span>
-            </p>
-            <p>
-              <span class="description">防御: {{ inventoryInfo.initial?.defense }}</span>
-              <span class="icon">
-                <i :class="calculateDifference(inventoryInfo.initial?.defense, player.equipment[inventoryInfo.type]?.initial.defense).icon" />
-              </span>
-              <span class="value">{{ calculateDifference(inventoryInfo.initial?.defense, player.equipment[inventoryInfo.type]?.initial.defense).num }}</span>
-            </p>
-            <p>
-              <span class="description">
-                闪避率: {{ inventoryInfo.initial?.dodge > 0 ? (inventoryInfo.initial?.dodge * 100 > 100 ? 100 : (inventoryInfo.initial?.dodge * 100).toFixed(2)) : 0 }}%
-              </span>
-              <span class="icon">
-                <i :class="calculateDifference(inventoryInfo.initial?.dodge, player.equipment[inventoryInfo.type]?.initial.dodge).icon" />
-              </span>
-              <span class="value">{{ calculateDifference(inventoryInfo.initial?.dodge, player.equipment[inventoryInfo.type]?.initial.dodge).num }}</span>
-            </p>
-            <p>
-              <span class="description">
-                暴击率: {{ inventoryInfo.initial?.critical > 0 ? (inventoryInfo.initial?.critical * 100 > 100 ? 100 : (inventoryInfo.initial?.critical * 100).toFixed(2)) : 0 }}%
-              </span>
-              <span class="icon">
-                <i :class="calculateDifference(inventoryInfo.initial?.critical, player.equipment[inventoryInfo.type]?.initial.critical).icon" />
-              </span>
-              <span class="value">{{ calculateDifference(inventoryInfo.initial?.critical, player.equipment[inventoryInfo.type]?.initial.critical).num }}</span>
-            </p>
-          </div>
-        </el-collapse-item>
-      </el-collapse>
-      <div class="dialog-footer">
-        <el-button
-          type="plain"
-          class="inventory-button"
-          @click="inventoryClose(inventoryInfo)"
-        >
-          装备出售
-        </el-button>
-        <el-button
-          type="plain"
-          class="inventory-button"
-          @click="inventoryLock(inventoryInfo.id)"
-        >
-          {{ inventoryInfo.lock ? '装备解锁' : '装备锁定' }}
-        </el-button>
-        <el-button
-          type="primary"
-          class="inventory-button"
-          @click="equipItem(inventoryInfo.id, inventoryInfo.type)"
-        >
-          立即装备
-        </el-button>
-      </div>
-    </el-dialog>
-    <el-dialog
-      title="批量出售设置"
-      :visible.sync="sellingEquipmentShow"
-      width="600px"
-    >
-      <el-checkbox-group
-        v-model="player.sellingEquipmentData"
-        @change="sellingEquipmentDataChange"
-      >
-        <el-checkbox
-          v-for="(item, index) in AllEquipmenType"
-          :label="item"
-          :key="index"
-        >
-          {{ $levels[item] }}
-        </el-checkbox>
-      </el-checkbox-group>
-      <div
-        class="dialog-footer"
-        style="margin-top: 20px;"
-      >
-        <el-button
-          class="dialog-footer-button"
-          @click="sellingEquipment"
-        >
-          出售装备
-        </el-button>
-      </div>
-    </el-dialog>
-    <el-dialog
-      title="数据管理"
-      :visible.sync="show"
-      width="600px"
-    >
-      <div class="dialog-footer">
-        <el-button
-          type="info"
-          class="dialog-footer-button computer"
-          @click="exportData('computer')"
-          v-if="innerWidth > 750"
-        >
-          导出存档
-        </el-button>
-        <el-button
-          type="info"
-          class="dialog-footer-button mobile"
-          @click="exportData('mobile')"
-          v-else
-        >
-          导出存档
-        </el-button>
-        <el-upload
-          action="#"
-          class="dialog-upload computer"
-          :http-request="importData"
-          :show-file-list="false"
-          accept="application/json"
-          v-if="innerWidth > 750"
-        >
-          <el-button
-            type="warning"
-            class="dialog-footer-button"
-          >
-            导入存档
-          </el-button>
-        </el-upload>
-        <div
-          class="dialog-upload mobile"
-          v-else
-        >
-          <el-button
-            type="warning"
-            class="dialog-footer-button"
-            @click="importMobileData"
-          >
-            导入存档
-          </el-button>
-        </div>
-        <el-button
-          type="danger"
-          class="dialog-footer-button"
-          @click="deleteData"
-        >
-          删除存档
-        </el-button>
-        <a
-          class="el-button dialog-footer-button el-button--primary"
-          href="https://qm.qq.com/q/D23KDtpCQC"
-          target="_blank"
-        >
-          官方群聊
-        </a>
-      </div>
-    </el-dialog>
-  </div>
 </template>
 
 <script>

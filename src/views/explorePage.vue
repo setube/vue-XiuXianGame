@@ -1,58 +1,29 @@
 <template>
-  <div class="cultivate">
-    你遇到了<span
-      class="el-tag el-tag--danger"
-      @click="openMonsterInfo"
-    >{{ monster.name }}</span>
-    <div class="storyText">
-      <div
-        class="storyText-box"
-        ref="storyText"
-      >
-        <p
-          class="fighting"
-          v-if="isFighting"
-        >
-          {{ guashaRounds }}回合 / 10回合
-        </p>
-        <p
-          v-for="(item, index) in texts"
-          :key="index"
-          v-html="item"
-        />
-      </div>
+    <div class="cultivate">
+        你遇到了<span class="el-tag el-tag--danger" @click="openMonsterInfo">{{ monster.name }}</span>
+        <div class="storyText">
+            <div class="storyText-box" ref="storyText">
+                <p class="fighting" v-if="isFighting">
+                    {{ guashaRounds }}回合 / 10回合
+                </p>
+                <p v-for="(item, index) in texts" :key="index" v-html="item" />
+            </div>
+        </div>
+        <div class="actions">
+            <el-button type="danger" @click="startFight" :disabled="isEnd">
+                发起战斗
+            </el-button>
+            <el-button type="pink" @click="harvestPet(monster)" :disabled="isCaptureFailed">
+                收服对方
+            </el-button>
+            <el-button type="primary" @click="runAway" :disabled="isFailedRetreat">
+                立马撤退
+            </el-button>
+            <el-button type="success" @click="$router.push('/')" v-if="isEnd">
+                回家疗伤
+            </el-button>
+        </div>
     </div>
-    <div class="actions">
-      <el-button
-        type="danger"
-        @click="startFight"
-        :disabled="isEnd"
-      >
-        发起战斗
-      </el-button>
-      <el-button
-        type="pink"
-        @click="harvestPet(monster)"
-        :disabled="isCaptureFailed"
-      >
-        收服对方
-      </el-button>
-      <el-button
-        type="primary"
-        @click="runAway"
-        :disabled="isFailedRetreat"
-      >
-        立马撤退
-      </el-button>
-      <el-button
-        type="success"
-        @click="$router.push('/')"
-        v-if="isEnd"
-      >
-        回家疗伤
-      </el-button>
-    </div>
-  </div>
 </template>
 
 <script>
@@ -81,6 +52,7 @@
                 isFailedRetreat: false,
                 // 收服失败
                 isCaptureFailed: false,
+                openEquipItemInfo: {},
             }
         },
         beforeDestroy () {
@@ -115,15 +87,18 @@
             },
             // 开始攻击
             startFight () {
+                this.isEnd = true;
                 this.timerId = setInterval(() => this.fightMonster(), 300)
             },
             // 停止攻击
             stopFight () {
-                clearInterval(this.timerId);
-                this.isEnd = true;
-                this.timerId = null;
-                this.isFailedRetreat = true;
-                this.isCaptureFailed = true;
+                if (this.timerId) {
+                    clearInterval(this.timerId);
+                    this.isEnd = true;
+                    this.timerId = null;
+                    this.isFailedRetreat = true;
+                    this.isCaptureFailed = true;
+                }
             },
             // 攻击怪物
             fightMonster () {
@@ -261,30 +236,28 @@
                 else if (randomInt == 3) equipItem = equip.equip_Accessorys(this.player.level);
                 // 法器
                 else if (randomInt == 4) equipItem = equip.equip_Sutras(this.player.level);
-                this.openEquipItemInfo = equipItem;
                 // 玩家获得道具
                 if (equipItem?.name) this.player.inventory.push(equipItem);
                 // 唤起装备信息弹窗
-                this.openEquipmentInfo(exp);
+                this.openEquipmentInfo(equipItem, exp); 
                 // 更新玩家存档
                 this.$store.commit('setPlayer', this.player);
             },
             // 发现的装备信息
-            openEquipmentInfo (exp) {
-                const equipment = this.openEquipItemInfo;
-                if (!equipment) return;
-                this.$confirm('', equipment.name, {
+            openEquipmentInfo (item, exp) {
+                // if (!item) return;
+                this.$confirm('', item.name, {
                     center: true,
                     message: `<div class="monsterinfo">
                         <div class="monsterinfo-box">
-                            <p>类型: ${this.$genre[equipment.type] ?? '未知'}</p>
-                            <p>境界: ${this.$levelNames[equipment.level]}</p>
-                            <p>品质: ${this.$levels[equipment.quality] ?? '未知'}</p>
-                            <p>气血: ${this.$formatNumberToChineseUnit(equipment.health)}</p>
-                            <p>攻击: ${this.$formatNumberToChineseUnit(equipment.attack)}</p>
-                            <p>防御: ${this.$formatNumberToChineseUnit(equipment.defense)}</p>
-                            <p>闪避率: ${(equipment.dodge * 100).toFixed(2) ?? 0}%</p>
-                            <p>暴击率: ${(equipment.critical * 100).toFixed(2) ?? 0}%</p>
+                            <p>类型: ${this.$genre[item.type] ?? '未知'}</p>
+                            <p>境界: ${this.$levelNames[item.level]}</p>
+                            <p>品质: ${this.$levels[item.quality] ?? '未知'}</p>
+                            <p>气血: ${this.$formatNumberToChineseUnit(item.health)}</p>
+                            <p>攻击: ${this.$formatNumberToChineseUnit(item.attack)}</p>
+                            <p>防御: ${this.$formatNumberToChineseUnit(item.defense)}</p>
+                            <p>闪避率: ${(item.dodge * 100).toFixed(2) ?? 0}%</p>
+                            <p>暴击率: ${(item.critical * 100).toFixed(2) ?? 0}%</p>
                             <p>获得修为: ${this.$formatNumberToChineseUnit(exp)}</p>
                         </div>
                     </div>`,
@@ -333,6 +306,7 @@
             },
             // 收服灵宠
             harvestPet (item) {
+                this.isCaptureFailed = true;
                 // 成功几率
                 const successRate = this.calculateCaptureRate();
                 // 是否成功收服

@@ -1,43 +1,25 @@
 <template>
-  <div class="cultivate">
-    <div class="storyText">
-      <div
-        class="storyText-box"
-        ref="storyText"
-      >
-        <p
-          v-for="(item, index) in texts"
-          :key="index"
-          v-html="item"
-        />
-      </div>
+    <div class="cultivate">
+        <div class="storyText">
+            <div class="storyText-box" ref="storyText">
+                <p v-for="(item, index) in texts" :key="index" v-html="item" />
+            </div>
+        </div>
+        <div class="actions">
+            <el-button @click="$router.push('/')">
+                返回家里
+            </el-button>
+            <el-button type="success" @click="startCultivate" :disabled="!isStart">
+                开始修炼
+            </el-button>
+            <el-button type="primary" @click="stopCultivate" :disabled="!isStop">
+                停止修炼
+            </el-button>
+            <el-button type="danger" @click="reincarnationBreakthrough">
+                转生突破
+            </el-button>
+        </div>
     </div>
-    <div class="actions">
-      <el-button @click="$router.push('/')">
-        返回家里
-      </el-button>
-      <el-button
-        type="success"
-        @click="startCultivate"
-        :disabled="!isStart"
-      >
-        开始修炼
-      </el-button>
-      <el-button
-        type="primary"
-        @click="stopCultivate"
-        :disabled="!isStop"
-      >
-        停止修炼
-      </el-button>
-      <el-button
-        type="danger"
-        @click="reincarnationBreakthrough"
-      >
-        转生突破
-      </el-button>
-    </div>
-  </div>
 </template>
 
 <script>
@@ -67,6 +49,7 @@
         methods: {
             // 开始修炼
             startCultivate () {
+                this.isStart = false;
                 this.timerId = setInterval(() => {
                     // 如果当前修为小于总修为
                     if (this.player.cultivation <= this.player.maxCultivation) {
@@ -85,10 +68,12 @@
             },
             // 停止修炼
             stopCultivate () {
-                clearInterval(this.timerId);
-                this.timerId = null;
-                this.isStart = true;
-                this.isStop = false;
+                if (this.timerId) {
+                    clearInterval(this.timerId);
+                    this.timerId = null;
+                    this.isStart = true;
+                    this.isStop = false;
+                }
             },
             // 修为突破
             breakThrough (exp) {

@@ -41,7 +41,7 @@
                                 <el-tab-pane :label="i.name" :name="i.type" v-for="(i, k) in achievementAll" :key="k">
                                     <div class="achievement-content" v-if="i.data.length > 0">
                                         <div class="achievement-item" v-for="(item, index) in i.data" :key="index" @click="achievementInfo(item)">
-                                            <el-tag>{{ item.name }}</el-tag>
+                                            <el-tag :style="getTagClass(i.type,item.id)">{{ item.name }}</el-tag>
                                         </div>
                                     </div>
                                     <div class="achievement-content" v-else>
@@ -76,22 +76,37 @@
                                 修为: {{ calculatePercentageDifference(player.maxCultivation, player.cultivation).toFixed(2) }}%
                             </div>
                             <div class="tag attribute">
-                                气血: {{ formatNumberToChineseUnit(player.health) }} / {{ formatNumberToChineseUnit(player.maxHealth) }}
-                                <i class="el-icon-circle-plus-outline" v-if="player.points > 0" @click="attributePoints('health')" />
+                              气血: {{ formatNumberToChineseUnit(player.health) }} / {{ formatNumberToChineseUnit(player.maxHealth) }}
+                              <i class="el-icon-circle-plus-outline" v-if="player.points > 0" @click="attributePoints('health')" />
+                              <span v-if="changes.health" :class="{'change-indicator': true, 'positive-change': changes.health > 0, 'negative-change': changes.health < 0}">
+                                {{ changes.health > 0 ? '+' : '' }}{{ changes.health }}
+                              </span>
                             </div>
                             <div class="tag attribute">
-                                攻击: {{ formatNumberToChineseUnit(player.attack) }}
-                                <i class="el-icon-circle-plus-outline" v-if="player.points > 0" @click="attributePoints('attack')" />
+                              攻击: {{ formatNumberToChineseUnit(player.attack) }}
+                              <i class="el-icon-circle-plus-outline" v-if="player.points > 0" @click="attributePoints('attack')" />
+                              <span v-if="changes.attack" :class="{'change-indicator': true, 'positive-change': changes.attack > 0, 'negative-change': changes.attack < 0}">
+                                {{ changes.attack > 0 ? '+' : '' }}{{ changes.attack }}
+                              </span>
                             </div>
                             <div class="tag attribute">
-                                防御: {{ formatNumberToChineseUnit(player.defense) }}
-                                <i class="el-icon-circle-plus-outline" v-if="player.points > 0" @click="attributePoints('defense')" />
+                              防御: {{ formatNumberToChineseUnit(player.defense) }}
+                              <i class="el-icon-circle-plus-outline" v-if="player.points > 0" @click="attributePoints('defense')" />
+                              <span v-if="changes.defense" :class="{'change-indicator': true, 'positive-change': changes.defense > 0, 'negative-change': changes.defense < 0}">
+                                {{ changes.defense > 0 ? '+' : '' }}{{ changes.defense }}
+                              </span>
                             </div>
                             <div class="tag attribute">
-                                闪避率: {{ player.dodge > 0 ? (player.dodge * 100 > 100 ? 100 : (player.dodge * 100).toFixed(2)) : 0 }}%
+                              闪避率: {{ player.dodge > 0 ? (player.dodge * 100 > 100 ? 100 : (player.dodge * 100).toFixed(2)) : 0 }}%
+                              <span v-if="changes.dodge" :class="{'change-indicator': true, 'positive-change': changes.dodge > 0, 'negative-change': changes.dodge < 0}">
+                                {{ changes.dodge > 0 ? '+' : '' }}{{ changes.dodge }}
+                              </span>
                             </div>
                             <div class="tag attribute">
-                                暴击率: {{ player.critical > 0 ? (player.critical * 100 > 100 ? 100 : (player.critical * 100).toFixed(2)) : 0 }}%
+                              暴击率: {{ player.critical > 0 ? (player.critical * 100 > 100 ? 100 : (player.critical * 100).toFixed(2)) : 0 }}%
+                              <span v-if="changes.critical" :class="{'change-indicator': true, 'positive-change': changes.critical > 0, 'negative-change': changes.critical < 0}">
+                                {{ changes.critical > 0 ? '+' : '' }}{{ changes.critical }}
+                              </span>
                             </div>
                             <div class="tag attribute" @click="notify({title: '获得方式', message: '可以通过击败世界Boss后获得'})">
                                 鸿蒙石: {{ formatNumberToChineseUnit(player.currency) }}
@@ -608,6 +623,14 @@
                     // 批量出售装备设置
                     sellingEquipmentData: []
                 },
+                //5属性实时变化
+                changes: {
+                  health: null,
+                  attack: null,
+                  defense: null,
+                  dodge: null,
+                  critical: null
+                },
                 // 野怪属性
                 monster: {
                     // 名称
@@ -805,6 +828,11 @@
             this.startGame();
         },
         methods: {
+            //我的成就页面处返回的style
+            getTagClass(type,index) {
+              const achievements1 = this.player.achievement[type] || [];
+              return Array.isArray(achievements1) && achievements1.some(ach => ach.id === index) ? 'border:1px solid green;color:green' : 'color:gray';
+            },
             // 成就详细
             achievementInfo (item) {
                 this.$confirm('', `${item.name}`, {
@@ -938,16 +966,17 @@
                 if (JSON.stringify(this.player.pet) != '{}') {
                     const itemInfo = this.player.pet;
                     // 更新玩家属性，移除出战灵宠的属性加成
-                    this.playerAttribute(-itemInfo.dodge, -itemInfo.attack, -itemInfo.health, -itemInfo.critical, -itemInfo.defense);
+                    this.playerAttribute(petItem.dodge - itemInfo.dodge, petItem.attack - itemInfo.attack, petItem.health - itemInfo.health, petItem.critical - itemInfo.critical, petItem.defense - itemInfo.defense);
                     // 收回当前出战的灵宠
                     this.player.pets.push(this.player.pet);
+                }else{
+                    // 更新玩家属性，添加当前出战灵宠的属性加成
+                    this.playerAttribute(petItem.dodge, petItem.attack, petItem.health, petItem.critical, petItem.defense);
                 }
                 // 关闭灵宠信息弹窗
                 this.petShow = false;
                 // 出战当前选择的灵宠
                 this.player.pet = petItem;
-                // 更新玩家属性，添加当前出战灵宠的属性加成
-                this.playerAttribute(petItem.dodge, petItem.attack, petItem.health, petItem.critical, petItem.defense);
                 // 从灵宠背包中移除这个灵宠
                 this.player.pets = this.player.pets.filter(i => i.id !== item.id);
                 // 更新玩家存档
@@ -1049,6 +1078,9 @@
                 const isSuccess = successRate >= monster.getRandomInt(1, 100);
                 // 如果成功收服
                 if (isSuccess) {
+                    // 发送提示
+                    this.notify({ title: '收服灵宠提示', message: `收服${item.name}成功` });
+                    
                     // 收服后的属性根据收服前的成功率算
                     const newProperties = (100 - successRate) * 0.5;
                     // 攻击
@@ -1086,63 +1118,36 @@
                     });
                     // 玩家灵宠成就
                     const petAchievement = this.player.achievement.pet;
+                    
+                    // 检查成就条件是否达成
+                    const checkAchievement = (item) => {
+                      const conditions = item.condition;
+                      return (
+                        (conditions.health === 0 || conditions.health <= health) &&
+                        (conditions.attack === 0 || conditions.attack <= attack) &&
+                        (conditions.defense === 0 || conditions.defense <= defense) &&
+                        (conditions.dodge === 0 || conditions.dodge <= dodge.toFixed(2)) &&
+                        (conditions.critical === 0 || conditions.critical <= critical.toFixed(2))
+                      );
+                    };
+
                     // 完成成就
                     achievement.pet().forEach(item => {
-                        // 气血神宠
-                        if (health == item.health && petAchievement.find(i => i.id == item.id)) {
-                            if (!petAchievement.find(i => i.id == item.id)) this.player.achievement.pet.push({ id: item.id });
-                            // 增加培养丹
-                            this.player.cultivateDan += item.award;
-                            // 发送通知
-                            this.notify({ title: '获得成就提示', message: `恭喜你完成了${item.name}成就` });
-                        }
-                        // 攻击神宠
-                        if (attack == item.attack) {
-                            if (!petAchievement.find(i => i.id == item.id)) this.player.achievement.pet.push({ id: item.id });
-                            // 增加培养丹
-                            this.player.cultivateDan += item.award;
-                            // 发送通知
-                            this.notify({ title: '获得成就提示', message: `恭喜你完成了${item.name}成就` });
-                        }
-                        // 防御神宠
-                        if (defense == item.defense) {
-                            if (!petAchievement.find(i => i.id == item.id)) this.player.achievement.pet.push({ id: item.id });
-                            // 增加培养丹
-                            this.player.cultivateDan += item.award;
-                            // 发送通知
-                            this.notify({ title: '获得成就提示', message: `恭喜你完成了${item.name}成就` });
-                        }
-                        // 闪避神宠
-                        if (dodge == item.dodge) {
-                            if (!petAchievement.find(i => i.id == item.id)) this.player.achievement.pet.push({ id: item.id });
-                            // 增加培养丹
-                            this.player.cultivateDan += item.award;
-                            // 发送通知
-                            this.notify({ title: '获得成就提示', message: `恭喜你完成了${item.name}成就` });
-                        }
-                        // 暴击神宠
-                        if (critical == item.critical) {
-                            if (!petAchievement.find(i => i.id == item.id)) this.player.achievement.pet.push({ id: item.id });
-                            // 增加培养丹
-                            this.player.cultivateDan += item.award;
-                            // 发送通知
-                            this.notify({ title: '获得成就提示', message: `恭喜你完成了${item.name}成就` });
-                        }
-                        // 灵宠天花板
-                        if (dodge == item.dodge && health == item.health && attack == item.attack && defense == item.defense && critical == item.critical) {
-                            if (!petAchievement.find(i => i.id == item.id)) this.player.achievement.pet.push({ id: item.id });
-                            // 增加培养丹
-                            this.player.cultivateDan += item.award;
-                            // 发送通知
-                            this.notify({ title: '获得成就提示', message: `恭喜你完成了${item.name}成就` });
-                        }
+                      // 检查成就条件是否达成并且成就尚未完成
+                      if (checkAchievement(item) && !petAchievement.find(i => i.id === item.id)) {
+                        // 添加成就
+                        this.player.achievement.pet.push({ id: item.id });
+                        // 增加培养丹
+                        this.player.cultivateDan += item.award;
+                        // 发送通知
+                        this.notify({ title: '获得成就提示', message: `恭喜你完成了${item.name}成就` });
+                      }
                     });
+
                     // 恢复回合数
                     this.guashaRounds = 10;
                     // 跳转背包相关页
                     this.inventoryActive = 'pet';
-                    // 发送提示
-                    this.notify({ title: '收服灵宠提示', message: `收服${item.name}成功` });
                     // 更新玩家存档
                     this.$store.commit('setPlayer', this.player);
                     // 如果没有收服
@@ -1779,11 +1784,6 @@
             },
             // 属性加点
             attributePoints (type) {
-                const typeNames = {
-                    attack: '攻击',
-                    health: '气血',
-                    defense: '防御',
-                }
                 if (this.player.points > 0) {
                     const num = this.player.reincarnation ? this.player.reincarnation * 10 : 1;
                     const numText = type == 'attack' || type == 'defense' ? 50 * num : 100 * num;
@@ -1797,7 +1797,6 @@
                     this.player.points--;
                     // 更新玩家存档
                     this.$store.commit('setPlayer', this.player);
-                    this.notify({ title: '加点提示', message: `加点成功${typeNames[type]}增加了${numText}点` });
                 }
             },
             // 转生突破
@@ -2238,14 +2237,14 @@
                 if (JSON.stringify(this.player.equipment[type]) != '{}') {
                     const equipment = this.player.equipment[type];
                     // 更新玩家属性，移除当前穿戴装备的属性加成
-                    this.playerAttribute(-equipment.dodge, -equipment.attack, -equipment.health, -equipment.critical, -equipment.defense);
+                    this.playerAttribute(inventoryItem.dodge - equipment.dodge, inventoryItem.attack - equipment.attack, inventoryItem.health - equipment.health, inventoryItem.critical - equipment.critical, inventoryItem.defense - equipment.defense);
                     // 将当前装备放回背包
                     this.player.inventory.push(equipment);
+                }else{
+                    this.playerAttribute(inventoryItem.dodge, inventoryItem.attack, inventoryItem.health, inventoryItem.critical, inventoryItem.defense);
                 }
                 // 装备新装备
                 this.player.equipment[type] = inventoryItem;
-                // 更新玩家属性，添加当前装备的属性加成
-                this.playerAttribute(inventoryItem.dodge, inventoryItem.attack, inventoryItem.health, inventoryItem.critical, inventoryItem.defense);
                 // 从背包中移除新装备
                 this.player.inventory = this.player.inventory.filter(item => item.id !== id);
                 // 重置类型
@@ -2295,6 +2294,22 @@
                 this.player.critical = this.player.critical + critical;
                 // 防御
                 this.player.defense = this.player.defense + defense;
+                
+                // 记录变化
+                if (dodge != 0) this.changes.dodge = (dodge*100).toFixed(2);
+                if (attack != 0) this.changes.attack = attack;
+                if (health != 0) this.changes.health = health;
+                if (defense != 0) this.changes.defense = defense;
+                if (critical != 0) this.changes.critical = (critical*100).toFixed(2);
+            
+                // 设置定时器在1秒后移除变化提示
+                setTimeout(() => {
+                  this.changes.dodge = null;
+                  this.changes.attack = null;
+                  this.changes.health = null;
+                  this.changes.defense = null;
+                  this.changes.critical = null;
+                }, 1000);
             },
             // 定义Notification
             notify (data) {
@@ -2725,5 +2740,31 @@
         .el-dialog {
             width: 70% !important;
         }
+    }
+
+    .change-indicator {
+      position: absolute;
+      animation: floatUp 3s ease-out;
+    }
+    
+    .positive-change {
+      color: red;
+      font-size: 1.2em;
+    }
+    
+    .negative-change {
+      color: green;
+      font-size: 1.2em;
+    }
+    
+    @keyframes floatUp {
+      0% {
+        opacity: 1;
+        transform: translateY(0);
+      }
+      100% {
+        opacity: 0;
+        transform: translateY(-20px);
+      }
     }
 </style>

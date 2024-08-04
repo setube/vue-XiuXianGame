@@ -6,7 +6,7 @@
                 <p class="fighting" v-if="isFighting">
                     {{ guashaRounds }}回合 / 10回合
                 </p>
-                <p v-for="(item, index) in texts" :key="index" v-html="item" />
+                <p v-for="(item, index) in texts" :key="index" v-html="item" @click="openEquipmentInfo(openEquipItemInfo)" />
             </div>
         </div>
         <div class="actions">
@@ -18,6 +18,9 @@
             </el-button>
             <el-button type="primary" @click="runAway" :disabled="isFailedRetreat">
                 立马撤退
+            </el-button>
+            <el-button type="warning" @click="keepExploring" v-if="isEnd">
+                继续探索
             </el-button>
             <el-button type="success" @click="$router.push('/')" v-if="isEnd">
                 回家疗伤
@@ -45,6 +48,8 @@
                 timerId: null,
                 // 野怪信息
                 monster: {},
+                // 是否胜利
+                victory: false,
                 isFighting: false,
                 // 回合数
                 guashaRounds: 10,
@@ -194,6 +199,19 @@
                 let equipItem = {};
                 let exp = Math.floor(this.player.maxCultivation / 100);
                 exp = exp ? exp : 1;
+                // 神兵
+                if (randomInt == 1) equipItem = equip.equip_Weapons(this.player.level);
+                // 护甲
+                else if (randomInt == 2) equipItem = equip.equip_Armors(this.player.level);
+                // 灵宝
+                else if (randomInt == 3) equipItem = equip.equip_Accessorys(this.player.level);
+                // 法器
+                else if (randomInt == 4) equipItem = equip.equip_Sutras(this.player.level);
+                // 玩家获得道具
+                if (equipItem?.name) this.player.inventory.push(equipItem);
+                this.victory = true;
+                this.openEquipItemInfo = equipItem;
+                this.texts = [...this.texts, `你击败${this.monster.name}后，发现了一个宝箱，打开后获得了<span class="el-tag el-tag--${equipItem.quality}">${this.$levels[equipItem.quality]}${equipItem.name}(${this.$genre[equipItem.type]})</span>`];
                 // 如果没有满级
                 if (this.player.level < this.$maxLv) {
                     // 增加修为
@@ -228,24 +246,12 @@
                         this.texts = [...this.texts, '你当前的境界已修炼圆满, 需要转生后才能继续修炼'];
                     }
                 }
-                // 神兵
-                if (randomInt == 1) equipItem = equip.equip_Weapons(this.player.level);
-                // 护甲
-                else if (randomInt == 2) equipItem = equip.equip_Armors(this.player.level);
-                // 灵宝
-                else if (randomInt == 3) equipItem = equip.equip_Accessorys(this.player.level);
-                // 法器
-                else if (randomInt == 4) equipItem = equip.equip_Sutras(this.player.level);
-                // 玩家获得道具
-                if (equipItem?.name) this.player.inventory.push(equipItem);
-                // 唤起装备信息弹窗
-                this.openEquipmentInfo(equipItem, exp); 
                 // 更新玩家存档
                 this.$store.commit('setPlayer', this.player);
             },
             // 发现的装备信息
-            openEquipmentInfo (item, exp) {
-                // if (!item) return;
+            openEquipmentInfo (item) {
+                if (!this.victory) return;
                 this.$confirm('', item.name, {
                     center: true,
                     message: `<div class="monsterinfo">
@@ -258,29 +264,23 @@
                             <p>防御: ${this.$formatNumberToChineseUnit(item.defense)}</p>
                             <p>闪避率: ${(item.dodge * 100).toFixed(2) ?? 0}%</p>
                             <p>暴击率: ${(item.critical * 100).toFixed(2) ?? 0}%</p>
-                            <p>获得修为: ${this.$formatNumberToChineseUnit(exp)}</p>
                         </div>
                     </div>`,
-                    showClose: false,
-                    cancelButtonText: '回家疗伤',
-                    confirmButtonText: '继续探索',
-                    closeOnClickModal: false,
-                    closeOnPressEscape: false,
                     dangerouslyUseHTMLString: true
-                }).then(() => {
-                    // 清空日志
-                    this.texts = [];
-                    // 恢复回合数
-                    this.guashaRounds = 10;
-                    // 继续探索
-                    this.encounterMonster();
-                    this.isEnd = false;
-                    this.isFighting = false;
-                    this.isFailedRetreat = false;
-                    this.isCaptureFailed = false;
-                }).catch(() => {
-                    this.$router.push('/');
-                });
+                }).catch(() => { });
+            },
+            // 继续探索
+            keepExploring () {
+                // 清空日志
+                this.texts = [];
+                // 恢复回合数
+                this.guashaRounds = 10;
+                // 继续探索
+                this.encounterMonster();
+                this.isEnd = false;
+                this.isFighting = false;
+                this.isFailedRetreat = false;
+                this.isCaptureFailed = false;
             },
             // 遇怪逻辑
             encounterMonster () {

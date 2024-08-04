@@ -11,7 +11,7 @@
                 <p class="fighting" v-if="isFighting">
                     {{ guashaRounds }}回合 / 100回合
                 </p>
-                <p v-for="(item, index) in texts" :key="index" v-html="item" />
+                <p v-for="(item, index) in texts" :key="index" v-html="item" @click="openEquipmentInfo(equipmentInfo)" />
             </div>
         </div>
         <div class="actions">
@@ -39,7 +39,9 @@
                 timerId: null,
                 isFighting: false,
                 startFight: false,
-                guashaRounds: 100
+                isequipment: false,
+                guashaRounds: 100,
+                equipmentInfo: {}
             }
         },
         mounted () {
@@ -141,6 +143,7 @@
                     if (this.boss.health <= 0) {
                         const equipItem = boss.boss_Equip(this.$maxLv);
                         this.isequipment = true;
+                        this.equipmentInfo = equipItem;
                         this.texts = [...this.texts, `你击败${this.boss.name}后，获得了<span class="el-tag el-tag--${equipItem.quality}">${this.$levels[equipItem.quality]}${equipItem.name}(${this.$genre[equipItem.type]})</span>`];
                         // 增加鸿蒙石
                         this.player.currency += 10;
@@ -155,7 +158,6 @@
                         this.boss.health = 0;
                         this.boss.conquer = true;
                         this.stopFightBoss();
-                        this.openEquipmentInfo(equipItem)
                         this.$store.commit('setBoss', this.boss);
                     } else if (this.player.health <= 0) {
                         this.isEnd = true;
@@ -182,6 +184,7 @@
                 this.$store.commit('setPlayer', this.player);
             },
             openEquipmentInfo (item) {
+                if (!this.isequipment) return;
                 this.$confirm('', item.name, {
                     center: true,
                     message: `<div class="monsterinfo">

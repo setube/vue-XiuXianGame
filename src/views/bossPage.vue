@@ -171,7 +171,7 @@
                     }
                 } else {
                     // 恢复默认回合数
-                    this.guashaRounds = 10;
+                    this.guashaRounds = 100;
                     this.stopFightBoss();
                     // 恢复boss血量
                     this.boss.health = this.boss.maxhealth;

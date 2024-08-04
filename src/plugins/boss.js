@@ -8,9 +8,9 @@ const boss = {
         // 防御
         const defense = this.getRandomInt(1000, 10000) * lv;
         // 闪避
-        const dodge = this.getRandomFloatInRange(0.5, 1);
+        const dodge = this.getRandomFloatInRange(0.1, 1);
         // 暴击
-        const critical = this.getRandomFloatInRange(0.5, 1);
+        const critical = this.getRandomFloatInRange(0.1, 1);
         return {
             name: bossInfo.name,
             text: this.boss_Text(),
@@ -77,7 +77,7 @@ const boss = {
                         critical: ['weapon', 'accessory', 'sutra'].includes(quality) ? Criticalhitrate : 0, // 暴击率
                     },
                     defense: ['accessory', 'sutra'].includes(quality) ? Attack : 0, // 装备防御
-                    critical: ['weapon', 'accessory', 'sutra'].includes(quality) ? Criticalhitrate : 0, // 暴击率
+                    critical: ['weapon', 'accessory', 'sutra'].includes(quality) ? Criticalhitrate : 0 // 暴击率
                 };
             }
         }

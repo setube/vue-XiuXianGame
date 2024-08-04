@@ -14,6 +14,7 @@
     "postcss": "^8.4.39",
     "vue": "^2.6.14",
     "vue-clipboard2": "^0.3.3",
+    "vue-router": "3.6.5",
     "vuex": "^3.1.3",
     "vuex-persistedstate": "^4.1.0"
   },
@@ -24,11 +25,11 @@
     "@vue/cli-plugin-eslint": "~5.0.0",
     "@vue/cli-service": "~5.0.0",
     "compression-webpack-plugin": "^5.0.2",
+    "element-ui": "^2.15.14",
     "eslint": "^7.32.0",
     "eslint-plugin-vue": "^8.0.3",
     "vue-template-compiler": "^2.6.14",
-    "webpack": "^5.93.0",
-    "element-ui": "^2.15.14"
+    "webpack": "^5.93.0"
   },
   "eslintConfig": {
     "root": true,

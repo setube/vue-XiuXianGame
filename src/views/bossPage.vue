@@ -55,6 +55,7 @@
         methods: {
             // 开始攻击
             startFightBoss () {
+                if (this.isEnd) return;
                 this.isEnd = true;
                 const timerId = setInterval(() => {
                     this.fightBoss();

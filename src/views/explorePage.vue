@@ -92,6 +92,7 @@
             },
             // 开始攻击
             startFight () {
+                if (this.isEnd) return;
                 this.isEnd = true;
                 const timerId = setInterval(() => {
                     this.fightMonster();
@@ -113,6 +114,7 @@
             // 攻击怪物
             fightMonster () {
                 this.isFighting = true;
+                if (this.monster.health <= 0) return;
                 // 野怪伤害计算
                 const monsterAttack = this.monster.attack; // 野怪攻击
                 const playerDefense = this.player.defense; // 玩家防御

@@ -17,7 +17,10 @@ const equips = {
         const totalProbability = Object.values(weaponTypes).reduce((acc, { probability }) => acc + probability, 0);
         const random = Math.floor(Math.random() * totalProbability);
         let cumulativeProbability = 0;
-
+        const dodge = this.equip_Criticalhitrate(lv);
+        const attack = this.equip_Attack(lv);
+        const defense = this.equip_Attack(lv);
+        const health = this.equip_Health(lv);
         for (const [quality, { names, probability }] of Object.entries(weaponTypes)) {
             cumulativeProbability += probability;
             if (random < cumulativeProbability) {
@@ -27,19 +30,19 @@ const equips = {
                     type, // 装备类型
                     lock: false,
                     level: lv, // 装备等级
-                    dodge: ['accessory', 'sutra'].includes(type) ? this.equip_Criticalhitrate(lv) : 0, // 闪避率
-                    attack: ['weapon', 'accessory', 'sutra'].includes(type) ? this.equip_Attack(lv) : 0, // 攻击力
-                    health: ['armor', 'accessory', 'sutra'].includes(type) ? this.equip_Health(lv) : 0, // 血量
+                    dodge: ['accessory', 'sutra'].includes(type) ? dodge : 0, // 闪避率
+                    attack: ['weapon', 'accessory', 'sutra'].includes(type) ? attack : 0, // 攻击力
+                    health: ['armor', 'accessory', 'sutra'].includes(type) ? health : 0, // 血量
                     quality, // 装备品质
-                    defense: ['armor', 'accessory', 'sutra'].includes(type) ? this.equip_Attack(lv) : 0, // 装备防御
-                    critical: ['weapon', 'accessory', 'sutra'].includes(type) ? this.equip_Criticalhitrate(lv) : 0, // 暴击率
+                    defense: ['armor', 'accessory', 'sutra'].includes(type) ? defense : 0, // 装备防御
+                    critical: ['weapon', 'accessory', 'sutra'].includes(type) ? dodge : 0, // 暴击率
                     // 初始数据
                     initial: {
-                        dodge: ['accessory', 'sutra'].includes(type) ? this.equip_Criticalhitrate(lv) : 0, // 闪避率
-                        attack: ['weapon', 'accessory', 'sutra'].includes(type) ? this.equip_Attack(lv) : 0, // 攻击力
-                        health: ['armor', 'accessory', 'sutra'].includes(type) ? this.equip_Health(lv) : 0, // 血量
-                        defense: ['armor', 'accessory', 'sutra'].includes(type) ? this.equip_Attack(lv) : 0, // 装备防御
-                        critical: ['weapon', 'accessory', 'sutra'].includes(type) ? this.equip_Criticalhitrate(lv) : 0, // 暴击率
+                        dodge: ['accessory', 'sutra'].includes(type) ? dodge : 0, // 闪避率
+                        attack: ['weapon', 'accessory', 'sutra'].includes(type) ? attack : 0, // 攻击力
+                        health: ['armor', 'accessory', 'sutra'].includes(type) ? health : 0, // 血量
+                        defense: ['armor', 'accessory', 'sutra'].includes(type) ? defense : 0, // 装备防御
+                        critical: ['weapon', 'accessory', 'sutra'].includes(type) ? dodge : 0, // 暴击率
                     },
                     strengthen: 0 // 炼器等级
                 };
@@ -52,11 +55,17 @@ const equips = {
                 baseEquip.health = Math.floor(baseEquip.health * multiplier); // 血量
                 baseEquip.defense = Math.floor(baseEquip.defense * multiplier); // 防御
                 baseEquip.critical = parseFloat((baseEquip.critical * multiplier)); // 暴击
+                // 初始值
+                baseEquip.initial.dodge = parseFloat((baseEquip.initial.dodge * multiplier)); // 闪避
+                baseEquip.initial.attack = Math.floor(baseEquip.initial.attack * multiplier); // 攻击
+                baseEquip.initial.health = Math.floor(baseEquip.initial.health * multiplier); // 血量
+                baseEquip.initial.defense = Math.floor(baseEquip.initial.defense * multiplier); // 防御
+                baseEquip.initial.critical = parseFloat((baseEquip.initial.critical * multiplier)); // 暴击
                 return baseEquip;
             }
         }
     },
-    equip_Weapons (lv, isNewbie = true) {
+    equip_Weapons (lv, isNewbie = false) {
         const names_a = [
             '白玉净尘剑', '雪魄寒冰枪', '白龙吟风弓', '月华流光扇', '白玉玄灵笛',
             '霜雪无痕鞭', '云隐白凰刃', '净世白莲杖', '冰魄寒光轮', '白玉玲珑塔'
@@ -83,7 +92,7 @@ const equips = {
         ];
         return this.drawPrize(lv, 'weapon', names_a, names_b, names_c, names_d, names_e, names_f, isNewbie);
     },
-    equip_Armors (lv, isNewbie = true) {
+    equip_Armors (lv, isNewbie = false) {
         const names_a = [
             '瑶池仙绡羽衣', '广寒玉兔霜甲', '昆仑玉璧战袍', '白龙吐珠云裳', '九天玄女素绫',
             '瑶光星辰织锦', '冰魄银丝战衣', '凌霄琼华宝衣', '雪域神女雪绒', '云隐龙鳞轻铠'
@@ -110,7 +119,7 @@ const equips = {
         ];
         return this.drawPrize(lv, 'armor', names_a, names_b, names_c, names_d, names_e, names_f, isNewbie);
     },
-    equip_Accessorys (lv, isNewbie = true) {
+    equip_Accessorys (lv, isNewbie = false) {
         const names_a = [
             '瑶池白玉簪', '月华流光坠', '寒霜凝露链', '九天玄女玉佩', '云锦织梦镯',
             '龙涎润雪环', '白鹤衔珠珮', '仙山雪莲花链', '瑶台仙露耳环', '银河织梦项链'
@@ -137,7 +146,7 @@ const equips = {
         ];
         return this.drawPrize(lv, 'accessory', names_a, names_b, names_c, names_d, names_e, names_f, isNewbie);
     },
-    equip_Sutras (lv, isNewbie = true) {
+    equip_Sutras (lv, isNewbie = false) {
         const names_a = [
             '白玉净瓶', '寒霜琉璃镜', '瑶池雪莲珠', '九天玄冰尺', '月华宝莲灯',
             '白云隐龙笛', '玉清昆仑扇', '净世白莲座', '银河落雪琴', '碧落瑶光盘'

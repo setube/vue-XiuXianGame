@@ -25,48 +25,7 @@
     export default {
         data () {
             return {
-                // 弹窗
-                show: false,
-                // boss属性
-                boss: {
-                    name: '',
-                    text: '',
-                    desc: '',
-                    level: 40,
-                    dodge: 0,
-                    attack: 0,
-                    health: 0,
-                    defense: 0,
-                    conquer: false,
-                    critical: 0,
-                    maxhealth: 0,
-                },
-                isBoss: false,
-                // 野怪属性
-                monster: {
-                    // 名称
-                    name: '',
-                    // 气血
-                    health: 0,
-                    // 攻击
-                    attack: 0,
-                    // 防御
-                    defense: 0,
-                    // 闪避率
-                    dodge: 0,
-                    // 暴击
-                    critical: 0
-                },
-                version: 0.730,
-                isLevel: false,
-                actions: [],
-                storyText: '',
-                isIllustrations: false,
-                achievementActive: 'pet',
-                openEquipItemInfo: {},
-                illustrationsItems: [],
-                illustrationsActive: 'weapon',
-                illustrationsInfoData: [],
+                version: 0.740
             };
         },
         mounted () {

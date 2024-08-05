@@ -42,12 +42,15 @@
                     <div class="tag attribute" @click="$notify({title: '获得方式', message: '可以通过探索秘境可获得'})">
                         培养丹: {{ $formatNumberToChineseUnit(player.cultivateDan) }}
                     </div>
+                    <div class="tag attribute" @click="$notify({title: '获得方式', message: '可以通过击败世界BOSS可获得'})">
+                        根骨丹: {{ $formatNumberToChineseUnit(player.rootBone) }}
+                    </div>
+                    <div class="tag attribute" @click="$notify({title: '获得方式', message: '每提成一次境界可以获得3点境界点'})">
+                        境界点: {{ $formatNumberToChineseUnit(player.points) }}
+                    </div>
                 </div>
             </div>
             <div class="equip-box">
-                <div class="tag equip-item" @click="$notify({title: '获得方式', message: '每提成一次境界可以获得3点境界点'})">
-                    <span class="equip">境界点: {{ player.points ? player.points : 0 }}</span>
-                </div>
                 <div class="tag equip-item">
                     <span class="equip">
                         <span>神兵: </span>
@@ -175,14 +178,23 @@
                         <div class="tag attribute" @click="$notify({title: '获得方式', message: '可以通过探索秘境获得', position: 'top-left'})">
                             拥有培养丹: {{ $formatNumberToChineseUnit(player.cultivateDan) }}
                         </div>
+                        <div class="tag attribute" @click="$notify({title: '获得方式', message: '可以通过击败世界BOSS获得', position: 'top-left'})">
+                            拥有根骨丹: {{ $formatNumberToChineseUnit(player.rootBone) }}
+                        </div>
                         <div class="tag attribute">
                             培养消耗: {{ petConsumption(player.pet.level) }}
+                        </div>
+                        <div class="tag attribute">
+                            提升根骨消耗: {{ petRootBone ? player.pet.rootBone : 0 }}
                         </div>
                     </div>
                 </div>
                 <div class="click-box">
                     <el-checkbox v-model="petReincarnation">
                         灵宠转生
+                    </el-checkbox>
+                    <el-checkbox v-model="petRootBone">
+                        提升根骨
                     </el-checkbox>
                     <el-button type="primary" @click="petUpgrade(player.pet)">
                         点击培养
@@ -548,6 +560,8 @@
                     defense: 10,
                     // 已击杀数量
                     taskNum: 0,
+                    // 根骨丹
+                    rootBone: 0,
                     // 暴击率
                     critical: 0,
                     // 是否已领取新手礼包
@@ -632,6 +646,7 @@
                     { type: 'accessory', name: '灵宝' },
                     { type: 'sutra', name: '法器' }
                 ],
+                petRootBone: false,
                 petCollapse: '',
                 // 装备信息
                 inventoryInfo: {},
@@ -726,6 +741,7 @@
                 this.player.maxHealth = this.player.maxHealth ? this.player.maxHealth : 100; // 总血量
                 this.player.pet = this.player.pet ? this.player.pet : {}; // 已出战灵宠数据
                 this.player.pets = this.player.pets ? this.player.pets : []; // 灵宠背包数据
+                this.player.rootBone = this.player.rootBone ? Math.floor(this.player.rootBone) : 0; // 根骨丹数量
                 this.player.currency = this.player.currency ? Math.floor(this.player.currency) : 0; // 鸿蒙石数量
                 this.player.achievement = this.player.achievement ? this.player.achievement : { pet: [], monster: [], equipment: [] }; // 成就数据
                 this.player.cultivateDan = this.player.cultivateDan ? Math.floor(this.player.cultivateDan) : 0; // 培养丹数量
@@ -1181,6 +1197,13 @@
             petUpgrade (item) {
                 // 计算灵宠升级所需材料数量
                 const consume = this.petConsumption(item.level);
+
+                // 如果勾选了提升根骨但是根骨丹不足
+                if (this.petRootBone && this.player.rootBone < item.rootBone) {
+                    // 发送通知
+                    this.$notify({ title: '灵宠培养提示', message: '根骨丹不足, 无法提升灵宠根骨', position: 'top-left' });
+                    return;
+                }
                 // 如果勾选了灵宠转生但是人物转生不等于灵宠转生
                 if (this.petReincarnation && this.player.reincarnation < this.player.pet.reincarnation) {
                     // 发送通知
@@ -1210,16 +1233,35 @@
                     cancelButtonText: '我点错了',
                     confirmButtonText: '确定以及肯定'
                 }).then(() => {
-                    // 闪避
-                    const dodge = parseFloat(item.initial.dodge * 0.2);
-                    // 攻击
-                    const attack = Math.floor(item.initial.attack * 0.2);
-                    // 血量
-                    const health = Math.floor(item.initial.health * 0.2);
-                    // 防御
-                    const defense = Math.floor(item.initial.defense * 0.2);
-                    // 暴击
-                    const critical = parseFloat(item.initial.critical * 0.2);
+                    let dodge, attack, health, defense, critical = 0;
+                    // 如果勾选了提升根骨并且根骨丹足够
+                    if (this.petRootBone && this.player.rootBone >= item.rootBone) {
+                        // 闪避
+                        dodge = parseFloat(item.initial.dodge * item.rootBone);
+                        // 攻击
+                        attack = Math.floor(item.initial.attack * item.rootBone);
+                        // 血量
+                        health = Math.floor(item.initial.health * item.rootBone);
+                        // 防御
+                        defense = Math.floor(item.initial.defense * item.rootBone);
+                        // 暴击
+                        critical = parseFloat(item.initial.critical * item.rootBone);
+                        // 提升根骨
+                        item.rootBone++;
+                        // 扣除根骨丹
+                        this.player.rootBone -= item.rootBone;
+                    } else {
+                        // 闪避
+                        dodge = parseFloat(item.initial.dodge * 0.2);
+                        // 攻击
+                        attack = Math.floor(item.initial.attack * 0.2);
+                        // 血量
+                        health = Math.floor(item.initial.health * 0.2);
+                        // 防御
+                        defense = Math.floor(item.initial.defense * 0.2);
+                        // 暴击
+                        critical = parseFloat(item.initial.critical * 0.2);
+                    }
                     // 如果勾选了转生并且当前等级已满
                     if (item.level >= this.$maxLv) {
                         // 重置灵宠等级

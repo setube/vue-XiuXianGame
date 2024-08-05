@@ -9,7 +9,7 @@
         <div class="storyText">
             <div class="storyText-box" ref="storyText">
                 <p class="fighting" v-if="isFighting">
-                    {{ guashaRounds }}回合 / 100回合
+                    {{ guashaRounds }}回合 / 50回合
                 </p>
                 <p v-for="(item, index) in texts" :key="index" v-html="item" @click="openEquipmentInfo(equipmentInfo)" />
             </div>
@@ -40,7 +40,7 @@
                 isFighting: false,
                 startFight: false,
                 isequipment: false,
-                guashaRounds: 100,
+                guashaRounds: 50,
                 equipmentInfo: {}
             }
         },
@@ -148,10 +148,14 @@
                         this.isequipment = true;
                         this.equipmentInfo = equipItem;
                         this.texts = [...this.texts, `你击败${this.boss.name}后，获得了<span class="el-tag el-tag--${equipItem.quality}">${this.$levels[equipItem.quality]}${equipItem.name}(${this.$genre[equipItem.type]})</span>`];
+                        // 增加根骨丹
+                        this.player.rootBone += 1;
+                        // 获得根骨丹通知
+                        this.texts = [...this.texts, '你获得了1颗根骨丹'];
                         // 增加鸿蒙石
                         this.player.currency += 10;
                         // 获得鸿蒙石通知
-                        this.texts = [...this.texts, '你获得了10颗鸿蒙石'];
+                        this.texts = [...this.texts, '你获得了10块鸿蒙石'];
                         // 玩家获得道具
                         if (equipItem?.name) this.player.inventory.push(equipItem);
                         // 修改按钮状态
@@ -169,14 +173,14 @@
                         this.texts = [...this.texts, '你因为太弱被击败了。'];
                         this.texts = [...this.texts, `${this.boss.text}`];
                         this.stopFightBoss();
-                        this.guashaRounds = 100;
+                        this.guashaRounds = 50;
                     } else {
                         this.texts = [...this.texts, isPlayerHit ? `你攻击了${this.boss.name}，${isCritical ? '触发暴击' : ''}造成了${playerHarm}点伤害，剩余${this.boss.health}气血。` : `你攻击了${this.boss.name}，对方闪避了你的攻击，你未造成伤害，剩余${this.boss.health}气血。 `];
                         this.texts = [...this.texts, `${this.boss.name}攻击了你，${isMCritical ? '触发暴击' : ''}造成了${monsterHarm}点伤害`];
                     }
                 } else {
                     // 恢复默认回合数
-                    this.guashaRounds = 100;
+                    this.guashaRounds = 50;
                     this.stopFightBoss();
                     // 恢复boss血量
                     this.boss.health = this.boss.maxhealth;
@@ -221,27 +225,27 @@
                 // 检查boss的血量和时间  
                 if (this.boss.health > 0) {
                     // 如果boss还有血量，允许玩家挑战  
-                    if (time >= 10) {
-                        // boss没有血量但时间大于等于10分钟，重新生成boss  
+                    if (time >= 5) {
+                        // boss没有血量但时间大于等于5分钟，重新生成boss  
                         this.boss = boss.drawPrize(bossLv);
                         // 存档boss信息  
                         this.$store.commit('setBoss', this.boss);
                     }
                     // 如果boss没有血量  
                 } else {
-                    if (time >= 10 || this.boss.time == 0) {
-                        // boss没有血量但时间大于等于10分钟，重新生成boss  
+                    if (time >= 5 || this.boss.time == 0) {
+                        // boss没有血量但时间大于等于5分钟，重新生成boss  
                         this.boss = boss.drawPrize(bossLv);
                         // 存档boss信息  
                         this.$store.commit('setBoss', this.boss);
                     } else {
                         this.isEnd = true;
-                        this.texts = [...this.texts, 'BOSS还未刷新，请等待10分钟后再次挑战'];
+                        this.texts = [...this.texts, 'BOSS还未刷新，请等待5分钟后再次挑战'];
                         return;
                     }
                 }
                 //更新回合数
-                this.guashaRounds = 100;
+                this.guashaRounds = 50;
             },
             // 计算当前时间和指定时间相差多少分钟
             getMinuteDifference (specifiedTimestamp) {

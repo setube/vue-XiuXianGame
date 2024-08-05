@@ -35,7 +35,7 @@
                 isStop: false,
                 // 开始修炼
                 isStart: false,
-                timerId: null
+                timerIds: []
             }
         },
         beforeDestroy () {
@@ -50,7 +50,7 @@
             // 开始修炼
             startCultivate () {
                 this.isStart = false;
-                this.timerId = setInterval(() => {
+                const timerId = setInterval(() => {
                     // 如果当前修为小于总修为
                     if (this.player.cultivation <= this.player.maxCultivation) {
                         this.isStop = true;
@@ -64,16 +64,17 @@
                     }
                     const element = this.$refs.storyText;
                     element.scrollTo(0, element.scrollHeight);
-                }, 300)
+                }, 300);
+                this.timerIds.push(timerId);
             },
             // 停止修炼
             stopCultivate () {
-                if (this.timerId) {
-                    clearInterval(this.timerId);
-                    this.timerId = null;
-                    this.isStart = true;
-                    this.isStop = false;
-                }
+                this.timerIds.forEach(id => {
+                    clearInterval(id);
+                });
+                this.timerIds = [];
+                this.isStart = true;
+                this.isStop = false;
             },
             // 修为突破
             breakThrough (exp) {

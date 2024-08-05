@@ -36,7 +36,7 @@
                 isEnd: false,
                 texts: [],
                 player: {},
-                timerId: null,
+                timerIds: [],
                 isFighting: false,
                 startFight: false,
                 isequipment: false,
@@ -56,16 +56,19 @@
             // 开始攻击
             startFightBoss () {
                 this.isEnd = true;
-                this.timerId = setInterval(() => {
+                const timerId = setInterval(() => {
                     this.fightBoss();
+                    const element = this.$refs.storyText;
+                    element.scrollTo(0, element.scrollHeight);
                 }, 300);
+                this.timerIds.push(timerId);
             },
             // 停止攻击
             stopFightBoss () {
-                if (this.timerId) {
-                    clearInterval(this.timerId);
-                    this.timerId = null;
-                }
+                this.timerIds.forEach(id => {
+                    clearInterval(id);
+                });
+                this.timerIds = [];
             },
             // boss信息
             openBossInfo () {

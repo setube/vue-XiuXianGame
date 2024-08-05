@@ -45,11 +45,11 @@
                 // 是否结束战斗
                 isEnd: false,
                 player: {},
-                timerId: null,
                 // 野怪信息
                 monster: {},
                 // 是否胜利
                 victory: false,
+                timerIds: [],
                 isFighting: false,
                 // 回合数
                 guashaRounds: 10,
@@ -93,17 +93,22 @@
             // 开始攻击
             startFight () {
                 this.isEnd = true;
-                this.timerId = setInterval(() => this.fightMonster(), 300)
+                const timerId = setInterval(() => {
+                    this.fightMonster();
+                    const element = this.$refs.storyText;
+                    element.scrollTo(0, element.scrollHeight);
+                }, 300);
+                this.timerIds.push(timerId);
             },
             // 停止攻击
             stopFight () {
-                if (this.timerId) {
-                    clearInterval(this.timerId);
-                    this.isEnd = true;
-                    this.timerId = null;
-                    this.isFailedRetreat = true;
-                    this.isCaptureFailed = true;
-                }
+                this.timerIds.forEach(id => {
+                    clearInterval(id);
+                });
+                this.isEnd = true;
+                this.timerIds = [];
+                this.isFailedRetreat = true;
+                this.isCaptureFailed = true;
             },
             // 攻击怪物
             fightMonster () {

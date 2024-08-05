@@ -307,7 +307,7 @@
 
         /* 日志 */
         .storyText-box {
-            height: 650px;
+            height: 600px;
         }
 
         .el-popup-parent--hidden {

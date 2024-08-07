@@ -518,7 +518,8 @@
                 </el-button>
             </div>
         </el-dialog>
-        <el-dialog title="批量出售设置" :visible.sync="sellingEquipmentShow" width="600px">
+        <el-dialog title="批量处理" :visible.sync="sellingEquipmentShow" width="600px">
+            <el-divider>装备</el-divider>
             <el-checkbox-group v-model="player.sellingEquipmentData" @change="sellingEquipmentDataChange">
                 <el-checkbox v-for="(item, index) in AllEquipmenType" :label="item" :key="index">
                     {{ $levels[item] }}
@@ -527,6 +528,12 @@
             <div class="dialog-footer" style="margin-top: 20px;">
                 <el-button class="dialog-footer-button" @click="sellingEquipment">
                     出售装备
+                </el-button>
+            </div>
+            <el-divider>灵宠</el-divider>
+            <div class="dialog-footer" style="margin-top: 20px;">
+                <el-button class="dialog-footer-button" @click="sellingPet">
+                    放生灵宠
                 </el-button>
             </div>
         </el-dialog>
@@ -635,6 +642,8 @@
                     reincarnation: 0,
                     // 下个境界所需修为
                     maxCultivation: 100,
+                    // 背包总容量
+                    backpackCapacity: 50,
                     // 炼器石数量
                     strengtheningStone: 0,
                     // 批量出售装备设置
@@ -878,7 +887,7 @@
                             this.$router.push('/explore');
                         }
                     },
-                    { text: '出售装备', handler: this.sellingEquipmentBox },
+                    { text: '批量处理', handler: this.sellingEquipmentBox },
                     { text: '图鉴与成就', handler: () => this.$router.push('/equipAll') },
                     { text: '世界BOSS', handler: () => this.$router.push('/boss') }
                 ];
@@ -912,6 +921,39 @@
                 }).then(() => {
                     this.exportData();
                 }).catch(() => { });
+            },
+            // 批量放生灵宠
+            sellingPet () {
+                // 获取玩家背包装备
+                const pets = this.player.pets;
+                // 检查背包是否存在灵宠
+                if (!pets.length) {
+                    this.$notify({ title: '灵宠放生提示', message: '你没有可以放生的灵宠' });
+                    return;
+                }
+                // 过滤出可以放生的灵宠
+                const selling = pets.filter(item => !item.lock);
+                // 检查是否有可以放生的灵宠
+                if (!selling.length) {
+                    this.$notify({ title: '灵宠放生提示', message: '你没有可以放生的未锁定灵宠' });
+                    return;
+                }
+                // 关闭弹窗
+                this.sellingEquipmentShow = false;
+                // 计算未锁定灵宠放生所得培养丹
+                const cultivateDanTotal = selling.reduce((total, i) => {
+                    // 灵宠转生次数
+                    const reincarnation = i.reincarnation ? i.reincarnation : 1;
+                    let level = i.level * reincarnation;
+                    level = Number(level) || 0;
+                    return total + Math.floor(level);
+                }, 0);
+                // 增加培养丹数量
+                this.player.cultivateDan += cultivateDanTotal;
+                // 清空背包内所有未锁定灵宠
+                this.player.pets = pets.filter(item => item.lock);
+                this.$store.commit('setPlayer', this.player);
+                this.$notify({ title: '灵宠放生提示', message: `所有非锁定灵宠已成功放生, 他们临走前一起赠与了你${cultivateDanTotal}个培养丹` });
             },
             // 批量出售装备
             sellingEquipment () {

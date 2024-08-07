@@ -10,7 +10,6 @@ import 'element-ui/lib/theme-chalk/index.css';
 
 Vue.use(Vuex).use(VueRouter).use(ElementUI).use(VueClipboard);
 
-
 Vue.prototype.$notify = (data) => {
     Notification.closeAll();
     Notification(data);
@@ -53,6 +52,7 @@ Vue.prototype.$levels = {
 
 // 单位转换
 Vue.prototype.$formatNumberToChineseUnit = (number) => {
+    number = number > 0 ? number : 0;
     // 中文单位数组，从小到大
     const units = ['', '万', '亿', '兆', '京', '垓', '秭', '穰', '沟', '涧', '正', '载', '极'];
     // 定义 1 万（10000）的 BigInt 形式
@@ -75,6 +75,25 @@ Vue.prototype.$formatNumberToChineseUnit = (number) => {
     let result = num.toString() + units[unitIndex] + additionalUnits;
     return result;
 };
+
+// 平滑至底
+Vue.prototype.$smoothScrollToBottom = (element) => {
+    const start = element.scrollTop;
+    const end = element.scrollHeight;
+    const duration = 300;
+    const startTime = performance.now();
+    const scroll = () => {
+        const currentTime = performance.now();
+        const timeElapsed = currentTime - startTime;
+        const progress = Math.min(timeElapsed / duration, 1);
+        element.scrollTop = start + (end - start) * easeInOutCubic(progress);
+        if (progress < 1) window.requestAnimationFrame(scroll);
+    }
+    const easeInOutCubic = (t) => {
+        return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+    }
+    window.requestAnimationFrame(scroll);
+},
 
 new Vue({
     store,

@@ -29,6 +29,8 @@ export default new Vuex.Store(
                 pet: {},
                 // 收服的灵兽
                 pets: [],
+                // 人物评分
+                score: 0,
                 // 等级
                 level: 0,
                 // 闪避
@@ -46,7 +48,7 @@ export default new Vuex.Store(
                 // 已击杀数量
                 taskNum: 0,
                 // 版本号
-                version: 0.700,
+                version: 0.75,
                 // 鸿蒙石数量
                 currency: 0,
                 // 总血量
@@ -80,10 +82,12 @@ export default new Vuex.Store(
                 reincarnation: 0,
                 // 下个等级所需修为
                 maxCultivation: 100,
+                // 背包容量
+                backpackCapacity: 50,
                 // 强化石数量
                 strengtheningStone: 0,
                 // 批量出售装备设置
-                sellingEquipmentData: []
+                sellingEquipmentData: [],
             }
         },
         mutations: {

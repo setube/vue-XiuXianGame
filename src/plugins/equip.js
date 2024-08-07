@@ -19,36 +19,38 @@ const equips = {
         let cumulativeProbability = 0;
         const dodge = this.equip_Criticalhitrate(lv);
         const attack = this.equip_Attack(lv);
-        const defense = this.equip_Attack(lv);
         const health = this.equip_Health(lv);
+        const defense = this.equip_Attack(lv);
+        const critical = this.equip_Criticalhitrate(lv);
         for (const [quality, { names, probability }] of Object.entries(weaponTypes)) {
             cumulativeProbability += probability;
             if (random < cumulativeProbability) {
+                // 根据装备品质调整装备属性值
+                const qualityMultiplier = { info: 1.2, success: 2, primary: 3, purple: 5, warning: 7, danger: 10 };
+                const multiplier = qualityMultiplier[quality];
                 const baseEquip = {
                     id: Date.now(), // 装备ID
                     name: names[Math.floor(Math.random() * names.length)], //装备名字
                     type, // 装备类型
                     lock: false,
                     level: lv, // 装备等级
+                    score: this.calculateEquipmentScore(dodge, attack, health, critical, defense), // 装备评分
                     dodge: ['accessory', 'sutra'].includes(type) ? dodge : 0, // 闪避率
                     attack: ['weapon', 'accessory', 'sutra'].includes(type) ? attack : 0, // 攻击力
                     health: ['armor', 'accessory', 'sutra'].includes(type) ? health : 0, // 血量
                     quality, // 装备品质
                     defense: ['armor', 'accessory', 'sutra'].includes(type) ? defense : 0, // 装备防御
-                    critical: ['weapon', 'accessory', 'sutra'].includes(type) ? dodge : 0, // 暴击率
+                    critical: ['weapon', 'accessory', 'sutra'].includes(type) ? critical : 0, // 暴击率
                     // 初始数据
                     initial: {
                         dodge: ['accessory', 'sutra'].includes(type) ? dodge : 0, // 闪避率
                         attack: ['weapon', 'accessory', 'sutra'].includes(type) ? attack : 0, // 攻击力
                         health: ['armor', 'accessory', 'sutra'].includes(type) ? health : 0, // 血量
                         defense: ['armor', 'accessory', 'sutra'].includes(type) ? defense : 0, // 装备防御
-                        critical: ['weapon', 'accessory', 'sutra'].includes(type) ? dodge : 0, // 暴击率
+                        critical: ['weapon', 'accessory', 'sutra'].includes(type) ? critical : 0, // 暴击率
                     },
                     strengthen: 0 // 炼器等级
                 };
-                // 根据装备品质调整装备属性值
-                const qualityMultiplier = { info: 1.2, success: 2, primary: 3, purple: 5, warning: 7, danger: 10 };
-                const multiplier = qualityMultiplier[quality];
                 // 装备属性
                 baseEquip.dodge = parseFloat((baseEquip.dodge * multiplier)); // 闪避
                 baseEquip.attack = Math.floor(baseEquip.attack * multiplier); // 攻击
@@ -180,7 +182,7 @@ const equips = {
         return this.getRandomInt(100, 500) * lv;
     },
     equip_Criticalhitrate () {
-        return this.getRandomFloatInRange(0.001, 0.005);
+        return this.getRandomFloatInRange(0.01, 0.05);
     },
     // equip_Defense (lv, isNewbie = true) {
     //     if (lv >= 1 && lv <= 5) {
@@ -198,6 +200,26 @@ const equips = {
     },
     getRandomFloatInRange (min, max) {
         return Math.random() * (max - min) + min;
+    },
+    // 计算装备评分
+    calculateEquipmentScore (dodge = 0, attack = 0, health = 0, critical = 0, defense = 0) {
+        // 评分权重
+        const weights = {
+            attack: 1.5, // 攻击
+            health: 1.0, // 气血
+            defense: 1.2, // 防御
+            critRate: 1.8, // 暴击
+            dodgeRate: 1.6 //闪避
+        };
+        // 计算评分
+        const score = (
+            dodge * weights.dodgeRate * 100 +
+            attack * weights.attack +
+            (health / 100) * weights.health +
+            defense * weights.defense +
+            critical * weights.critRate * 100
+        );
+        return Math.floor(score);
     }
 };
 export default equips;

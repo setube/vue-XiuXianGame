@@ -15,8 +15,9 @@ const All = {
             const multiplier = qualityMultiplier[quality];
             const Attack = 1000 * lv;
             const Health = 10000 * lv;
-            const CriticalHitrate = 0.1;
+            const CriticalHitrate = quality == 'pink' ? 0.25 : 0.1;
             const attrs = {
+                score: this.calculateEquipmentScore(CriticalHitrate, Attack, Health, CriticalHitrate, CriticalHitrate),
                 dodge: ['accessory', 'sutra'].includes(type) ? CriticalHitrate * multiplier : 0,
                 attack: ['weapon', 'accessory', 'sutra'].includes(type) ? Math.floor(Attack * multiplier) : 0,
                 health: ['armor', 'accessory', 'sutra'].includes(type) ? Math.floor(Health * multiplier) : 0,
@@ -33,6 +34,7 @@ const All = {
                     name,
                     type,
                     level: lv,
+                    score: getAttribute(type, lv, 'score', quality[kk]),
                     prize: prize[quality[kk]],
                     dodge: getAttribute(type, lv, 'dodge', quality[kk]),
                     attack: getAttribute(type, lv, 'attack', quality[kk]),
@@ -88,6 +90,26 @@ const All = {
             ['炽焰灵珠阵图', '火凤涅槃炉鼎', '红莲业火净世碑', '血玉轮回盘', '朱雀翔天翼', '烈焰焚天炉', '丹霄火域图', '赤龙炼魂珠', '火灵炽心镜', '九转炎灵祭坛'],
             ['粉樱梦幻笛', '甜心粉蝶壶', '蜜桃恋语镜', '粉晶流光珠', '柔粉绮梦石', '樱花纷飞扇', '甜梦绮罗盘', '蜜桃幻影灯', '粉蝶织梦琴', '粉樱守护符']
         ];
+    },
+    // 计算装备评分
+    calculateEquipmentScore (dodge = 0, attack = 0, health = 0, critical = 0, defense = 0) {
+        // 评分权重
+        const weights = {
+            attack: 1.5, // 攻击
+            health: 1.0, // 气血
+            defense: 1.2, // 防御
+            critRate: 1.8, // 暴击
+            dodgeRate: 1.6 //闪避
+        };
+        // 计算评分
+        const score = (
+            dodge * weights.dodgeRate * 100 +
+            attack * weights.attack +
+            (health / 100) * weights.health +
+            defense * weights.defense +
+            critical * weights.critRate * 100
+        );
+        return Math.floor(score);
     }
 };
 export default All;

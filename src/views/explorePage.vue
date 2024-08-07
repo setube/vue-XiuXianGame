@@ -10,21 +10,31 @@
             </div>
         </div>
         <div class="actions">
-            <el-button type="danger" @click="startFight" :disabled="isEnd">
-                发起战斗
-            </el-button>
-            <el-button type="pink" @click="harvestPet(monster)" :disabled="isCaptureFailed">
-                收服对方
-            </el-button>
-            <el-button type="primary" @click="runAway" :disabled="isFailedRetreat">
-                立马撤退
-            </el-button>
-            <el-button type="warning" @click="keepExploring" v-if="isEnd">
-                继续探索
-            </el-button>
-            <el-button type="success" @click="$router.push('/')" v-if="isEnd">
-                回家疗伤
-            </el-button>
+            <div class="action">
+                <el-button class="item" @click="startFight" :disabled="isEnd">
+                    发起战斗
+                </el-button>
+            </div>
+            <div class="action">
+                <el-button class="item" @click="harvestPet(monster)" :disabled="isCaptureFailed">
+                    收服对方
+                </el-button>
+            </div>
+            <div class="action">
+                <el-button class="item" @click="runAway" :disabled="isFailedRetreat">
+                    立马撤退
+                </el-button>
+            </div>
+            <div class="action">
+                <el-button class="item" @click="keepExploring" v-if="isEnd">
+                    继续探索
+                </el-button>
+            </div>
+            <div class="action">
+                <el-button class="item" @click="$router.push('/')" v-if="isEnd">
+                    回家疗伤
+                </el-button>
+            </div>
         </div>
     </div>
 </template>
@@ -94,10 +104,17 @@
             startFight () {
                 if (this.isEnd) return;
                 this.isEnd = true;
+                this.victory = false;
                 const timerId = setInterval(() => {
                     this.fightMonster();
                     const element = this.$refs.storyText;
-                    element.scrollTo(0, element.scrollHeight);
+                    const observer = new MutationObserver(() => {
+                        this.$smoothScrollToBottom(element);
+                    });
+                    observer.observe(element, {
+                        childList: true,
+                        subtree: true
+                    });
                 }, 300);
                 this.timerIds.push(timerId);
             },
@@ -202,10 +219,12 @@
             },
             // 发现道具
             findTreasure () {
-                const randomInt = equip.getRandomInt(1, 4);
                 let equipItem = {};
                 let exp = Math.floor(this.player.maxCultivation / 100);
                 exp = exp ? exp : 1;
+                // 如果总背包容量大于装备背包容量
+                this.victory = true;
+                const randomInt = equip.getRandomInt(1, 4);
                 // 神兵
                 if (randomInt == 1) equipItem = equip.equip_Weapons(this.player.level);
                 // 护甲
@@ -214,11 +233,15 @@
                 else if (randomInt == 3) equipItem = equip.equip_Accessorys(this.player.level);
                 // 法器
                 else if (randomInt == 4) equipItem = equip.equip_Sutras(this.player.level);
-                // 玩家获得道具
-                if (equipItem?.name) this.player.inventory.push(equipItem);
-                this.victory = true;
-                this.openEquipItemInfo = equipItem;
                 this.texts = [...this.texts, `你击败${this.monster.name}后，发现了一个宝箱，打开后获得了<span class="el-tag el-tag--${equipItem.quality}">${this.$levels[equipItem.quality]}${equipItem.name}(${this.$genre[equipItem.type]})</span>`];
+                this.openEquipItemInfo = equipItem;
+                // 如果装备背包当前容量大于等于背包总容量
+                if (this.player.inventory.length >= this.player.backpackCapacity) {
+                    this.texts = [...this.texts, `当前装备背包容量已满, 该装备自动丢弃, 转生可增加背包容量`];
+                } else {
+                    // 玩家获得道具
+                    this.player.inventory.push(equipItem);
+                }
                 // 如果没有满级
                 if (this.player.level < this.$maxLv) {
                     // 增加修为
@@ -320,72 +343,78 @@
                 const isSuccess = successRate >= monster.getRandomInt(1, 100);
                 // 如果成功收服
                 if (isSuccess) {
-                    // 收服后的属性根据收服前的成功率算
-                    const newProperties = (100 - successRate) * 0.5;
-                    // 攻击
-                    const attack = Math.floor(monster.getRandomInt(50, 150) * newProperties);
-                    // 防御
-                    const defense = Math.floor(monster.getRandomInt(1, 15) * newProperties);
-                    // 血量
-                    const health = Math.floor(monster.getRandomInt(100, 500) * newProperties);
-                    // 闪避
-                    const dodge = parseFloat(monster.getRandomFloatInRange(0.001, 0.01) * newProperties);
-                    // 暴击
-                    const critical = parseFloat(monster.getRandomFloatInRange(0.001, 0.01) * newProperties);
-                    // 添加到灵宠背包里
-                    this.player.pets.push({
-                        id: Date.now(),
-                        name: item.name,
-                        level: 1,
-                        dodge,
-                        health,
-                        attack,
-                        defense,
-                        critical,
-                        // 初始数据
-                        initial: {
+                    // 总背包容量大于灵宠背包容量就可以收服对方
+                    if (this.player.backpackCapacity > this.player.pets.length) {
+                        // 收服后的属性根据收服前的成功率算
+                        const newProperties = Math.floor((100 - successRate) * 0.5);
+                        // 攻击
+                        const attack = Math.floor(monster.getRandomInt(50, 150) * newProperties);
+                        // 防御
+                        const defense = Math.floor(monster.getRandomInt(1, 15) * newProperties);
+                        // 血量
+                        const health = Math.floor(monster.getRandomInt(100, 500) * newProperties);
+                        // 闪避
+                        const dodge = parseFloat(monster.getRandomFloatInRange(0.001, 0.01) * newProperties);
+                        // 暴击
+                        const critical = parseFloat(monster.getRandomFloatInRange(0.001, 0.01) * newProperties);
+                        // 添加到灵宠背包里
+                        this.player.pets.push({
+                            id: Date.now(),
+                            lock: false,
+                            name: item.name,
+                            level: 1,
+                            score: equip.calculateEquipmentScore(dodge, attack, health, critical, defense),
                             dodge,
                             health,
                             attack,
                             defense,
-                            critical
-                        },
-                        // 根骨
-                        rootBone: Math.floor(newProperties),
-                        // 转生
-                        reincarnation: 0
-                    });
-                    // 玩家灵宠成就
-                    const petAchievement = this.player.achievement.pet;
-                    // 完成成就
-                    const checkAchievement = (item) => {
-                        const conditions = item.condition;
-                        return (
-                            (conditions.health === 0 || conditions.health <= health) &&
-                            (conditions.attack === 0 || conditions.attack <= attack) &&
-                            (conditions.defense === 0 || conditions.defense <= defense) &&
-                            (conditions.dodge === 0 || conditions.dodge <= dodge.toFixed(2)) &&
-                            (conditions.critical === 0 || conditions.critical <= critical.toFixed(2))
-                        );
-                    };
-                    // 完成成就
-                    achievement.pet().forEach(item => {
-                        // 检查成就条件是否达成并且成就尚未完成
-                        if (checkAchievement(item) && !petAchievement.find(i => i.id === item.id)) {
-                            // 添加成就
-                            this.player.achievement.pet.push({ id: item.id });
-                            // 增加培养丹
-                            this.player.cultivateDan += item.award;
-                            // 发送通知
-                            this.notify({ title: '获得成就提示', message: `恭喜你完成了${item.name}成就` });
-                        }
-                    });
+                            critical,
+                            // 初始数据
+                            initial: {
+                                dodge,
+                                health,
+                                attack,
+                                defense,
+                                critical
+                            },
+                            // 根骨
+                            rootBone: newProperties,
+                            // 转生
+                            reincarnation: 0
+                        });
+                        // 玩家灵宠成就
+                        const petAchievement = this.player.achievement.pet;
+                        // 完成成就
+                        const checkAchievement = (item) => {
+                            const conditions = item.condition;
+                            return (
+                                (conditions.health === 0 || conditions.health <= health) &&
+                                (conditions.attack === 0 || conditions.attack <= attack) &&
+                                (conditions.defense === 0 || conditions.defense <= defense) &&
+                                (conditions.dodge === 0 || conditions.dodge <= dodge.toFixed(2)) &&
+                                (conditions.critical === 0 || conditions.critical <= critical.toFixed(2))
+                            );
+                        };
+                        // 完成成就
+                        achievement.pet().forEach(item => {
+                            // 检查成就条件是否达成并且成就尚未完成
+                            if (checkAchievement(item) && !petAchievement.find(i => i.id === item.id)) {
+                                // 添加成就
+                                this.player.achievement.pet.push({ id: item.id });
+                                // 增加培养丹
+                                this.player.cultivateDan += item.award;
+                                // 发送通知
+                                this.notify({ title: '获得成就提示', message: `恭喜你完成了${item.name}成就` });
+                            }
+                        });
+                        this.texts = [...this.texts, `收服${item.name}成功`];
+                        // 更新玩家存档
+                        this.$store.commit('setPlayer', this.player);
+                    } else {
+                        this.texts = [...this.texts, `灵宠背包容量已满, 收服${item.name}失败, 转生可增加灵宠背包容量`];
+                    }
                     // 恢复回合数
                     this.guashaRounds = 10;
-                    // 发送提示
-                    this.$notify({ title: '收服灵宠提示', message: `收服${item.name}成功` });
-                    // 更新玩家存档
-                    this.$store.commit('setPlayer', this.player);
                     this.stopFight();
                     // 如果没有收服
                 } else {
@@ -397,8 +426,8 @@
             calculateCaptureRate () {
                 // 基础100%几率
                 const baseRate = 100;
-                // 每升一级减少5%的基础几率
-                const decayFactor = 0.95;
+                // 每升一级减少10%的基础几率
+                const decayFactor = 0.90;
                 // 根据等级计算实际几率
                 let captureRate = baseRate * Math.pow(decayFactor, this.player.level);
                 // 确保几率在 0% 到 100% 之间
@@ -409,4 +438,9 @@
     }
 </script>
 
-<style scoped></style>
+<style scoped>
+    .actions .action {
+        width: calc(33.333% - 10px);
+        margin: 5px;
+    }
+</style>

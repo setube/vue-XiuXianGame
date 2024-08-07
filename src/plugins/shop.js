@@ -10,15 +10,18 @@ const shop = {
         const getAttribute = (type, lv, attribute) => {
             // 根据装备品质调整装备属性值
             const multiplier = 15;
-            const Attack = 1000 * lv;
-            const Health = 10000 * lv;
-            const CriticalHitrate = 0.1;
+            const Attack = this.getRandomInt(200, 1000) * lv;
+            const defense = this.getRandomInt(200, 1000) * lv;
+            const Health = this.getRandomInt(2000, 10000) * lv;
+            const dodge = this.getRandomFloatInRange(0.02, 0.25);
+            const CriticalHitrate = this.getRandomFloatInRange(0.02, 0.25);
             const attrs = {
-                dodge: ['accessory', 'sutra'].includes(type) ? CriticalHitrate * multiplier : 0,
+                score: this.calculateEquipmentScore(dodge, Attack, Health, CriticalHitrate, defense), // 装备评分
+                dodge: ['accessory', 'sutra'].includes(type) ? dodge : 0,
                 attack: ['weapon', 'accessory', 'sutra'].includes(type) ? Attack * multiplier : 0,
                 health: ['armor', 'accessory', 'sutra'].includes(type) ? Health * multiplier : 0,
-                defense: ['armor', 'accessory', 'sutra'].includes(type) ? Attack * multiplier : 0,
-                critical: ['weapon', 'accessory', 'sutra'].includes(type) ? CriticalHitrate * multiplier : 0
+                defense: ['armor', 'accessory', 'sutra'].includes(type) ? defense * multiplier : 0,
+                critical: ['weapon', 'accessory', 'sutra'].includes(type) ? CriticalHitrate : 0
             };
             return attrs[attribute];
         };
@@ -31,6 +34,7 @@ const shop = {
                 type,
                 lock: true,
                 level: lv,
+                score: getAttribute(type, lv, 'score'),
                 dodge: getAttribute(type, lv, 'dodge'),
                 attack: getAttribute(type, lv, 'attack'),
                 health: getAttribute(type, lv, 'health'),
@@ -59,6 +63,34 @@ const shop = {
     },
     equipSutras () {
         return ['粉樱梦幻笛', '甜心粉蝶壶', '蜜桃恋语镜', '粉晶流光珠', '柔粉绮梦石', '樱花纷飞扇', '甜梦绮罗盘', '蜜桃幻影灯', '粉蝶织梦琴', '粉樱守护符'];
+    },
+    getRandomInt (min, max) {
+        min = Math.ceil(min);
+        max = Math.floor(max);
+        return Math.floor(Math.random() * (max - min + 1)) + min;
+    },
+    getRandomFloatInRange (min, max) {
+        return Math.random() * (max - min) + min;
+    },
+    // 计算装备评分
+    calculateEquipmentScore (dodge = 0, attack = 0, health = 0, critical = 0, defense = 0) {
+        // 评分权重
+        const weights = {
+            attack: 1.5, // 攻击
+            health: 1.0, // 气血
+            defense: 1.2, // 防御
+            critRate: 1.8, // 暴击
+            dodgeRate: 1.6 //闪避
+        };
+        // 计算评分
+        const score = (
+            dodge * weights.dodgeRate +
+            attack * weights.attack +
+            (health / 100) * weights.health +
+            defense * weights.defense +
+            critical * weights.critRate
+        );
+        return Math.floor(score);
     }
 };
 export default shop;

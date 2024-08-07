@@ -25,10 +25,11 @@
     export default {
         data () {
             return {
-                version: 0.740
+                version: 0.75
             };
         },
         mounted () {
+
         },
         methods: {
         }
@@ -129,6 +130,25 @@
         text-decoration: none;
     }
 
+    /* 自定义滚动条 */
+    ::-webkit-scrollbar {
+        width: 10px;
+    }
+
+    ::-webkit-scrollbar-track {
+        background: #f1f1f1;
+        border-radius: 5px;
+    }
+
+    ::-webkit-scrollbar-thumb {
+        background: #888;
+        border-radius: 5px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+        background: #555;
+    }
+
     .monsterinfo {
         display: flex;
         justify-content: center;
@@ -213,6 +233,18 @@
     /* 按钮 */
     .actions {
         margin: 1rem 0;
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+
+    .actions .action {
+        width: calc(33.333% - 10px);
+        margin: 5px;
+    }
+
+    .actions .action .item {
+        width: 100%;
     }
 
     /* 日志 */
@@ -224,6 +256,7 @@
     .storyText-box {
         height: 650px;
         overflow: auto;
+        padding: 0 20px 0 0;
     }
 
     @media only screen and (max-width: 750px) {
@@ -249,20 +282,18 @@
             width: 70% !important;
         }
 
-        /* 按钮 */
-        .actions {
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
+        .actions .action {
+            width: calc(50% - 10px);
+            margin: 5px;
         }
 
-        .actions * {
+        /* .actions * {
             margin-top: 10px !important;
         }
 
         .actions *:nth-child(1) {
             margin-left: 10px;
-        }
+        } */
 
         /* 日志 */
         .storyText-box {

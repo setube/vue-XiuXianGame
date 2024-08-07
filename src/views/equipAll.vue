@@ -102,6 +102,7 @@
                             <p>防御: ${this.$formatNumberToChineseUnit(info.defense)}</p>
                             <p>闪避率: ${info.dodge > 0 ? (info.dodge * 100 > 100 ? 100 : (info.dodge * 100).toFixed(2)) : 0}%</p>
                             <p>暴击率: ${info.critical > 0 ? (info.critical * 100 > 100 ? 100 : (info.critical * 100).toFixed(2)) : 0}%</p>
+                            <p>装备评分: ${this.$formatNumberToChineseUnit(info.score)}</p>
                             <p>获得率: ${info.prize}%</p>
                         </div>
                     </div>`,

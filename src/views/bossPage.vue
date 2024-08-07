@@ -15,10 +15,10 @@
             </div>
         </div>
         <div class="actions">
-            <el-button type="danger" @click="startFightBoss" :disabled="isEnd">
+            <el-button @click="startFightBoss" :disabled="isEnd">
                 发起战斗
             </el-button>
-            <el-button type="success" @click="$router.push('/')">
+            <el-button @click="$router.push('/')">
                 回家疗伤
             </el-button>
         </div>
@@ -37,6 +37,7 @@
                 texts: [],
                 player: {},
                 timerIds: [],
+                currency: 0,
                 isFighting: false,
                 startFight: false,
                 isequipment: false,
@@ -47,6 +48,7 @@
         mounted () {
             this.boss = this.$store.state.boss;
             this.player = this.$store.state.player;
+            this.currency = boss.getRandomInt(1, 10);
             this.assaultBoss();
         },
         beforeDestroy () {
@@ -60,7 +62,13 @@
                 const timerId = setInterval(() => {
                     this.fightBoss();
                     const element = this.$refs.storyText;
-                    element.scrollTo(0, element.scrollHeight);
+                    const observer = new MutationObserver(() => {
+                        this.$smoothScrollToBottom(element);
+                    });
+                    observer.observe(element, {
+                        childList: true,
+                        subtree: true
+                    });
                 }, 300);
                 this.timerIds.push(timerId);
             },
@@ -84,7 +92,7 @@
                             <p>防御: ${this.$formatNumberToChineseUnit(info.defense)}</p>
                             <p>闪避率: ${info.dodge > 0 ? (info.dodge * 100 > 100 ? 100 : (info.dodge * 100).toFixed(2)) : 0}%</p>
                             <p>暴击率: ${info.critical > 0 ? (info.critical * 100 > 100 ? 100 : (info.critical * 100).toFixed(2)) : 0}%</p>
-                            <p>鸿蒙石掉落: 10颗</p>
+                            <p>鸿蒙石掉落: ${this.currency}颗</p>
                             <p>神装掉落率: 100%</p>
                         </div>
                     </div>`,
@@ -97,6 +105,10 @@
                     this.isEnd = true;
                     this.stopFightBoss();
                     this.texts = [...this.texts, `你的境界尚未达到${this.$levelNames[this.$maxLv]}, ${this.boss.name}对于你的挑战不屑一顾`];
+                    return;
+                }
+                if (this.boss.health <= 0 || !this.boss.health) {
+                    this.texts = [...this.texts, 'BOSS刷新时间还未到'];
                     return;
                 }
                 this.isFighting = true;
@@ -149,16 +161,21 @@
                         this.isequipment = true;
                         this.equipmentInfo = equipItem;
                         this.texts = [...this.texts, `你击败${this.boss.name}后，获得了<span class="el-tag el-tag--${equipItem.quality}">${this.$levels[equipItem.quality]}${equipItem.name}(${this.$genre[equipItem.type]})</span>`];
+                        // 如果装备背包当前容量大于等于背包总容量
+                        if (this.player.inventory.length >= this.player.backpackCapacity) {
+                            this.texts = [...this.texts, `当前装备背包容量已满, 该装备自动丢弃, 转生可增加背包容量`];
+                        } else {
+                            // 玩家获得道具
+                            this.player.inventory.push(equipItem);
+                        }
                         // 增加根骨丹
                         this.player.rootBone += 1;
                         // 获得根骨丹通知
                         this.texts = [...this.texts, '你获得了1颗根骨丹'];
                         // 增加鸿蒙石
-                        this.player.currency += 10;
+                        this.player.currency += this.currency;
                         // 获得鸿蒙石通知
-                        this.texts = [...this.texts, '你获得了10块鸿蒙石'];
-                        // 玩家获得道具
-                        if (equipItem?.name) this.player.inventory.push(equipItem);
+                        this.texts = [...this.texts, `你获得了${this.currency}块鸿蒙石`];
                         // 修改按钮状态
                         this.isEnd = true;
                         // 修改boss状态

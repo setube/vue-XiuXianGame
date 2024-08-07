@@ -6,18 +6,26 @@
             </div>
         </div>
         <div class="actions">
-            <el-button @click="$router.push('/')">
-                返回家里
-            </el-button>
-            <el-button type="success" @click="startCultivate" :disabled="!isStart">
-                开始修炼
-            </el-button>
-            <el-button type="primary" @click="stopCultivate" :disabled="!isStop">
-                停止修炼
-            </el-button>
-            <el-button type="danger" @click="reincarnationBreakthrough">
-                转生突破
-            </el-button>
+            <div class="action">
+                <el-button class="item" @click="startCultivate" :disabled="!isStart">
+                    开始修炼
+                </el-button>
+            </div>
+            <div class="action">
+                <el-button class="item" @click="stopCultivate" :disabled="!isStop">
+                    停止修炼
+                </el-button>
+            </div>
+            <div class="action">
+                <el-button class="item" @click="reincarnationBreakthrough">
+                    转生突破
+                </el-button>
+            </div>
+            <div class="action">
+                <el-button class="item" @click="$router.push('/')">
+                    返回家里
+                </el-button>
+            </div>
         </div>
     </div>
 </template>
@@ -57,13 +65,19 @@
                         this.isStart = false;
                         // 增加当前修为
                         const exp = this.player.level <= 10 ? Math.floor(this.player.maxCultivation / equip.getRandomInt(10, 30)) : Math.floor(this.player.maxCultivation / 100);
+                        this.texts = [...this.texts, this.player.level < this.$maxLv ? '你开始冥想，吸收周围的灵气。修为提升了！' : '你当前的境界已修炼圆满, 需要转生后才能继续修炼'];
                         this.breakThrough(exp);
-                        this.texts = [...this.texts, '你开始冥想，吸收周围的灵气。修为提升了！'];
                     } else {
                         this.breakThrough(100);
                     }
                     const element = this.$refs.storyText;
-                    element.scrollTo(0, element.scrollHeight);
+                    const observer = new MutationObserver(() => {
+                        this.$smoothScrollToBottom(element);
+                    });
+                    observer.observe(element, {
+                        childList: true,
+                        subtree: true
+                    });
                 }, 300);
                 this.timerIds.push(timerId);
             },
@@ -79,6 +93,7 @@
             // 修为突破
             breakThrough (exp) {
                 // 如果当前境界小于最高境界当前修为大于等于总修为
+                const reincarnation = this.player.reincarnation ? this.player.reincarnation + 1 : 1;
                 if (this.player.level < this.$maxLv) {
                     if (this.player.cultivation >= this.player.maxCultivation) {
                         // 如果玩家等级大于10并且击杀数低于当前等级
@@ -98,7 +113,7 @@
                         // 更新气血
                         this.player.health = this.player.maxHealth;
                         // 增加玩家总修为
-                        this.player.maxCultivation = Math.floor(100 * Math.pow(2, this.player.level));
+                        this.player.maxCultivation = Math.floor(100 * Math.pow(2, this.player.level * reincarnation));
                         this.texts = [...this.texts, `恭喜你突破了！当前境界：${this.$levelNames[this.player.level]}`];
                     } else {
                         // 当前修为
@@ -108,8 +123,7 @@
                     this.isStop = false;
                     this.isStart = false;
                     this.player.level = this.$maxLv;
-                    this.player.maxCultivation = Math.floor(100 * Math.pow(2, this.$maxLv));
-                    this.texts = [...this.texts, '你当前的境界已修炼圆满, 需要转生后才能继续修炼'];
+                    this.player.maxCultivation = Math.floor(100 * Math.pow(2, this.$maxLv * reincarnation));
                     this.stopCultivate();
                 }
                 this.$store.commit('setPlayer', this.player);
@@ -143,9 +157,11 @@
                             this.player.taskNum = 0;
                             // 增加转生次数
                             this.player.reincarnation++;
+                            // 增加背包容量
+                            this.player.backpackCapacity += 50;
                             this.$notify({
                                 title: '转生提示',
-                                message: `转生成功, 当前为${this.player.reincarnation}转`,
+                                message: `转生成功, 当前为${this.player.reincarnation}转, 背包总容量增加50`,
                                 dangerouslyUseHTMLString: true
                             });
                             // 更新玩家存档
@@ -170,4 +186,9 @@
     }
 </script>
 
-<style scoped></style>
+<style scoped>
+    .actions .action {
+        width: calc(50% - 10px);
+        margin: 5px;
+    }
+</style>

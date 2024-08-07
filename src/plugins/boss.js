@@ -10,7 +10,7 @@ const boss = {
         // 闪避
         const dodge = this.getRandomFloatInRange(0.1, 1);
         // 暴击
-        const critical = this.getRandomFloatInRange(0.1, 1);
+        const critical = this.getRandomFloatInRange(0.1, 0.8);
         return {
             name: bossInfo.name,
             text: this.boss_Text(),
@@ -57,26 +57,29 @@ const boss = {
             cumulativeProbability += probability;
             if (random < cumulativeProbability) {
                 const Attack = this.getRandomInt(500, 1000) * lv * 10;
+                const defense = this.getRandomInt(500, 1000) * lv * 10;
                 const Health = this.getRandomInt(5000, 10000) * lv * 10;
-                const Criticalhitrate = this.getRandomFloatInRange(0.05, 0.1) * 10;
+                const dodge = this.getRandomFloatInRange(0.05, 0.1);
+                const Criticalhitrate = this.getRandomFloatInRange(0.05, 0.1);
                 return {
                     id: Date.now(), // 装备ID
                     name: names[Math.floor(Math.random() * names.length)], //装备名字
                     type: quality, // 装备类型
                     level: lv, // 装备等级
-                    dodge: ['accessory', 'sutra'].includes(quality) ? Criticalhitrate : 0, // 闪避率
+                    score: this.calculateEquipmentScore(dodge, Attack, Health, Criticalhitrate, defense), // 装备评分
+                    dodge: ['accessory', 'sutra'].includes(quality) ? dodge : 0, // 闪避率
                     attack: ['weapon', 'accessory', 'sutra'].includes(quality) ? Attack : 0, // 攻击力
                     health: ['armor', 'accessory', 'sutra'].includes(quality) ? Health : 0, // 血量
                     quality: 'danger', // 装备品质
                     // 初始数据
                     initial: {
-                        dodge: ['accessory', 'sutra'].includes(quality) ? Criticalhitrate : 0, // 闪避率
+                        dodge: ['accessory', 'sutra'].includes(quality) ? dodge : 0, // 闪避率
                         attack: ['weapon', 'accessory', 'sutra'].includes(quality) ? Attack : 0, // 攻击力
                         health: ['armor', 'accessory', 'sutra'].includes(quality) ? Health : 0, // 血量
-                        defense: ['accessory', 'sutra'].includes(quality) ? Attack : 0, // 装备防御
+                        defense: ['accessory', 'sutra'].includes(quality) ? defense : 0, // 装备防御
                         critical: ['weapon', 'accessory', 'sutra'].includes(quality) ? Criticalhitrate : 0, // 暴击率
                     },
-                    defense: ['accessory', 'sutra'].includes(quality) ? Attack : 0, // 装备防御
+                    defense: ['accessory', 'sutra'].includes(quality) ? defense : 0, // 装备防御
                     critical: ['weapon', 'accessory', 'sutra'].includes(quality) ? Criticalhitrate : 0 // 暴击率
                 };
             }
@@ -130,6 +133,26 @@ const boss = {
     },
     getRandomFloatInRange (min, max) {
         return Math.random() * (max - min) + min;
+    },
+    // 计算装备评分
+    calculateEquipmentScore (dodge = 0, attack = 0, health = 0, critical = 0, defense = 0) {
+        // 评分权重
+        const weights = {
+            attack: 1.5, // 攻击
+            health: 1.0, // 气血
+            defense: 1.2, // 防御
+            critRate: 1.8, // 暴击
+            dodgeRate: 1.6 //闪避
+        };
+        // 计算评分
+        const score = (
+            dodge * weights.dodgeRate +
+            attack * weights.attack +
+            (health / 100) * weights.health +
+            defense * weights.defense +
+            critical * weights.critRate
+        );
+        return Math.floor(score);
     }
 };
 export default boss;

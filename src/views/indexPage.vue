@@ -1400,7 +1400,7 @@
             equipItem (id, type) {
                 const inventoryItem = this.getObjectById(id, this.player.inventory);
                 // 如果当前装备境界大于人物的境界
-                if (inventoryItem.level > this.player.level) {
+                if (!this.player.reincarnation && inventoryItem.level > this.player.level) {
                     this.$notify({ title: '当前境界不足', message: '无法穿戴该装备' });
                     return;
                 }

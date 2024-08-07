@@ -1,28 +1,50 @@
 <template>
-    <div class="cultivate">
-        <div class="boss">
-            <div class="boss-box">
-                <span class="el-tag el-tag--warning" @click="openBossInfo">{{ boss.name }}</span>
-                <el-alert class="desc" :title="boss.desc" :closable="false" type="error" />
-            </div>
-        </div>
-        <div class="storyText">
-            <div class="storyText-box" ref="storyText">
-                <p class="fighting" v-if="isFighting">
-                    {{ guashaRounds }}回合 / 50回合
-                </p>
-                <p v-for="(item, index) in texts" :key="index" v-html="item" @click="openEquipmentInfo(equipmentInfo)" />
-            </div>
-        </div>
-        <div class="actions">
-            <el-button @click="startFightBoss" :disabled="isEnd">
-                发起战斗
-            </el-button>
-            <el-button @click="$router.push('/')">
-                回家疗伤
-            </el-button>
-        </div>
+  <div class="cultivate">
+    <div class="boss">
+      <div class="boss-box">
+        <span
+          class="el-tag el-tag--warning"
+          @click="openBossInfo"
+        >{{ boss.name }}</span>
+        <el-alert
+          class="desc"
+          :title="boss.desc"
+          :closable="false"
+          type="error"
+        />
+      </div>
     </div>
+    <div class="storyText">
+      <div
+        class="storyText-box"
+        ref="storyText"
+      >
+        <p
+          class="fighting"
+          v-if="isFighting"
+        >
+          {{ guashaRounds }}回合 / 50回合
+        </p>
+        <p
+          v-for="(item, index) in texts"
+          :key="index"
+          v-html="item"
+          @click="openEquipmentInfo(equipmentInfo)"
+        />
+      </div>
+    </div>
+    <div class="actions">
+      <el-button
+        @click="startFightBoss"
+        :disabled="isEnd"
+      >
+        发起战斗
+      </el-button>
+      <el-button @click="$router.push('/')">
+        回家疗伤
+      </el-button>
+    </div>
+  </div>
 </template>
 
 <script>

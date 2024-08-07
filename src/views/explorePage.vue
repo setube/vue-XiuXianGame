@@ -1,42 +1,76 @@
 <template>
-    <div class="cultivate">
-        你遇到了<span class="el-tag el-tag--danger" @click="openMonsterInfo">{{ monster.name }}</span>
-        <div class="storyText">
-            <div class="storyText-box" ref="storyText">
-                <p class="fighting" v-if="isFighting">
-                    {{ guashaRounds }}回合 / 10回合
-                </p>
-                <p v-for="(item, index) in texts" :key="index" v-html="item" @click="openEquipmentInfo(openEquipItemInfo)" />
-            </div>
-        </div>
-        <div class="actions">
-            <div class="action">
-                <el-button class="item" @click="startFight" :disabled="isEnd">
-                    发起战斗
-                </el-button>
-            </div>
-            <div class="action">
-                <el-button class="item" @click="harvestPet(monster)" :disabled="isCaptureFailed">
-                    收服对方
-                </el-button>
-            </div>
-            <div class="action">
-                <el-button class="item" @click="runAway" :disabled="isFailedRetreat">
-                    立马撤退
-                </el-button>
-            </div>
-            <div class="action">
-                <el-button class="item" @click="keepExploring" v-if="isEnd">
-                    继续探索
-                </el-button>
-            </div>
-            <div class="action">
-                <el-button class="item" @click="$router.push('/')" v-if="isEnd">
-                    回家疗伤
-                </el-button>
-            </div>
-        </div>
+  <div class="cultivate">
+    你遇到了<span
+      class="el-tag el-tag--danger"
+      @click="openMonsterInfo"
+    >{{ monster.name }}</span>
+    <div class="storyText">
+      <div
+        class="storyText-box"
+        ref="storyText"
+      >
+        <p
+          class="fighting"
+          v-if="isFighting"
+        >
+          {{ guashaRounds }}回合 / 10回合
+        </p>
+        <p
+          v-for="(item, index) in texts"
+          :key="index"
+          v-html="item"
+          @click="openEquipmentInfo(openEquipItemInfo)"
+        />
+      </div>
     </div>
+    <div class="actions">
+      <div class="action">
+        <el-button
+          class="item"
+          @click="startFight"
+          :disabled="isEnd"
+        >
+          发起战斗
+        </el-button>
+      </div>
+      <div class="action">
+        <el-button
+          class="item"
+          @click="harvestPet(monster)"
+          :disabled="isCaptureFailed"
+        >
+          收服对方
+        </el-button>
+      </div>
+      <div class="action">
+        <el-button
+          class="item"
+          @click="runAway"
+          :disabled="isFailedRetreat"
+        >
+          立马撤退
+        </el-button>
+      </div>
+      <div class="action">
+        <el-button
+          class="item"
+          @click="keepExploring"
+          v-if="isEnd"
+        >
+          继续探索
+        </el-button>
+      </div>
+      <div class="action">
+        <el-button
+          class="item"
+          @click="$router.push('/')"
+          v-if="isEnd"
+        >
+          回家疗伤
+        </el-button>
+      </div>
+    </div>
+  </div>
 </template>
 
 <script>

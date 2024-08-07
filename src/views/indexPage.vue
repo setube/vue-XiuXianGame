@@ -330,12 +330,6 @@
               防御: {{ $formatNumberToChineseUnit(player.pet.defense) }}
             </div>
             <div class="tag attribute">
-              闪避率: {{ player.pet.dodge > 0 ? (player.pet.dodge * 100 > 100 ? 100 : (player.pet.dodge * 100).toFixed(2)) : 0 }}%
-            </div>
-            <div class="tag attribute">
-              暴击率: {{ player.pet.critical > 0 ? (player.pet.critical * 100 > 100 ? 100 : (player.pet.critical * 100).toFixed(2)) : 0 }}%
-            </div>
-            <div class="tag attribute">
               灵宠评分: {{ $formatNumberToChineseUnit(player.pet.score) }}
             </div>
             <div
@@ -394,12 +388,6 @@
             </div>
             <div class="tag attribute">
               防御: {{ $formatNumberToChineseUnit(strengthenInfo.defense) }}
-            </div>
-            <div class="tag attribute">
-              闪避率: {{ strengthenInfo.dodge > 0 ? (strengthenInfo.dodge * 100 > 100 ? 100 : (strengthenInfo.dodge * 100).toFixed(2)) : 0 }}%
-            </div>
-            <div class="tag attribute">
-              暴击率: {{ strengthenInfo.critical > 0 ? (strengthenInfo.critical * 100 > 100 ? 100 : (strengthenInfo.critical * 100).toFixed(2)) : 0 }}%
             </div>
             <div class="tag attribute">
               炼器等级: {{ strengthenInfo.strengthen ?? 0 }}

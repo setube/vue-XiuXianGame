@@ -1,5 +1,5 @@
 <p align="center">
-    <img src="https://github.com/user-attachments/assets/0f9c17bf-469d-4b6a-b3ed-620078f31ff6" width="400">
+    <img src="https://i0.hdslb.com/bfs/article/4e94ec2e1fec343907bc3b574708b0fb8941412.png@1e_1c.webp" width="400">
 </p>
 <p align="center">
     <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/license-MIT-blue" alt="license MIT"></a>

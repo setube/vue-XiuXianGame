@@ -874,8 +874,7 @@
         methods: {
             // 初始化游戏
             startGame () {
-                if (!this.player.cultivation) this.storyText = '你的修仙之旅开始了。';
-                else this.storyText = '你准备好出门遭受毒打了吗?';
+                this.storyText = '你的修仙之旅开始了。';
                 this.actions = [
                     { text: '开始修炼', handler: () => this.$router.push('/cultivate') },
                     {

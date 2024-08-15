@@ -1,5 +1,6 @@
 import VueRouter from 'vue-router';
 import boss from '../views/bossPage.vue';
+import home from '../views/homePage.vue';
 import index from '../views/indexPage.vue';
 import equipAll from '../views/equipAll.vue';
 import explore from '../views/explorePage.vue';
@@ -24,6 +25,14 @@ const routes = [
             keepAlive: true
         },
         component: index
+    },
+    {
+        path: '/home',
+        name: 'home',
+        meta: {
+            keepAlive: true
+        },
+        component: home
     },
     {
         path: '/cultivate',

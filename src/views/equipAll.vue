@@ -1,91 +1,47 @@
 <template>
-  <div class="Illustrations">
-    <el-tabs
-      v-model="activeName"
-      type="border-card"
-    >
-      <el-tab-pane
-        label="装备图鉴"
-        name="illustrations"
-      >
-        <div class="tag inventory-box">
-          <el-tabs
-            v-model="illustrationsActive"
-            :stretch="true"
-          >
-            <el-tab-pane
-              :label="i.name"
-              :name="i.type"
-              v-for="(i, k) in illustrationsItems"
-              :key="k"
-            >
-              <div class="inventory-content">
-                <template v-for="(item, index) in i.data">
-                  <div
-                    class="Illustration-item"
-                    v-if="item.type == i.type"
-                    :key="index"
-                    @click="illustrationsInfo(k, index)"
-                  >
-                    <el-tag :type="item.quality">
-                      {{ item.name }}
-                    </el-tag>
-                  </div>
-                </template>
-              </div>
+    <div class="Illustrations">
+        <el-tabs v-model="activeName" type="border-card">
+            <el-tab-pane label="装备图鉴" name="illustrations">
+                <div class="tag inventory-box">
+                    <el-tabs v-model="illustrationsActive" :stretch="true">
+                        <el-tab-pane :label="i.name" :name="i.type" v-for="(i, k) in illustrationsItems" :key="k">
+                            <div class="inventory-content">
+                                <template v-for="(item, index) in i.data">
+                                    <div class="Illustration-item" v-if="item.type == i.type" :key="index" @click="illustrationsInfo(k, index)">
+                                        <el-tag :type="item.quality">
+                                            {{ item.name }}
+                                        </el-tag>
+                                    </div>
+                                </template>
+                            </div>
+                        </el-tab-pane>
+                    </el-tabs>
+                </div>
             </el-tab-pane>
-          </el-tabs>
-        </div>
-      </el-tab-pane>
-      <el-tab-pane
-        label="我的成就"
-        name="achievement"
-      >
-        <el-tabs
-          v-model="achievementActive"
-          :stretch="true"
-        >
-          <el-tab-pane
-            :label="i.name"
-            :name="i.type"
-            v-for="(i, k) in achievementAll"
-            :key="k"
-          >
-            <div
-              class="achievement-content"
-              v-if="i.data.length > 0"
-            >
-              <div
-                class="achievement-item"
-                v-for="(item, index) in i.data"
-                :key="index"
-                @click="achievementInfo(item)"
-              >
-                <el-tag :type="getTagClass(i.type, item.id) ? 'success' : 'info'">
-                  {{ item.name }}
-                  ({{ getTagClass(i.type, item.id) ? '已完成' : '未完成' }})
-                </el-tag>
-              </div>
-            </div>
-            <div
-              class="achievement-content"
-              v-else
-            >
-              此类成就暂未发布
-            </div>
-          </el-tab-pane>
+            <el-tab-pane label="我的成就" name="achievement">
+                <el-tabs v-model="achievementActive" :stretch="true">
+                    <el-tab-pane :label="i.name" :name="i.type" v-for="(i, k) in achievementAll" :key="k">
+                        <div class="achievement-content" v-if="i.data.length > 0">
+                            <div class="achievement-item" v-for="(item, index) in i.data" :key="index" @click="achievementInfo(item)">
+                                <el-tag :type="getTagClass(i.type, item.id) ? 'success' : 'info'">
+                                    {{ item.name }}
+                                    ({{ getTagClass(i.type, item.id) ? '已完成' : '未完成' }})
+                                </el-tag>
+                            </div>
+                        </div>
+                        <div class="achievement-content" v-else>
+                            此类成就暂未发布
+                        </div>
+                    </el-tab-pane>
+                </el-tabs>
+            </el-tab-pane>
         </el-tabs>
-      </el-tab-pane>
-    </el-tabs>
-    <div class="actions">
-      <el-button
-        type="success"
-        @click="$router.push('/')"
-      >
-        返回家中
-      </el-button>
+        <div class="actions">
+            <el-button type="success" @click="$router.push('/home')">
+                返回家中
+            </el-button>
+        </div>
     </div>
-  </div>
 </template>
 
 <script>

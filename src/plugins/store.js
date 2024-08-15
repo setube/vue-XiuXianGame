@@ -25,6 +25,8 @@ export default new Vuex.Store(
             },
             // 玩家属性
             player: {
+                //隐私政策
+                zc: false,
                 // 出战的灵兽
                 pet: {},
                 // 收服的灵兽

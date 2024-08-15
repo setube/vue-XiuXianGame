@@ -8,9 +8,9 @@ const boss = {
         // 防御
         const defense = this.getRandomInt(1000, 10000) * lv;
         // 闪避
-        const dodge = this.getRandomFloatInRange(0.1, 1);
+        const dodge = this.getRandomFloatInRange(0.1, 0.8);
         // 暴击
-        const critical = this.getRandomFloatInRange(0.1, 0.8);
+        const critical = this.getRandomFloatInRange(0.1, 1);
         return {
             name: bossInfo.name,
             text: this.boss_Text(),

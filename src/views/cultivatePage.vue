@@ -1,54 +1,33 @@
 <template>
-  <div class="cultivate">
-    <div class="storyText">
-      <div
-        class="storyText-box"
-        ref="storyText"
-      >
-        <p
-          v-for="(item, index) in texts"
-          :key="index"
-          v-html="item"
-        />
-      </div>
+    <div class="cultivate">
+        <div class="storyText">
+            <div class="storyText-box" ref="storyText">
+                <p v-for="(item, index) in texts" :key="index" v-html="item" />
+            </div>
+        </div>
+        <div class="actions">
+            <div class="action">
+                <el-button class="item" @click="startCultivate" :disabled="!isStart">
+                    开始修炼
+                </el-button>
+            </div>
+            <div class="action">
+                <el-button class="item" @click="stopCultivate" :disabled="!isStop">
+                    停止修炼
+                </el-button>
+            </div>
+            <div class="action">
+                <el-button class="item" @click="reincarnationBreakthrough">
+                    转生突破
+                </el-button>
+            </div>
+            <div class="action">
+                <el-button class="item" @click="$router.push('/home')">
+                    返回家里
+                </el-button>
+            </div>
+        </div>
     </div>
-    <div class="actions">
-      <div class="action">
-        <el-button
-          class="item"
-          @click="startCultivate"
-          :disabled="!isStart"
-        >
-          开始修炼
-        </el-button>
-      </div>
-      <div class="action">
-        <el-button
-          class="item"
-          @click="stopCultivate"
-          :disabled="!isStop"
-        >
-          停止修炼
-        </el-button>
-      </div>
-      <div class="action">
-        <el-button
-          class="item"
-          @click="reincarnationBreakthrough"
-        >
-          转生突破
-        </el-button>
-      </div>
-      <div class="action">
-        <el-button
-          class="item"
-          @click="$router.push('/')"
-        >
-          返回家里
-        </el-button>
-      </div>
-    </div>
-  </div>
 </template>
 
 <script>

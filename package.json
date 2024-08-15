@@ -1,54 +1,53 @@
 {
-  "name": "xiuxian-game",
-  "version": "0.1.0",
-  "private": true,
-  "scripts": {
-    "serve": "vue-cli-service serve",
-    "build": "vue-cli-service build",
-    "lint": "vue-cli-service lint"
-  },
-  "dependencies": {
-    "autoprefixer": "^10.4.19",
-    "core-js": "^3.8.3",
-    "crypto-js": "^4.2.0",
-    "postcss": "^8.4.39",
-    "vue": "^2.6.14",
-    "vue-clipboard2": "^0.3.3",
-    "vue-router": "3.6.5",
-    "vuex": "^3.1.3",
-    "vuex-persistedstate": "^4.1.0"
-  },
-  "devDependencies": {
-    "@babel/core": "^7.12.16",
-    "@babel/eslint-parser": "^7.12.16",
-    "@vue/cli-plugin-babel": "~5.0.0",
-    "@vue/cli-plugin-eslint": "~5.0.0",
-    "@vue/cli-service": "~5.0.0",
-    "compression-webpack-plugin": "^5.0.2",
-    "element-ui": "^2.15.14",
-    "eslint": "^7.32.0",
-    "eslint-plugin-vue": "^8.0.3",
-    "vue-template-compiler": "^2.6.14",
-    "webpack": "^5.93.0",
-    "webpack-bundle-analyzer": "^4.10.2",
-    "webpack-obfuscator": "^3.5.1"
-  },
-  "eslintConfig": {
-    "root": true,
-    "env": {
-      "node": true
+    "name": "xiuxian-game",
+    "version": "0.1.0",
+    "private": true,
+    "scripts": {
+        "serve": "vue-cli-service serve",
+        "build": "vue-cli-service build",
+        "lint": "vue-cli-service lint"
     },
-    "extends": [
-      "plugin:vue/strongly-recommended",
-      "eslint:recommended"
-    ],
-    "parserOptions": {
-      "parser": "@babel/eslint-parser"
-    }
-  },
-  "browserslist": [
-    "> 1%",
-    "last 2 versions",
-    "not dead"
-  ]
+    "dependencies": {
+        "autoprefixer": "^10.4.19",
+        "babel-loader": "^9.1.3",
+        "core-js": "^3.8.3",
+        "crypto-js": "^4.2.0",
+        "postcss": "^8.4.39",
+        "vue": "^2.6.14",
+        "vue-clipboard2": "^0.3.3",
+        "vue-router": "3.6.5",
+        "vuex": "^3.1.3",
+        "vuex-persistedstate": "^4.1.0"
+    },
+    "devDependencies": {
+        "@babel/core": "^7.12.16",
+        "@babel/eslint-parser": "^7.12.16",
+        "@vue/cli-plugin-babel": "~5.0.0",
+        "@vue/cli-plugin-eslint": "~5.0.0",
+        "@vue/cli-service": "~5.0.0",
+        "element-ui": "^2.15.14",
+        "eslint": "^7.32.0",
+        "eslint-plugin-vue": "^8.0.3",
+        "vue-template-compiler": "^2.6.14",
+        "webpack": "^5.93.0",
+        "webpack-obfuscator": "^3.5.1"
+    },
+    "eslintConfig": {
+        "root": true,
+        "env": {
+            "node": true
+        },
+        "extends": [
+            "plugin:vue/strongly-recommended",
+            "eslint:recommended"
+        ],
+        "parserOptions": {
+            "parser": "@babel/eslint-parser"
+        }
+    },
+    "browserslist": [
+        "> 1%",
+        "last 2 versions",
+        "not dead"
+    ]
 }

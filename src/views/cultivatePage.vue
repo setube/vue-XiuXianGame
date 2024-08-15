@@ -141,10 +141,11 @@
                         return;
                     }
                     if (this.player.taskNum >= reincarnation) {
-                        this.$confirm('转生之后的敌人属性是转生前的百倍<br>转生前请务必确认自己的实力是否足够战胜转生后的对手, 避免导致卡档', '转生提醒', {
+                        const txt = this.player.reincarnation == 0 ? '转生之后的敌人属性是转生前的百倍<br>转生前请务必确认自己的实力是否足够战胜转生后的对手, 避免卡档后删档重练' : '转生操作不可逆, 是否确定要转生?';
+                        this.$confirm(txt, '转生提醒', {
                             center: true,
-                            cancelButtonText: '再发育发育',
-                            confirmButtonText: '知道了, 我会对我的操作负责',
+                            cancelButtonText: '取消转生',
+                            confirmButtonText: '立即转生',
                             dangerouslyUseHTMLString: true
                         }).then(() => {
                             // 境界重置

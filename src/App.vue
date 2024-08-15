@@ -130,23 +130,25 @@
         text-decoration: none;
     }
 
-    /* 自定义滚动条 */
-    ::-webkit-scrollbar {
-        width: 10px;
-    }
+    @media only screen and (min-width: 800px) {
+        /* 自定义滚动条 */
+        ::-webkit-scrollbar {
+            width: 10px;
+        }
 
-    ::-webkit-scrollbar-track {
-        background: #f1f1f1;
-        border-radius: 5px;
-    }
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 5px;
+        }
 
-    ::-webkit-scrollbar-thumb {
-        background: #888;
-        border-radius: 5px;
-    }
+        ::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 5px;
+        }
 
-    ::-webkit-scrollbar-thumb:hover {
-        background: #555;
+        ::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
     }
 
     .monsterinfo {

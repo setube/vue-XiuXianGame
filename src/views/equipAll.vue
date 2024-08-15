@@ -145,5 +145,10 @@
             width: 33%;
             margin-top: 10px;
         }
+
+        .achievement-item {
+            width: 50%;
+            margin-top: 10px;
+        }
     }
 </style>

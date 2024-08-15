@@ -111,7 +111,7 @@
                                     </template>
                                 </div>
                                 <div v-else>
-                                    <el-tag type="success" class="dialog-footer-button" v-if="!player.isNewbie && player.level < 10" @click="newbiePack(4)">
+                                    <el-tag type="success" class="dialog-footer-button" :disable-transitions="true" v-if="!player.isNewbie && player.level < 10" @click="newbiePack(4)">
                                         领取新手礼包
                                     </el-tag>
                                 </div>

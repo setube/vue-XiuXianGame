@@ -26,12 +26,12 @@
                 </el-button>
             </div>
             <div class="action">
-                <el-button class="item" @click="keepExploring" v-if="isEnd">
+                <el-button class="item" @click="$router.push('/map')" :disabled="player.health <= 0" v-if="isEnd">
                     继续探索
                 </el-button>
             </div>
             <div class="action">
-                <el-button class="item" @click="$router.push('/home')" v-if="isEnd">
+                <el-button class="item" @click="goHome" v-if="isEnd">
                     回家疗伤
                 </el-button>
             </div>
@@ -76,8 +76,18 @@
         mounted () {
             this.player = this.$store.state.player;
             this.encounterMonster();
+            history.pushState(null, null, document.URL);
         },
         methods: {
+            // 回家疗伤
+            goHome () {
+                this.$router.options.routes.forEach(item => {
+                    if (item.name == 'map') {
+                        item.meta.keepAlive = false;
+                    }
+                })
+                this.$router.push('/home');
+            },
             // 怪物信息
             openMonsterInfo () {
                 const successRate = this.calculateCaptureRate();
@@ -87,7 +97,7 @@
                     message: `<div class="monsterinfo">
                         <div class="monsterinfo-box">
                             <p>境界: ${this.player.level == 0 ? this.$levelNames[this.player.level + 1] : this.$levelNames[this.player.level]}</p>
-                            <p>根骨: ${Math.floor(newProperties)}</p>
+                            <p>悟性: ${Math.floor(newProperties)}</p>
                             <p>气血: ${this.$formatNumberToChineseUnit(this.monster.health)}</p>
                             <p>攻击: ${this.$formatNumberToChineseUnit(this.monster.attack)}</p>
                             <p>防御: ${this.$formatNumberToChineseUnit(this.monster.defense)}</p>
@@ -213,8 +223,8 @@
                     this.texts = [...this.texts, '撤退失败，继续战斗。'];
                 } else {
                     this.guashaRounds = 10;
-                    this.$router.push('/home');
-                    this.$notify({ title: '提示', message: '你选择了撤退，安全返回了修炼地点。' });
+                    this.$router.push('/map');
+                    this.$notify({ title: '提示', message: '你选择了撤退。' });
                 }
             },
             // 发现道具
@@ -375,10 +385,13 @@
                                 health,
                                 attack,
                                 defense,
-                                critical
+                                critical,
+                                rootBone: newProperties
                             },
-                            // 根骨
+                            // 悟性
                             rootBone: newProperties,
+                            // 好感度
+                            favorability: 0,
                             // 转生
                             reincarnation: 0
                         });
@@ -402,7 +415,7 @@
                                 // 添加成就
                                 this.player.achievement.pet.push({ id: item.id });
                                 // 增加培养丹
-                                this.player.cultivateDan += item.award;
+                                this.player.props.cultivateDan += item.award;
                                 // 发送通知
                                 this.notify({ title: '获得成就提示', message: `恭喜你完成了${item.name}成就` });
                             }

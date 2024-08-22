@@ -36,18 +36,6 @@
                     <div class="tag attribute">
                         个人评分: {{ $formatNumberToChineseUnit(player.score) }}
                     </div>
-                    <div class="tag attribute" @click="$notify({title: '获得方式', message: '可以通过击败世界Boss后获得'})">
-                        鸿蒙石: {{ $formatNumberToChineseUnit(player.currency) }} <i class="el-icon-warning-outline" />
-                    </div>
-                    <div class="tag attribute" @click="$notify({title: '获得方式', message: '可以通过出售装备可获得'})">
-                        炼器石: {{ $formatNumberToChineseUnit(player.strengtheningStone) }} <i class="el-icon-warning-outline" />
-                    </div>
-                    <div class="tag attribute" @click="$notify({title: '获得方式', message: '可以通过探索秘境可获得'})">
-                        培养丹: {{ $formatNumberToChineseUnit(player.cultivateDan) }} <i class="el-icon-warning-outline" />
-                    </div>
-                    <div class="tag attribute" @click="$notify({title: '获得方式', message: '可以通过击败世界BOSS可获得'})">
-                        根骨丹: {{ $formatNumberToChineseUnit(player.rootBone) }} <i class="el-icon-warning-outline" />
-                    </div>
                     <div class="tag attribute" @click="$notify({title: '获得方式', message: '每提成一次境界可以获得3点境界点'})">
                         境界点: {{ $formatNumberToChineseUnit(player.points) }} <i class="el-icon-warning-outline" />
                     </div>
@@ -91,6 +79,13 @@
                 </div>
                 <div class="tag equip-item">
                     <span class="equip">
+                        <span>道侣: </span>
+                        <el-tag class="pet" v-if="player.wife?.name" closable @close="wifeRevoke">
+                            {{ player.wife?.name }}
+                        </el-tag>
+                        <span v-else>无</span>
+                    </span>
+                    <span class="equip">
                         <span>灵宠: </span>
                         <el-tag class="pet" v-if="player.pet?.name" :type="computePetsLevel(player.pet?.level)" closable @close="petRetract" @click="petItemShow = true">
                             {{ player.pet?.name }}({{ $levelNames[player.pet.level] }})
@@ -100,21 +95,34 @@
                 </div>
                 <div class="tag inventory-box">
                     <el-tabs v-model="inventoryActive" :stretch="true" @tab-click="tabClick">
-                        <el-tab-pane :label="i.name" :name="i.type" v-for="(i, k) in backPackItem" :key="k">
+                        <el-tab-pane label="装备" name="equipment">
+                            <el-tabs v-model="equipmentActive">
+                                <el-tab-pane :label="i.name" :name="i.type" v-for="(i, k) in backPackItem" :key="k">
+                                    <div class="inventory-content">
+                                        <div v-if="sortedEquipments.length">
+                                            <template v-for="item in sortedEquipments">
+                                                <el-tag class="inventory-item" v-if="item.type == i.type" :key="item.id" :type="item?.quality" :closable="!item.lock" @close="inventoryClose(item)" @click="inventory(item.id, item.type)">
+                                                    <i :class="item.lock ? 'el-icon-lock' : 'el-icon-unlock'" />
+                                                    {{ item?.name }}{{ item?.strengthen ? '+' + item?.strengthen : '' }}
+                                                </el-tag>
+                                            </template>
+                                        </div>
+                                        <div v-else>
+                                            <el-tag type="success" class="dialog-footer-button" :disable-transitions="true" v-if="!player.isNewbie && player.level < 10" @click="newbiePack(4)">
+                                                领取新手礼包
+                                            </el-tag>
+                                        </div>
+                                    </div>
+                                </el-tab-pane>
+                            </el-tabs>
+                        </el-tab-pane>
+                        <el-tab-pane label="道具" name="props">
                             <div class="inventory-content">
-                                <div v-if="sortedEquipments.length">
-                                    <template v-for="item in sortedEquipments">
-                                        <el-tag class="inventory-item" v-if="item.type == i.type" :key="item.id" :type="item?.quality" :closable="!item.lock" @close="inventoryClose(item)" @click="inventory(item.id, item.type)">
-                                            <i :class="item.lock ? 'el-icon-lock' : 'el-icon-unlock'" />
-                                            {{ item?.name }}{{ item?.strengthen ? '+' + item?.strengthen : '' }}
-                                        </el-tag>
-                                    </template>
-                                </div>
-                                <div v-else>
-                                    <el-tag type="success" class="dialog-footer-button" :disable-transitions="true" v-if="!player.isNewbie && player.level < 10" @click="newbiePack(4)">
-                                        领取新手礼包
+                                <template v-for="(item, index) in sortedProps">
+                                    <el-tag class="inventory-item" :key="index">
+                                        {{ $propItemNames[item.name] }}({{ item.num }})
                                     </el-tag>
-                                </div>
+                                </template>
                             </div>
                         </el-tab-pane>
                         <el-tab-pane label="灵宠" name="pet">
@@ -123,6 +131,15 @@
                                     <el-tag class="inventory-item" :type="computePetsLevel(item.level)" closable :key="index" @close="petClose(item)" @click="petItemInfo(item)">
                                         <i :class="item.lock ? 'el-icon-lock' : 'el-icon-unlock'" />
                                         {{ item.name }}({{ $levelNames[item.level] }})
+                                    </el-tag>
+                                </template>
+                            </div>
+                        </el-tab-pane>
+                        <el-tab-pane label="道侣" name="wife">
+                            <div class="inventory-content">
+                                <template v-for="(item, index) in player.wifes">
+                                    <el-tag class="inventory-item" closable :key="index" @click="wifeItemInfo(item)">
+                                        {{ item.name }}
                                     </el-tag>
                                 </template>
                             </div>
@@ -161,15 +178,15 @@
                 {{ item }}
             </el-tag>
         </el-drawer>
-        <el-drawer title="灵宠培养" :visible.sync="petItemShow" direction="rtl" class="strengthen">
-            <div class="strengthen-box" v-if="petItemShow">
+        <el-drawer :title="player.pet.name" :visible.sync="petItemShow" direction="rtl" class="strengthen">
+            <div class="strengthen-box">
                 <div class="attributes">
                     <div class="attribute-box">
                         <div class="tag attribute">
                             境界: {{ $levelNames[player.pet.level] }} ({{ player.pet.reincarnation || 0 }}转)
                         </div>
                         <div class="tag attribute">
-                            根骨: {{ player.pet.rootBone }}
+                            悟性: {{ player.pet.rootBone }}
                         </div>
                         <div class="tag attribute">
                             气血: {{ $formatNumberToChineseUnit(player.pet.health) }}
@@ -184,16 +201,16 @@
                             灵宠评分: {{ $formatNumberToChineseUnit(player.pet.score) }}
                         </div>
                         <div class="tag attribute" @click="$notify({title: '获得方式', message: '可以通过探索秘境获得', position: 'top-left'})">
-                            拥有培养丹: {{ $formatNumberToChineseUnit(player.cultivateDan) }}
+                            拥有培养丹: {{ $formatNumberToChineseUnit(player.props.cultivateDan) }}
                         </div>
                         <div class="tag attribute" @click="$notify({title: '获得方式', message: '可以通过击败世界BOSS获得', position: 'top-left'})">
-                            拥有根骨丹: {{ $formatNumberToChineseUnit(player.rootBone) }}
+                            拥有悟性丹: {{ $formatNumberToChineseUnit(player.props.rootBone) }}
                         </div>
                         <div class="tag attribute">
                             培养消耗: {{ petConsumption(player.pet.level) }}
                         </div>
                         <div class="tag attribute">
-                            提升根骨消耗: {{ petRootBone ? player.pet.rootBone : 0 }}
+                            提升悟性消耗: {{ petRootBone ? player.pet.rootBone : 0 }}
                         </div>
                     </div>
                 </div>
@@ -202,7 +219,7 @@
                         灵宠转生
                     </el-checkbox>
                     <el-checkbox v-model="petRootBone">
-                        提升根骨
+                        提升悟性
                     </el-checkbox>
                     <el-button type="primary" @click="petUpgrade(player.pet)">
                         点击培养
@@ -229,8 +246,8 @@
                         <div class="tag attribute">
                             装备评分: {{ $formatNumberToChineseUnit(strengthenInfo.score) }}
                         </div>
-                        <div class="tag attribute" @click="$notify({title: '获得方式', message: '出售装备可获取', position: 'top-left'})">
-                            拥有炼器石: {{ $formatNumberToChineseUnit(player.strengtheningStone) }}
+                        <div class="tag attribute" @click="$notify({title: '获得方式', message: '分解装备可获取', position: 'top-left'})">
+                            拥有炼器石: {{ $formatNumberToChineseUnit(player.props.strengtheningStone) }}
                         </div>
                         <div class="tag attribute">
                             炼器消耗: {{ calculateCost(strengthenInfo) }}
@@ -496,7 +513,7 @@
             </el-collapse>
             <div class="dialog-footer">
                 <el-button type="plain" class="inventory-button" @click="inventoryClose(inventoryInfo)">
-                    装备出售
+                    装备分解
                 </el-button>
                 <el-button type="plain" class="inventory-button" @click="inventoryLock(inventoryInfo.id)">
                     {{ inventoryInfo.lock ? '装备解锁' : '装备锁定' }}
@@ -515,7 +532,7 @@
             </el-checkbox-group>
             <div class="dialog-footer" style="margin-top: 20px;">
                 <el-button class="dialog-footer-button" @click="sellingEquipment">
-                    出售装备
+                    分解装备
                 </el-button>
             </div>
             <el-divider>灵宠</el-divider>
@@ -572,6 +589,25 @@
                     pet: {},
                     // 已收服的灵宠
                     pets: [],
+                    // 当前跟随的道侣
+                    wife: {},
+                    // 已拥有的道侣
+                    wifes: [],
+                    // 道具
+                    props: {
+                        // 灵石
+                        money: 0,
+                        // 传送符
+                        flying: 0,
+                        // 悟性丹
+                        rootBone: 0,
+                        // 鸿蒙石数量
+                        currency: 0,
+                        // 培养丹数量
+                        cultivateDan: 0,
+                        // 炼器石数量
+                        strengtheningStone: 0,
+                    },
                     // 人物评分
                     score: 0,
                     // 境界
@@ -588,14 +624,10 @@
                     defense: 10,
                     // 已击杀数量
                     taskNum: 0,
-                    // 根骨丹
-                    rootBone: 0,
                     // 暴击率
                     critical: 0,
                     // 是否已领取新手礼包
                     isNewbie: false,
-                    // 鸿蒙石数量
-                    currency: 0,
                     // 总气血
                     maxHealth: 100,
                     // 背包道具
@@ -626,17 +658,13 @@
                     },
                     // 当前修为
                     cultivation: 0,
-                    // 培养丹数量
-                    cultivateDan: 0,
                     // 转生次数
                     reincarnation: 0,
                     // 下个境界所需修为
                     maxCultivation: 100,
                     // 背包总容量
                     backpackCapacity: 50,
-                    // 炼器石数量
-                    strengtheningStone: 0,
-                    // 批量出售装备设置
+                    // 批量分解装备设置
                     sellingEquipmentData: []
                 },
                 actions: [],
@@ -686,15 +714,16 @@
                 strengthenShow: false,
                 // 炼器的信息
                 strengthenInfo: {},
-                // 选择出售的装备品阶
+                // 选择分解的装备品阶
                 checkedEquipmen: [],
-                inventoryActive: 'weapon',
+                inventoryActive: 'equipment',
+                equipmentActive: 'weapon',
                 // 所有装备品阶
                 AllEquipmenType: ['info', 'success', 'primary', 'purple', 'warning', 'danger', 'pink'],
                 // 灵宠转生勾选状态
                 petReincarnation: false,
                 inventoryCollapse: '',
-                // 批量出售弹窗
+                // 批量分解弹窗
                 sellingEquipmentShow: false,
             }
         },
@@ -706,6 +735,11 @@
             // 装备背包根据评分排序
             sortedEquipments () {
                 return this.player.inventory.slice().sort((a, b) => b.score - a.score);
+            },
+            // 道具背包对象转数组
+            sortedProps () {
+                const obj = this.player.props;
+                return Object.keys(obj).map(key => ({ name: key, num: obj[key] }));
             }
         },
         watch: {
@@ -763,7 +797,7 @@
                 const vuex = JSON.parse(localStorage.vuex);
                 const player = crypto.decryption(vuex.player);
                 const version = player.version ? player.version : 0;
-                if (!version) {
+                if (!version || version == 0.75) {
                     this.clearSave();
                     return;
                 }
@@ -772,101 +806,99 @@
                 this.boss = local.boss;
                 this.player = local.player;
                 // 初始化玩家属性
-                this.player.zc = this.player.zc ? this.player.zc : false; // 隐私政策
-                this.player.level = this.player.level ? this.player.level : 0; // 等级
-                this.player.dodge = this.player.dodge ? this.player.dodge : 0; // 闪避
-                this.player.attack = this.player.attack ? this.player.attack : 10; // 攻击
-                this.player.health = this.player.health ? this.player.health : 100; // 血量
-                this.player.defense = this.player.defense ? this.player.defense : 0; // 防御
-                this.player.version = this.player.version ? this.player.version : 0.700; // 版本号
-                this.player.maxHealth = this.player.maxHealth ? this.player.maxHealth : 100; // 总血量
-                this.player.pet = this.player.pet ? this.player.pet : {}; // 已出战灵宠数据
-                this.player.pets = this.player.pets ? this.player.pets : []; // 灵宠背包数据
-                this.player.score = this.player.score ? this.player.score : 0; // 人物评分
-                this.player.rootBone = this.player.rootBone ? Math.floor(this.player.rootBone) : 0; // 根骨丹数量
-                this.player.currency = this.player.currency ? Math.floor(this.player.currency) : 0; // 鸿蒙石数量
-                this.player.achievement = this.player.achievement ? this.player.achievement : { pet: [], monster: [], equipment: [] }; // 成就数据
-                this.player.cultivateDan = this.player.cultivateDan ? Math.floor(this.player.cultivateDan) : 0; // 培养丹数量
-                this.player.reincarnation = this.player.reincarnation ? this.player.reincarnation : 0; // 转生次数
-                this.player.backpackCapacity = this.player.backpackCapacity ? this.player.backpackCapacity : 50; // 背包容量
-                this.player.strengtheningStone = this.player.strengtheningStone ? Math.floor(this.player.strengtheningStone) : 0; // 炼器石数量
-                this.player.sellingEquipmentData = this.player.sellingEquipmentData ? this.player.sellingEquipmentData : []; // 装备批量出售设置
+                // this.player.zc = this.player.zc ? this.player.zc : false; // 隐私政策
+                // this.player.level = this.player.level ? this.player.level : 0; // 等级
+                // this.player.dodge = this.player.dodge ? this.player.dodge : 0; // 闪避
+                // this.player.attack = this.player.attack ? this.player.attack : 10; // 攻击
+                // this.player.health = this.player.health ? this.player.health : 100; // 血量
+                // this.player.defense = this.player.defense ? this.player.defense : 0; // 防御
+                // this.player.version = this.player.version ? this.player.version : 0.770; // 版本号
+                // this.player.maxHealth = this.player.maxHealth ? this.player.maxHealth : 100; // 总血量
+                // this.player.pet = this.player.pet ? this.player.pet : {}; // 已出战灵宠数据
+                // this.player.pets = this.player.pets ? this.player.pets : []; // 灵宠背包数据
+                // this.player.wife = this.player.wife ? this.player.wife : {}; // 已跟随的道侣数据
+                // this.player.wifes = this.player.wifes ? this.player.wifes : []; // 道侣背包数据
+                // this.player.score = this.player.score ? this.player.score : 0; // 人物评分
+                // this.player.achievement = this.player.achievement ? this.player.achievement : { pet: [], monster: [], equipment: [] }; // 成就数据
+                // this.player.reincarnation = this.player.reincarnation ? this.player.reincarnation : 0; // 转生次数
+                // this.player.backpackCapacity = this.player.backpackCapacity ? this.player.backpackCapacity : 50; // 背包容量
+                // this.player.sellingEquipmentData = this.player.sellingEquipmentData ? this.player.sellingEquipmentData : []; // 装备批量分解设置
                 // 转换灵宠背包里的转生次数
-                if (this.player.version == 0.7) {
-                    // 更新玩家评分
-                    this.player.score = equip.calculateEquipmentScore(this.player.dodge, this.player.attack, this.player.maxHealth, this.player.critical, this.player.defense);
-                    // 如果已转生
-                    if (this.player.reincarnation >= 1) {
-                        // 自动增加背包容量
-                        this.player.backpackCapacity = this.player.reincarnation * 50;
-                    }
-                    // 脱下所有装备
-                    this.equipmentClose('armor');
-                    this.equipmentClose('sutra');
-                    this.equipmentClose('weapon');
-                    this.equipmentClose('accessory');
-                    // 收回已出战灵宠
-                    this.petRetract();
-                    // 如果灵宠背包里有灵宠的话
-                    if (this.player.pets.length) {
-                        // 重置背包所有灵宠的闪避和暴击为基础属性
-                        this.player.pets.forEach(item => {
-                            item.lock = false;
-                            item.dodge = item?.initial?.dodge;
-                            item.critical = item?.initial?.critical;
-                            // 添加灵宠评分
-                            item.score = equip.calculateEquipmentScore(item.dodge, item.attack, item.health, item.critical, item.defense);
-                        });
-                    }
-                    // 如果装备背包里有装备的话
-                    if (this.player.inventory.length) {
-                        const calculateCost = (item) => {
-                            let baseCost = item.level * 5;
-                            let incrementPerLevel = item.strengthen * 50;
-                            let protect = 10;
-                            return (baseCost + incrementPerLevel) * protect;
-                        }
-                        // 重置背包所有装备的属性
-                        this.player.inventory.forEach(item => {
-                            // 如果炼器等级大于等于1
-                            if (item.strengthen >= 1) {
-                                // 攻击
-                                item.attack = item?.initial?.attack;
-                                // 气血
-                                item.health = item?.initial?.health;
-                                // 防御
-                                item.defense = item?.initial?.defense;
-                                // 如果装备品阶为仙阶
-                                if (item.quality == 'pink') {
-                                    // 随机暴击和闪避属性
-                                    const dodge = shop.getRandomFloatInRange(0.02, 0.25);
-                                    const critical = shop.getRandomFloatInRange(0.02, 0.25);
-                                    // 如果暴击属性大于等于100%
-                                    if (item.critical >= 1) {
-                                        item.critical = critical;
-                                        item.initial.critical = critical;
-                                    }
-                                    // 如果闪避属性大于等于100%
-                                    if (item.dodge >= 1) {
-                                        item.dodge = dodge;
-                                        item.initial.dodge = dodge;
-                                    }
-                                } else {
-                                    item.dodge = item?.initial?.dodge;
-                                    item.critical = item?.initial?.critical;
-                                }
-                                // 重置强化等级
-                                item.strengthen = 0;
-                                // 返还炼器石
-                                this.player.strengtheningStone += calculateCost(item);
-                            }
-                            // 添加装备评分
-                            item.score = equip.calculateEquipmentScore(item.dodge, item.attack, item.health, item.critical, item.defense);
-                        });
-                    }
+                // if (this.player.version == 0.7) {
+                //     // 更新玩家评分
+                //     this.player.score = equip.calculateEquipmentScore(this.player.dodge, this.player.attack, this.player.maxHealth, this.player.critical, this.player.defense);
+                //     // 如果已转生
+                //     if (this.player.reincarnation >= 1) {
+                //         // 自动增加背包容量
+                //         this.player.backpackCapacity = this.player.reincarnation * 50;
+                //     }
+                //     // 脱下所有装备
+                //     this.equipmentClose('armor');
+                //     this.equipmentClose('sutra');
+                //     this.equipmentClose('weapon');
+                //     this.equipmentClose('accessory');
+                //     // 收回已出战灵宠
+                //     this.petRetract();
+                //     // 如果灵宠背包里有灵宠的话
+                //     if (this.player.pets.length) {
+                //         // 重置背包所有灵宠的闪避和暴击为基础属性
+                //         this.player.pets.forEach(item => {
+                //             item.lock = false;
+                //             item.dodge = item?.initial?.dodge;
+                //             item.critical = item?.initial?.critical;
+                //             // 添加灵宠评分
+                //             item.score = equip.calculateEquipmentScore(item.dodge, item.attack, item.health, item.critical, item.defense);
+                //         });
+                //     }
+                //     // 如果装备背包里有装备的话
+                //     if (this.player.inventory.length) {
+                //         const calculateCost = (item) => {
+                //             let baseCost = item.level * 5;
+                //             let incrementPerLevel = item.strengthen * 50;
+                //             let protect = 10;
+                //             return (baseCost + incrementPerLevel) * protect;
+                //         }
+                //         // 重置背包所有装备的属性
+                //         this.player.inventory.forEach(item => {
+                //             // 如果炼器等级大于等于1
+                //             if (item.strengthen >= 1) {
+                //                 // 攻击
+                //                 item.attack = item?.initial?.attack;
+                //                 // 气血
+                //                 item.health = item?.initial?.health;
+                //                 // 防御
+                //                 item.defense = item?.initial?.defense;
+                //                 // 如果装备品阶为仙阶
+                //                 if (item.quality == 'pink') {
+                //                     // 随机暴击和闪避属性
+                //                     const dodge = shop.getRandomFloatInRange(0.02, 0.25);
+                //                     const critical = shop.getRandomFloatInRange(0.02, 0.25);
+                //                     // 如果暴击属性大于等于100%
+                //                     if (item.critical >= 1) {
+                //                         item.critical = critical;
+                //                         item.initial.critical = critical;
+                //                     }
+                //                     // 如果闪避属性大于等于100%
+                //                     if (item.dodge >= 1) {
+                //                         item.dodge = dodge;
+                //                         item.initial.dodge = dodge;
+                //                     }
+                //                 } else {
+                //                     item.dodge = item?.initial?.dodge;
+                //                     item.critical = item?.initial?.critical;
+                //                 }
+                //                 // 重置强化等级
+                //                 item.strengthen = 0;
+                //                 // 返还炼器石
+                //                 this.player.props.strengtheningStone += calculateCost(item);
+                //             }
+                //             // 添加装备评分
+                //             item.score = equip.calculateEquipmentScore(item.dodge, item.attack, item.health, item.critical, item.defense);
+                //         });
+                //     }
                     // 更新玩家数据版本
-                    this.player.version = 0.75;
-                }
+                    // this.player.version = 0.75;
+                // }
             }
             // 初始化游戏
             this.startGame();
@@ -883,7 +915,7 @@
                                 this.$notify({ title: '实力不足提示', message: `外面太危险了, 请突破到${this.$levelNames[10]}再出去吧!` });
                                 return;
                             }
-                            this.$router.push('/explore');
+                            this.$router.push('/map'); 
                         }
                     },
                     { text: '批量处理', handler: this.sellingEquipmentBox },
@@ -948,46 +980,48 @@
                     return total + Math.floor(level);
                 }, 0);
                 // 增加培养丹数量
-                this.player.cultivateDan += cultivateDanTotal;
+                this.player.props.cultivateDan += cultivateDanTotal;
                 // 清空背包内所有未锁定灵宠
                 this.player.pets = pets.filter(item => item.lock);
                 this.$store.commit('setPlayer', this.player);
                 this.$notify({ title: '灵宠放生提示', message: `所有非锁定灵宠已成功放生, 他们临走前一起赠与了你${cultivateDanTotal}个培养丹` });
             },
-            // 批量出售装备
+            // 批量分解装备
             sellingEquipment () {
                 // 获取玩家背包装备
                 const inventory = this.player.inventory;
-                // 获取玩家装备出售设置
+                // 获取玩家装备分解设置
                 const sellingEquipmen = this.player.sellingEquipmentData;
-                // 检查是否选择了需要出售的品阶
+                // 检查是否选择了需要分解的品阶
                 if (!sellingEquipmen.length) {
-                    this.$notify({ title: '背包装备出售提示', message: '你没有选择勾选需要出售的品阶' });
+                    this.$notify({ title: '背包装备分解提示', message: '你没有选择勾选需要分解的品阶' });
                     return;
                 }
-                // 过滤出可以出售的装备
+                // 过滤出可以分解的装备
                 const selling = inventory.filter(item => sellingEquipmen.includes(item.quality) && !item.lock);
                 // 检查是否有可售卖的装备
                 if (!selling.length) {
-                    this.$notify({ title: '背包装备出售提示', message: '背包内并没有可以售卖的装备' });
+                    this.$notify({ title: '背包装备分解提示', message: '背包内并没有可以售卖的装备' });
                     return;
                 }
                 // 关闭弹窗
                 this.sellingEquipmentShow = false;
-                // 计算未锁定装备与选中出售品阶的等级总和
+                // 计算未锁定装备与选中分解品阶的等级总和
                 const strengtheningStoneTotal = selling.reduce((total, i) => {
                     let level = i.level + i.level * this.player.reincarnation / 10;
                     level = Number(level) || 0;
                     return total + Math.floor(level);
                 }, 0);
+                // 增加灵石数量
+                this.player.props.money += selling.length;
                 // 增加炼器石数量
-                this.player.strengtheningStone += strengtheningStoneTotal;
-                // 清空背包内所有未锁定装备与选中出售的品阶
+                this.player.props.strengtheningStone += strengtheningStoneTotal;
+                // 清空背包内所有未锁定装备与选中分解的品阶
                 this.player.inventory = inventory.filter(item => !sellingEquipmen.includes(item.quality) || item.lock);
                 this.$store.commit('setPlayer', this.player);
-                this.$notify({ title: '背包装备出售提示', message: `背包内所有非锁定装备已成功出售, 你获得了${strengtheningStoneTotal}个炼器石` });
+                this.$notify({ title: '背包装备分解提示', message: `背包内所有非锁定装备已成功分解, 你获得了${strengtheningStoneTotal}个炼器石和${selling.length}个灵石` });
             },
-            // 修改玩家装备出售设置
+            // 修改玩家装备分解设置
             sellingEquipmentDataChange (val) {
                 this.player.sellingEquipmentData = val;
                 // 更新玩家存档
@@ -1108,7 +1142,7 @@
                     document.body.removeChild(downloadLink);
                 }
             },
-            // 批量出售装备弹窗
+            // 批量分解装备弹窗
             sellingEquipmentBox () {
                 this.show = false;
                 this.sellingEquipmentShow = true;
@@ -1191,12 +1225,12 @@
                     // 关闭灵宠信息弹窗
                     this.petShow = false;
                     // 增加培养丹数量
-                    this.player.cultivateDan += num;
+                    this.player.props.cultivateDan += num;
                     // 删除道具
                     this.player.pets = this.player.pets.filter(obj => obj.id !== item.id);
                     // 更新玩家存档
                     this.$store.commit('setPlayer', this.player);
-                    // 装备出售通知
+                    // 装备分解通知
                     this.$notify({
                         title: `${item.name}已成功放生`,
                         message: `对方临走时赠与了你${num}个培养丹`
@@ -1235,13 +1269,13 @@
                 // 炼器消耗道具数量
                 const calculateCost = this.calculateCost(item);
                 // 如果炼器石不足
-                if (calculateCost > this.player.strengtheningStone) {
+                if (calculateCost > this.player.props.strengtheningStone) {
                     // 发送通知
                     this.$notify({ title: '炼器提示', message: '炼器石不足, 进行无法炼器操作', position: 'top-left' });
                     return;
                 }
                 // 如果炼器等级已满
-                if (item.strengthen == 25) {
+                if (item.strengthen == 30) {
                     // 发送通知
                     this.$notify({ title: '炼器提示', message: '当前装备炼器等级已满', position: 'top-left' });
                     return;
@@ -1254,11 +1288,11 @@
                     // 如果炼器成功
                     if (Math.random() <= successRate) {
                         // 攻击
-                        const attack = Math.floor(item.initial.attack * 0.1);
+                        const attack = Math.floor(item.initial.attack * 0.2);
                         // 血量
-                        const health = Math.floor(item.initial.health * 0.1);
+                        const health = Math.floor(item.initial.health * 0.2);
                         // 防御
-                        const defense = Math.floor(item.initial.defense * 0.1);
+                        const defense = Math.floor(item.initial.defense * 0.2);
                         switch (item.type) {
                             // 如果是神兵
                             case 'weapon':
@@ -1304,7 +1338,7 @@
                         this.$notify({ title: '炼器提示', message: item.strengthen >= 15 && !this.protect ? '炼器失败, 装备已自动销毁' : '炼器失败', position: 'top-left' });
                     }
                     // 扣除炼器石
-                    this.player.strengtheningStone -= calculateCost;
+                    this.player.props.strengtheningStone -= calculateCost;
                     // 更新玩家存档
                     this.$store.commit('setPlayer', this.player);
                 }).catch(() => { });
@@ -1338,10 +1372,10 @@
                 // 计算灵宠升级所需材料数量
                 const consume = this.petConsumption(item.level);
 
-                // 如果勾选了提升根骨但是根骨丹不足
-                if (this.petRootBone && this.player.rootBone < item.rootBone) {
+                // 如果勾选了提升悟性但是悟性丹不足
+                if (this.petRootBone && this.player.props.rootBone < item.rootBone) {
                     // 发送通知
-                    this.$notify({ title: '灵宠培养提示', message: '根骨丹不足, 无法提升灵宠根骨', position: 'top-left' });
+                    this.$notify({ title: '灵宠培养提示', message: '悟性丹不足, 无法提升灵宠悟性', position: 'top-left' });
                     return;
                 }
                 // 如果勾选了灵宠转生但是人物转生不等于灵宠转生
@@ -1363,7 +1397,7 @@
                     return;
                 }
                 // 如果培养丹不足
-                if (consume > this.player.cultivateDan) {
+                if (consume > this.player.props.cultivateDan) {
                     // 发送通知
                     this.$notify({ title: '灵宠培养提示', message: '培养丹不足, 进行无法培养', position: 'top-left' });
                     return;
@@ -1374,25 +1408,27 @@
                     confirmButtonText: '确定以及肯定'
                 }).then(() => {
                     let attack, health, defense = 0;
-                    // 如果勾选了提升根骨并且根骨丹足够
-                    if (this.petRootBone && this.player.rootBone >= item.rootBone) {
+                    // 如果勾选了提升悟性并且悟性丹足够
+                    if (this.petRootBone && this.player.props.rootBone >= item.rootBone) {
+                        let rootBone = item.initial.rootBone - item.rootBone;
+                        rootBone = rootBone ? rootBone : 1;
                         // 攻击
-                        attack = Math.floor(item.initial.attack * item.rootBone);
+                        attack = Math.floor(item.initial.attack * rootBone);
                         // 血量
-                        health = Math.floor(item.initial.health * item.rootBone);
+                        health = Math.floor(item.initial.health * rootBone);
                         // 防御
-                        defense = Math.floor(item.initial.defense * item.rootBone);
-                        // 提升根骨
+                        defense = Math.floor(item.initial.defense * rootBone);
+                        // 提升悟性
                         item.rootBone++;
-                        // 扣除根骨丹
-                        this.player.rootBone -= item.rootBone;
+                        // 扣除悟性丹
+                        this.player.props.rootBone -= item.rootBone;
                     } else {
                         // 攻击
-                        attack = Math.floor(item.initial.attack * 0.2);
+                        attack = Math.floor(item.initial.attack * 0.05);
                         // 血量
-                        health = Math.floor(item.initial.health * 0.2);
+                        health = Math.floor(item.initial.health * 0.05);
                         // 防御
-                        defense = Math.floor(item.initial.defense * 0.2);
+                        defense = Math.floor(item.initial.defense * 0.05);
                     }
                     // 如果勾选了转生并且当前等级已满
                     if (item.level >= this.$maxLv) {
@@ -1419,7 +1455,7 @@
                     // 重新计算灵宠评分
                     this.player.pet.score = equip.calculateEquipmentScore(this.player.pet.dodge, this.player.pet.attack, this.player.pet.health, this.player.pet.critical, this.player.pet.defense);
                     // 扣除培养丹
-                    this.player.cultivateDan -= consume;
+                    this.player.props.cultivateDan -= consume;
                     // 更新玩家存档
                     this.$store.commit('setPlayer', this.player);
                 }).catch(() => { });
@@ -1434,9 +1470,9 @@
             },
             // 购买装备
             shopBuy (item) {
-                if (this.player.currency >= this.shopPrice) {
+                if (this.player.props.currency >= this.shopPrice) {
                     // 扣除鸿蒙石
-                    this.player.currency -= this.shopPrice;
+                    this.player.props.currency -= this.shopPrice;
                     // 如果装备背包当前容量大于等于背包总容量
                     if (this.player.inventory.length >= this.player.backpackCapacity) {
                         this.storyText = `当前装备背包容量已满, 该装备自动丢弃, 转生可增加背包容量`;
@@ -1452,6 +1488,55 @@
                 } else {
                     this.$notify({ title: '购买提示', message: '购买失败, 鸿蒙石不足' });
                 }
+            },
+            // 道侣跟随
+            wifeTack (item) {
+                // 如果已经有道侣跟随就收回
+                if (JSON.stringify(this.player.wife) != '{}') {
+                    const itemInfo = this.player.wife;
+                    // 更新玩家属性，移除跟随道侣的属性加成
+                    this.playerAttribute(-itemInfo.dodge, -itemInfo.attack, -itemInfo.health, -itemInfo.critical, -itemInfo.defense);
+                    // 收回当前跟随的道侣
+                    this.player.wifes.push(this.player.wife);
+                }
+                this.player.wife = item;
+                // 更新玩家属性，添加当前跟随道侣的属性加成
+                this.playerAttribute(item.dodge, item.attack, item.health, item.critical, item.defense);
+                // 从道侣背包中移除这个道侣
+                this.player.wifes = this.player.wifes.filter(i => i.name !== item.name);
+                // 更新玩家存档
+                this.$store.commit('setPlayer', this.player);
+            },
+            // 道侣收回
+            wifeRevoke () {
+                const item = this.player.wife;
+                // 更新玩家属性，移除当前跟随道侣的属性加成
+                this.playerAttribute(-item.dodge, -item.attack, -item.health, -item.critical, -item.defense);
+                // 收回当前跟随的道侣
+                this.player.wife = {};
+                this.player.wifes.push(item);
+                // 更新玩家存档
+                this.$store.commit('setPlayer', this.player);
+            },
+            // 道侣信息
+            wifeItemInfo (item) {
+                this.$confirm('', item.name, {
+                    center: true,
+                    message: `<div class="monsterinfo">
+                        <div class="monsterinfo-box">
+                            <p>境界: ${this.$levelNames[item.level]}</p>
+                            <p>气血: ${this.$formatNumberToChineseUnit(item.health)}</p>
+                            <p>攻击: ${this.$formatNumberToChineseUnit(item.attack)}</p>
+                            <p>防御: ${this.$formatNumberToChineseUnit(item.defense)}</p>
+                            <p>闪避率: ${item.dodge > 0 ? (item.dodge * 100 > 100 ? 100 : (item.dodge * 100).toFixed(2)) : 0}%</p>
+                            <p>暴击率: ${item.critical > 0 ? (item.critical * 100 > 100 ? 100 : (item.critical * 100).toFixed(2)) : 0}%</p>
+                        </div>
+                    </div>`,
+                    confirmButtonText: '跟随',
+                    dangerouslyUseHTMLString: true
+                }).then(() => {
+                    this.wifeTack(item);
+                }).catch(() => { });
             },
             // 商店装备信息
             shopItemInfo (item) {
@@ -1513,24 +1598,24 @@
                     this.$store.commit('setPlayer', this.player);
                 }
             },
-            // 出售装备
+            // 分解装备
             inventoryClose (item) {
-                this.$confirm(`你确定要出售<span class="el-tag el-tag--${item.quality}">${this.$levels[item.quality]}${item.name}(${this.$genre[item.type]})</span>吗?`, '装备出售通知', {
+                this.$confirm(`你确定要分解<span class="el-tag el-tag--${item.quality}">${this.$levels[item.quality]}${item.name}(${this.$genre[item.type]})</span>吗?`, '装备分解通知', {
                     center: true,
-                    cancelButtonText: '取消出售',
-                    confirmButtonText: '确定出售',
+                    cancelButtonText: '取消分解',
+                    confirmButtonText: '确定分解',
                     dangerouslyUseHTMLString: true
                 }).then(() => {
                     const num = item.level + Math.floor(item.level * this.player.reincarnation / 10);
                     // 增加炼器石数量
-                    this.player.strengtheningStone += num;
-                    // 删除道具
+                    this.player.props.strengtheningStone += num;
+                    // 删除背包装备
                     this.player.inventory = this.player.inventory.filter(obj => obj.id !== item.id);
                     // 关闭装备信息弹窗
                     this.inventoryShow = false;
                     // 更新玩家存档
                     this.$store.commit('setPlayer', this.player);
-                    // 装备出售通知
+                    // 装备分解通知
                     this.$notify({ title: '背包装备售卖提示', message: `${item.name}已成功卖出, 你获得了${num}个炼器石` });
                 }).catch(() => { });
             },
@@ -1599,7 +1684,7 @@
                 // 更新玩家属性，移除当前穿戴装备的属性加成
                 this.playerAttribute(-equipment[type].dodge, -equipment[type].attack, -equipment[type].health, -equipment[type].critical, -equipment[type].defense);
                 // 跳转背包相关页
-                this.inventoryActive = type;
+                this.equipmentActive = type;
                 // 给装备增加id
                 equipment[type].id = Date.now();
                 // 添加装备到背包里

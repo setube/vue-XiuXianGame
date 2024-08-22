@@ -1,4 +1,5 @@
 import VueRouter from 'vue-router';
+import map from '../views/mapExploration.vue';
 import boss from '../views/bossPage.vue';
 import home from '../views/homePage.vue';
 import index from '../views/indexPage.vue';
@@ -22,7 +23,7 @@ const routes = [
         path: '/',
         name: 'index',
         meta: {
-            keepAlive: true
+            keepAlive: false
         },
         component: index
     },
@@ -30,7 +31,7 @@ const routes = [
         path: '/home',
         name: 'home',
         meta: {
-            keepAlive: true
+            keepAlive: false
         },
         component: home
     },
@@ -38,15 +39,23 @@ const routes = [
         path: '/cultivate',
         name: 'cultivate',
         meta: {
-            keepAlive: true
+            keepAlive: false
         },
         component: cultivate
+    },
+    {
+        path: '/map',
+        name: 'map',
+        meta: {
+            keepAlive: true
+        },
+        component: map
     },
     {
         path: '/explore',
         name: 'explore',
         meta: {
-            keepAlive: true
+            keepAlive: false
         },
         component: explore
     },
@@ -54,7 +63,7 @@ const routes = [
         path: '/boss',
         name: 'boss',
         meta: {
-            keepAlive: true
+            keepAlive: false
         },
         component: boss
     },

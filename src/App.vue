@@ -1,6 +1,6 @@
 <template>
     <div class="game-container-wrapper" draggable="true">
-        <div class="github-corner">
+        <div class="github-corner" v-if="ifProtocol">
             <a href="https://github.com/setube/vue-XiuXianGame" target="_blank" aria-label="View source on GitHub">
                 <svg width="80" height="80" viewBox="0 0 250 250" style="fill:#151513; color:#fff; position: absolute; top: 0; border: 0; right: 0; z-index: 2;" aria-hidden="true">
                     <path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z" />
@@ -10,7 +10,10 @@
             </a>
         </div>
         <div class="game-container">
-            <router-view />
+            <keep-alive>
+                <router-view v-if="$route.meta.keepAlive" :key="key"></router-view>
+            </keep-alive>
+            <router-view v-if="!$route.meta.keepAlive" :key="key"></router-view>
             <div class="bbh">
                 当前游戏版本{{ version }}
             </div>
@@ -25,11 +28,18 @@
     export default {
         data () {
             return {
-                version: 0.75
+                version: 0.77,
             };
         },
+        computed: {
+            key () {
+                return this.$route.path;
+            },
+            ifProtocol () {
+                return window.location.protocol == 'file:' ? false : true;
+            }
+        },
         mounted () {
-
         },
         methods: {
         }
@@ -131,6 +141,7 @@
     }
 
     @media only screen and (min-width: 800px) {
+
         /* 自定义滚动条 */
         ::-webkit-scrollbar {
             width: 10px;

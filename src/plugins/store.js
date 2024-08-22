@@ -27,10 +27,30 @@ export default new Vuex.Store(
             player: {
                 //隐私政策
                 zc: false,
-                // 出战的灵兽
                 pet: {},
+                // npc
+                npcs: [],
+                // 跟随的道侣
+                wife: {},
+                // 出战的灵兽
                 // 收服的灵兽
                 pets: [],
+                // 已拥有的道侣
+                wifes: [],
+                props: {
+                    // 灵石
+                    money: 0,
+                    // 传送符
+                    flying: 0,
+                    // 悟性丹
+                    rootBone: 0,
+                    // 鸿蒙石数量
+                    currency: 0,
+                    // 培养丹数量
+                    cultivateDan: 0,
+                    // 炼器石数量
+                    strengtheningStone: 0,
+                },
                 // 人物评分
                 score: 0,
                 // 等级
@@ -50,7 +70,7 @@ export default new Vuex.Store(
                 // 已击杀数量
                 taskNum: 0,
                 // 版本号
-                version: 0.75,
+                version: 0.77,
                 // 鸿蒙石数量
                 currency: 0,
                 // 总血量
@@ -78,16 +98,12 @@ export default new Vuex.Store(
                 },
                 // 当前修为
                 cultivation: 0,
-                // 培养丹数量
-                cultivateDan: 0,
                 // 转生次数
                 reincarnation: 0,
                 // 下个等级所需修为
                 maxCultivation: 100,
                 // 背包容量
                 backpackCapacity: 50,
-                // 强化石数量
-                strengtheningStone: 0,
                 // 批量出售装备设置
                 sellingEquipmentData: [],
             }

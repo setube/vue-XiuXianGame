@@ -168,12 +168,12 @@
                             // 玩家获得道具
                             this.player.inventory.push(equipItem);
                         }
-                        // 增加根骨丹
-                        this.player.rootBone += 1;
-                        // 获得根骨丹通知
-                        this.texts = [...this.texts, '你获得了1颗根骨丹'];
+                        // 增加悟性丹
+                        this.player.props.rootBone += 1;
+                        // 获得悟性丹通知
+                        this.texts = [...this.texts, '你获得了1颗悟性丹'];
                         // 增加鸿蒙石
-                        this.player.currency += this.currency;
+                        this.player.props.currency += this.currency;
                         // 获得鸿蒙石通知
                         this.texts = [...this.texts, `你获得了${this.currency}块鸿蒙石`];
                         // 修改按钮状态

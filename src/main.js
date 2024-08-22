@@ -50,6 +50,16 @@ Vue.prototype.$levels = {
     warning: '帝阶',
 };
 
+// 道具名称
+Vue.prototype.$propItemNames = {
+    money: '灵石',
+    flying: '传送符',
+    rootBone: '悟性丹',
+    currency: '鸿蒙石',
+    cultivateDan: '培养丹',
+    strengtheningStone: '炼器石'
+};
+
 // 单位转换
 Vue.prototype.$formatNumberToChineseUnit = (number) => {
     number = number > 0 ? number : 0;
@@ -93,10 +103,10 @@ Vue.prototype.$smoothScrollToBottom = (element) => {
         return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
     }
     window.requestAnimationFrame(scroll);
-},
+};
 
-    new Vue({
-        store,
-        router,
-        render: h => h(App),
-    }).$mount('#app');
+new Vue({
+    store,
+    router,
+    render: h => h(App),
+}).$mount('#app');

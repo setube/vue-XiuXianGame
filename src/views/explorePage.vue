@@ -193,7 +193,7 @@
                         this.player.taskNum++;
                         // 增加培养丹
                         const reincarnation = this.player.reincarnation ? 1 + 1 * this.player.reincarnation : 1
-                        this.player.cultivateDan += reincarnation;
+                        this.player.props.cultivateDan += reincarnation;
                         // 发送提示
                         this.texts = [...this.texts, `击败${this.monster.name}后你获得了${reincarnation}颗培养丹`];
                         this.findTreasure(this.monster.name);

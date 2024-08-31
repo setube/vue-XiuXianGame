@@ -47,7 +47,7 @@ const routes = [
         path: '/map',
         name: 'map',
         meta: {
-            keepAlive: true
+            keepAlive: false
         },
         component: map
     },

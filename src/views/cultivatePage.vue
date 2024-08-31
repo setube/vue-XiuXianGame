@@ -98,10 +98,10 @@
                     if (this.player.cultivation >= this.player.maxCultivation) {
                         // 如果玩家等级大于10并且击杀数低于当前等级
                         if (this.player.level > 10 && this.player.level > this.player.taskNum) {
+                            this.stopCultivate();
                             this.isStop = false;
                             this.isStart = false;
                             this.texts = [...this.texts, `当前境界修为已满, 你需要通过击败<span style="color: #f56c6c;">(${this.player.taskNum} / ${this.player.level})</span>个敌人证道突破`];
-                            this.stopCultivate();
                             return;
                         }
                         // 清空已击杀敌人
@@ -114,7 +114,7 @@
                         this.player.health = this.player.maxHealth;
                         // 增加玩家总修为
                         this.player.maxCultivation = Math.floor(100 * Math.pow(2, this.player.level * reincarnation));
-                        this.texts = [...this.texts, `恭喜你突破了！当前境界：${this.$levelNames[this.player.level]}`];
+                        this.texts = [...this.texts, `恭喜你突破了！当前境界：${this.$levelNames(this.player.level)}`];
                     } else {
                         // 当前修为
                         this.player.cultivation += exp;
@@ -178,7 +178,7 @@
                 } else {
                     this.$notify({
                         title: '未满足转生条件',
-                        message: `境界需要达到<span style="color: #f56c6c;">${this.$levelNames[this.$maxLv]}</span>才能满足转生条件`,
+                        message: `境界需要达到<span style="color: #f56c6c;">${this.$levelNames(this.$maxLv)}</span>才能满足转生条件`,
                         dangerouslyUseHTMLString: true
                     });
                 }

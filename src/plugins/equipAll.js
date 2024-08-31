@@ -41,8 +41,7 @@ const All = {
                     health: getAttribute(type, lv, 'health', quality[kk]),
                     defense: getAttribute(type, lv, 'defense', quality[kk]),
                     critical: getAttribute(type, lv, 'critical', quality[kk]),
-                    quality: quality[kk],
-                    strengthen: 20
+                    quality: quality[kk]
                 }))
             )
         }));

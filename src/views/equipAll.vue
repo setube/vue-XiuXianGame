@@ -95,7 +95,7 @@
                     message: `<div class="monsterinfo">
                         <div class="monsterinfo-box">
                             <p>类型: ${this.$genre[info.type]}</p>
-                            <p>境界: ${this.$levelNames[info.level]}</p>
+                            <p>境界: ${this.$levelNames(info.level)}</p>
                             <p>品质: ${this.$levels[info.quality]}</p>
                             <p>气血: ${this.$formatNumberToChineseUnit(info.health)}</p>
                             <p>攻击: ${this.$formatNumberToChineseUnit(info.attack)}</p>

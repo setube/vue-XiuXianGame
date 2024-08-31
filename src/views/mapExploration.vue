@@ -14,25 +14,25 @@
                 <div class="color-box empty"></div> 空地
             </div>
         </div>
-        <div class="map">
+        <div class="map" ref="map">
             <div class="grid-container">
-                <div v-for="(cell, index) in grid" :key="index" :class="['grid-item', cell.type]" @click="gridInfo(index, cell)"></div>
+                <div v-for="(cell, index) in grid" :key="index" :ref="'cell-' + index" :class="['grid-item', cell.type]" @click="gridInfo(index, cell)"></div>
             </div>
         </div>
         <div class="controls">
             <el-button class="home-button" @click="$router.push('/home');">回家</el-button>
-            <el-button class="up-button" @click="move('up')">往北</el-button>
-            <el-button class="dialogue-button" @click="talkToNpc" :disabled="!canTalk">对话</el-button>
-            <el-button class="left-button" @click="move('left')">往西</el-button>
-            <el-button class="down-button" @click="move('down')">往南</el-button>
-            <el-button class="right-button" @click="move('right')">往东</el-button>
+            <el-button class="up-button" @click="move('up')" :disabled="isTopObstacle || playerY == 0">往北</el-button>
+            <el-button class="dialogue-button" @click="talkToNpc" :disabled="!isNpc">对话</el-button>
+            <el-button class="left-button" @click="move('left')" :disabled="isLeftObstacle || playerX === 0">往西</el-button>
+            <el-button class="down-button" @click="move('down')" :disabled="isDownObstacle || playerY === gridSize - 1">往南</el-button>
+            <el-button class="right-button" @click="move('right')" :disabled="isRightObstacle || playerX === gridSize - 1">往东</el-button>
         </div>
         <el-drawer :title="npcInfo.name" :visible.sync="npcShow" direction="rtl" class="strengthen">
             <div class="wife-box">
                 <div class="attributes">
                     <div class="attribute-box">
                         <div class="tag attribute">
-                            境界: {{ $levelNames[npcInfo.lv] }} ({{ npcInfo.reincarnation }}转)
+                            境界: {{ $levelNames(npcInfo.lv) }} ({{ npcInfo.reincarnation }}转)
                         </div>
                         <div class="tag attribute">
                             气血: 不详
@@ -58,8 +58,8 @@
                     <el-button type="primary" @click="giftShow = !giftShow">
                         {{giftShow ? '取消赠送' : '赠送礼物'}}
                     </el-button>
-                    <el-button type="primary" :disabled="npcInfo.favorability >= 1000" @click="harvestNpc(npcInfo)">
-                        结为道侣
+                    <el-button type="primary" :disabled="npcInfo.favorability < 1000 || isHaveWife(npcInfo.name)" @click="harvestNpc(npcInfo)">
+                        {{ isHaveWife(npcInfo.name) ? '已结为道侣' : '结为道侣' }}
                     </el-button>
                 </div>
                 <div class="gift-box" v-if="giftShow">
@@ -76,22 +76,20 @@
 <script>
     // npc
     import npc from '@/plugins/npc';
-    // 怪物
-    import monster from '@/plugins/monster';
 
     export default {
         data () {
             return {
-                player: {},
-                npcInfo: [],
-                npcShow: false,
-                gridSize: 50, // 地图的大小 (50x50)
                 grid: [], // 保存每个格子的状态
+                player: {},
                 playerX: 0, // 玩家在X轴的位置
                 playerY: 0, // 玩家在Y轴的位置
+                npcInfo: {},
+                npcShow: false,
+                gridSize: 50, // 地图的大小 (50x50)
                 giftShow: false,
-                obstacleCount: 0, // 障碍物的数量 (总格子的10%)
                 npcCount: 10, // NPC的数量
+                obstacleCount: 0, // 障碍物的数量 (总格子的10%)
             };
         },
         computed: {
@@ -122,21 +120,50 @@
             totalCells () {
                 return this.gridSize * this.gridSize;
             },
-            canTalk () {
-                // 计算玩家附近是否有NPC
-                const nearbyIndices = [
+            nearbyIndices () {
+                return [
                     (this.playerY - 1) * this.gridSize + this.playerX, // 上
                     (this.playerY + 1) * this.gridSize + this.playerX, // 下
                     this.playerY * this.gridSize + (this.playerX - 1), // 左
                     this.playerY * this.gridSize + (this.playerX + 1)  // 右
                 ];
-                return nearbyIndices.some(index => this.grid[index]?.type === 'npc');
+            },
+            // 计算玩家附近是否有NPC
+            isNpc () {
+                return this.nearbyIndices.some(index => this.grid[index]?.type === 'npc');
+            },
+            // 判断玩家上方有没有障碍物
+            isTopObstacle () {
+                return this.checkDirection('up');
+            },
+            // 判断玩家左方有没有障碍物
+            isLeftObstacle () {
+                return this.checkDirection('left');
+            },
+            // 判断玩家下方有没有障碍物
+            isDownObstacle () {
+                return this.checkDirection('down');
+            },
+            // 判断玩家右方有没有障碍物
+            isRightObstacle () {
+                return this.checkDirection('right');
             }
         },
-        created () {
+        mounted () {
             this.player = this.$store.state.player;
             this.obstacleCount = Math.floor(this.totalCells * 0.1);
-            this.initializeGrid();
+            const mapData = this.$store.state.mapData;
+            if (mapData.map.length) {
+                this.grid = mapData.map;
+                this.playerY = mapData.y;
+                this.playerX = mapData.x;
+            } else {
+                this.initializeGrid();
+            }
+            window.addEventListener('keydown', this.move);
+        },
+        beforeDestroy () {
+            window.removeEventListener('keydown', this.move);
         },
         methods: {
             // 初始化地图
@@ -157,7 +184,7 @@
                 // 更新玩家初始位置
                 this.updatePlayerPosition();
             },
-            // 生成指定数量的物品（障碍物或NPC）
+            // 生成指定数量的障碍物
             generateItems (type, count, excludeSet) {
                 let placed = 0;
                 while (placed < count) {
@@ -174,7 +201,7 @@
                 const isData = this.player.npcs.length;
                 const createNPCData = (name, index, favorability) => {
                     return {
-                        lv: 40,
+                        lv: 144,
                         name,
                         position: index,
                         favorability: isData ? favorability : 0,
@@ -198,19 +225,32 @@
                 }
             },
             harvestNpc (item) {
-                // 添加道侣
-                this.player.wifes.push({
-                    name: item.name,
-                    level: 0,
-                    dodge: 0,
-                    attack: 10,
-                    health: 100,
-                    defense: 10,
-                    critical: 0,
-                    reincarnation: 0
-                });
-                // 更新玩家存档
-                this.$store.commit('setPlayer', this.player);
+                this.$confirm('与对方结为道侣有50%的概率失败, 失败后好感度会清空, 请问还想与对方结为道侣吗?', '结为道侣', {
+                    center: true,
+                    cancelButtonText: '取消',
+                    confirmButtonText: '确定',
+                }).then(() => {
+                    const rand = this.isLucky(50);
+                    if (rand) {
+                        // 添加道侣
+                        this.player.wifes.push({
+                            name: item.name,
+                            level: 0,
+                            dodge: 0,
+                            attack: 10,
+                            health: 100,
+                            defense: 10,
+                            critical: 0,
+                            reincarnation: 0
+                        });
+                        this.$notify({ title: '提示', message: '你成功邀请对方与你结为道侣', position: 'top-left' });
+                    } else {
+                        this.npcInfo.favorability = 0;
+                        this.$notify({ title: '提示', message: '对方拒绝了你的邀请, 好感度清空', position: 'top-left' });
+                    }
+                    // 更新玩家存档
+                    this.$store.commit('setPlayer', this.player);
+                }).catch(() => { });
             },
             // 礼物信息
             giftInfo (item, index) {
@@ -229,7 +269,7 @@
                     dangerouslyUseHTMLString: true
                 }).then(() => {
                     if (item.price > this.player.props.money) {
-                        this.$notify({ title: '赠送提示' + index, message: '灵石不足, 赠送失败', position: 'top-left' });
+                        this.$notify({ title: '赠送提示', message: '灵石不足, 赠送失败', position: 'top-left' });
                         return;
                     }
                     // 扣除灵石数量
@@ -238,9 +278,11 @@
                     this.npcInfo.favorability += item.plus;
                     // 增加传送符
                     this.player.props.flying += index;
+                    // 增加情缘点
+                    this.player.props.qingyuan += index;
                     // 更新玩家存档
                     this.$store.commit('setPlayer', this.player);
-                    this.$notify({ title: '赠送提示', message: `赠送成功, ${this.npcInfo.name}对你的好感度增加了, 并赠与了你${index}张传送符`, position: 'top-left' });
+                    this.$notify({ title: '赠送提示', message: `赠送成功, ${this.npcInfo.name}对你的好感度增加了, 并赠与了你${index}张传送符和${index}点情缘`, position: 'top-left' });
                 }).catch(() => { });
             },
             // 地图信息
@@ -278,26 +320,48 @@
                 this.grid.forEach(cell => (cell.type === 'player' ? cell.type = 'empty' : cell.type));
                 const playerIndex = this.playerY * this.gridSize + this.playerX;
                 this.grid[playerIndex].type = 'player';
-                const rand = monster.getRandomInt(1, 100);
-                if (rand >= 50 && playerIndex != 0) {
-                    this.$router.push('/explore');
-                }
+                // 更新地图数据
+                this.$store.commit('setMapData', {
+                    y: this.playerY,
+                    x: this.playerX,
+                    map: this.grid,
+                });
+                const rand = this.isLucky(20);
+                if (rand && playerIndex != 0) this.$router.push('/explore');
+                // 每次更新玩家位置后调用
+                if (playerIndex != 0) this.updateScroll(playerIndex);
+            },
+            // 计算玩家指定方向是否有NPC或障碍物
+            checkDirection (direction) {
+                const directions = {
+                    up: (this.playerY - 1) * this.gridSize + this.playerX,
+                    down: (this.playerY + 1) * this.gridSize + this.playerX,
+                    left: this.playerY * this.gridSize + (this.playerX - 1),
+                    right: this.playerY * this.gridSize + (this.playerX + 1)
+                };
+                const index = directions[direction];
+                return ['obstacle', 'npc'].includes(this.grid[index]?.type);
             },
             // 根据方向移动玩家
             move (direction) {
                 let newX = this.playerX;
                 let newY = this.playerY;
+                direction = typeof direction === 'string' ? direction : direction.key;
                 switch (direction) {
                     case 'up':
+                    case 'ArrowUp':
                         if (newY > 0) newY--;
                         break;
                     case 'down':
+                    case 'ArrowDown':
                         if (newY < this.gridSize - 1) newY++;
                         break;
                     case 'left':
+                    case 'ArrowLeft':
                         if (newX > 0) newX--;
                         break;
                     case 'right':
+                    case 'ArrowRight':
                         if (newX < this.gridSize - 1) newX++;
                         break;
                 }
@@ -309,17 +373,27 @@
                 }
                 this.updatePlayerPosition();
             },
+            // 自动滚动到玩家所在行
+            updateScroll (playerIndex) {
+                const playerCell = this.$refs[`cell-${playerIndex}`][0];
+                if (playerCell) playerCell.scrollIntoView({ block: 'center', inline: 'center', behavior: 'smooth' });
+            },
             // 找到并与附近的NPC对话
             talkToNpc () {
-                const nearbyIndices = [
-                    (this.playerY - 1) * this.gridSize + this.playerX, // 上
-                    (this.playerY + 1) * this.gridSize + this.playerX, // 下
-                    this.playerY * this.gridSize + (this.playerX - 1), // 左
-                    this.playerY * this.gridSize + (this.playerX + 1)  // 右
-                ];
                 this.npcShow = true;
-                this.npcInfo = this.player.npcs.find(npc => nearbyIndices.includes(npc.position));
+                this.npcInfo = this.player.npcs.find(npc => this.nearbyIndices.includes(npc.position));
             },
+            // 概率计算
+            isLucky (probability) {
+                // 生成一个0到100之间的随机数
+                const randomValue = Math.random() * 100;
+                // 判断随机数是否小于等于传入的概率值
+                return randomValue < probability;
+            },
+            // 判断玩家是否已当前NPC结为道侣
+            isHaveWife (name) {
+                if (name) return this.player.wifes.some(item => item.name === name);
+            }
         }
     };
 </script>
@@ -327,6 +401,7 @@
 <style scoped>
     .map {
         max-width: 770px;
+        height: 500px;
         overflow: auto;
     }
 
@@ -337,7 +412,6 @@
         gap: 1px;
         width: fit-content;
         margin: 20px auto;
-        border: 2px solid #000;
     }
 
     .grid-item {
@@ -375,9 +449,7 @@
     .center-buttons {
         display: flex;
         justify-content: space-between;
-        /* 让按钮一左一右分开 */
         grid-column: span 3;
-        /* 占据三列的宽度 */
     }
 
     .controls>button,

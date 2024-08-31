@@ -81,11 +81,7 @@
         methods: {
             // 回家疗伤
             goHome () {
-                this.$router.options.routes.forEach(item => {
-                    if (item.name == 'map') {
-                        item.meta.keepAlive = false;
-                    }
-                })
+                this.$store.state.mapData = { y: 0, x: 0, map: [] };
                 this.$router.push('/home');
             },
             // 怪物信息
@@ -96,7 +92,7 @@
                     center: true,
                     message: `<div class="monsterinfo">
                         <div class="monsterinfo-box">
-                            <p>境界: ${this.player.level == 0 ? this.$levelNames[this.player.level + 1] : this.$levelNames[this.player.level]}</p>
+                            <p>境界: ${this.player.level == 0 ? this.$levelNames(this.player.level + 1) : this.$levelNames(this.player.level)}</p>
                             <p>悟性: ${Math.floor(newProperties)}</p>
                             <p>气血: ${this.$formatNumberToChineseUnit(this.monster.health)}</p>
                             <p>攻击: ${this.$formatNumberToChineseUnit(this.monster.attack)}</p>
@@ -193,7 +189,7 @@
                         this.player.taskNum++;
                         // 增加培养丹
                         const reincarnation = this.player.reincarnation ? 1 + 1 * this.player.reincarnation : 1
-                        this.player.cultivateDan += reincarnation;
+                        this.player.props.cultivateDan += reincarnation;
                         // 发送提示
                         this.texts = [...this.texts, `击败${this.monster.name}后你获得了${reincarnation}颗培养丹`];
                         this.findTreasure(this.monster.name);
@@ -273,7 +269,7 @@
                             this.player.health = this.player.maxHealth;
                             // 增加玩家总修为
                             this.player.maxCultivation = Math.floor(100 * Math.pow(2, this.player.level));
-                            this.texts = [...this.texts, `恭喜你突破了！当前境界：${this.$levelNames[this.player.level]}`];
+                            this.texts = [...this.texts, `恭喜你突破了！当前境界：${this.$levelNames(this.player.level)}`];
                         } else {
                             // 当前修为
                             this.player.cultivation += exp;
@@ -297,7 +293,7 @@
                     message: `<div class="monsterinfo">
                         <div class="monsterinfo-box">
                             <p>类型: ${this.$genre[item.type] ?? '未知'}</p>
-                            <p>境界: ${this.$levelNames[item.level]}</p>
+                            <p>境界: ${this.$levelNames(item.level)}</p>
                             <p>品质: ${this.$levels[item.quality] ?? '未知'}</p>
                             <p>气血: ${this.$formatNumberToChineseUnit(item.health)}</p>
                             <p>攻击: ${this.$formatNumberToChineseUnit(item.attack)}</p>
@@ -310,18 +306,18 @@
                 }).catch(() => { });
             },
             // 继续探索
-            keepExploring () {
-                // 清空日志
-                this.texts = [];
-                // 恢复回合数
-                this.guashaRounds = 10;
-                // 继续探索
-                this.encounterMonster();
-                this.isEnd = false;
-                this.isFighting = false;
-                this.isFailedRetreat = false;
-                this.isCaptureFailed = false;
-            },
+            // keepExploring () {
+            //     // 清空日志
+            //     this.texts = [];
+            //     // 恢复回合数
+            //     this.guashaRounds = 10;
+            //     // 继续探索
+            //     this.encounterMonster();
+            //     this.isEnd = false;
+            //     this.isFighting = false;
+            //     this.isFailedRetreat = false;
+            //     this.isCaptureFailed = false;
+            // },
             // 遇怪逻辑
             encounterMonster () {
                 // 玩家境界

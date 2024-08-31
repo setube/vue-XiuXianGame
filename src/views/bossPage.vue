@@ -86,7 +86,7 @@
                     center: true,
                     message: `<div class="monsterinfo">
                         <div class="monsterinfo-box">
-                            <p>境界: ${this.$levelNames[info.level]}</p>
+                            <p>境界: ${this.$levelNames(info.level)}</p>
                             <p>气血: ${this.$formatNumberToChineseUnit(info.health)}</p>
                             <p>攻击: ${this.$formatNumberToChineseUnit(info.attack)}</p>
                             <p>防御: ${this.$formatNumberToChineseUnit(info.defense)}</p>
@@ -104,7 +104,7 @@
                 if (this.player.level < this.$maxLv) {
                     this.isEnd = true;
                     this.stopFightBoss();
-                    this.texts = [...this.texts, `你的境界尚未达到${this.$levelNames[this.$maxLv]}, ${this.boss.name}对于你的挑战不屑一顾`];
+                    this.texts = [...this.texts, `你的境界尚未达到${this.$levelNames(this.$maxLv)}, ${this.boss.name}对于你的挑战不屑一顾`];
                     return;
                 }
                 if (this.boss.health <= 0 || !this.boss.health) {
@@ -215,7 +215,7 @@
                     message: `<div class="monsterinfo">
                         <div class="monsterinfo-box">
                             <p>类型: ${this.$genre[item.type] ?? '未知'}</p>
-                            <p>境界: ${this.$levelNames[item.level]}</p>
+                            <p>境界: ${this.$levelNames(item.level)}</p>
                             <p>品质: ${this.$levels[item.quality] ?? '未知'}</p>
                             <p>气血: ${this.$formatNumberToChineseUnit(item.health)}</p>
                             <p>攻击: ${this.$formatNumberToChineseUnit(item.attack)}</p>

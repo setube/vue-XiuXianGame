@@ -16,7 +16,7 @@ const boss = {
             text: this.boss_Text(),
             time: Math.floor(Date.now() / 1000),
             desc: bossInfo.description,
-            level: 40,
+            level: 144,
             dodge,
             attack,
             health,

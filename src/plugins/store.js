@@ -42,6 +42,8 @@ export default new Vuex.Store(
                     money: 0,
                     // 传送符
                     flying: 0,
+                    // 情缘
+                    qingyuan: 0,
                     // 悟性丹
                     rootBone: 0,
                     // 鸿蒙石数量
@@ -70,7 +72,7 @@ export default new Vuex.Store(
                 // 已击杀数量
                 taskNum: 0,
                 // 版本号
-                version: 0.77,
+                version: 0.8,
                 // 鸿蒙石数量
                 currency: 0,
                 // 总血量
@@ -79,6 +81,8 @@ export default new Vuex.Store(
                 inventory: [],
                 // 新手礼包
                 isNewbie: false,
+                // 商店数据
+                shopData: [],
                 // 装备
                 equipment: {
                     // 法宝
@@ -106,9 +110,18 @@ export default new Vuex.Store(
                 backpackCapacity: 50,
                 // 批量出售装备设置
                 sellingEquipmentData: [],
-            }
+            },
+            // 地图数据
+            mapData: {
+                y: 0,
+                x: 0,
+                map: [],
+            },
         },
         mutations: {
+            setMapData (state, data) {
+                state.mapData = data;
+            },
             setBoss (state, data) {
                 state.boss = data;
             },

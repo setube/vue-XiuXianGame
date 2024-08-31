@@ -10,28 +10,54 @@ import ElementUI, { Notification } from 'element-ui';
 
 Vue.use(Vuex).use(VueRouter).use(ElementUI).use(VueClipboard);
 
+Vue.config.productionTip = false;
+
+// 通知
 Vue.prototype.$notify = (data) => {
     Notification.closeAll();
     Notification(data);
 }
 
-Vue.config.productionTip = false;
-
 // 最高等级
-Vue.prototype.$maxLv = 40;
+Vue.prototype.$maxLv = 144;
+
 // 境界名称
-Vue.prototype.$levelNames = [
-    '凡人', '筑基', '开光', '胎息', '辟谷',
-    '金丹', '元婴', '出窍', '分神',
-    '合体', '大乘', '渡劫', '地仙',
-    '天仙', '金仙', '大罗金仙', '九天玄仙',
-    '仙君', '仙帝', '仙尊', '仙祖',
-    '圣仙', '至仙', '无上仙', '道仙',
-    '鸿蒙仙', '混沌仙', '天尊', '始祖天尊',
-    '无上天尊', '大道天尊', '永恒仙尊', '宇宙仙祖',
-    '虚空道祖', '超脱者', '至高神', '创世神',
-    '纪元之主', '无上主宰', '鸿蒙主宰', '混沌主宰'
-];
+Vue.prototype.$levelNames = (level) => {
+    const levelsPerStage = 9;
+    const stageIndex = Math.floor((level - 1) / levelsPerStage);
+    const stageLevel = (level - 1) % levelsPerStage + 1;
+    const numberName = {
+        1: '一', 2: '二', 3: '三', 4: '四',
+        5: '五', 6: '六', 7: '七', 8: '八', 9: '九'
+    };
+    // 境界名称  
+    const stageNames = [
+        '筑基', '开光', '胎息', '辟谷',
+        '金丹', '元婴', '出窍', '分神',
+        '合体', '大乘', '渡劫', '地仙',
+        '天仙', '金仙', '大罗金仙', '九天玄仙'
+    ];
+    if (level == 0) return '凡人';
+    else if (level >= 144) return '九天玄仙九层';
+    else return `${stageNames[stageIndex]}${numberName[stageLevel]}层`;
+}
+
+const dropdownTypeObject = {
+    id: '时间',
+    level: '境界',
+    score: '评分',
+    health: '气血',
+    attack: '攻击',
+    defense: '防御',
+    critical: '暴击',
+    dodge: '闪避'
+};
+
+Vue.prototype.$dropdownType = Object.entries(dropdownTypeObject).map(([type, name]) => {
+    return { type, name };
+});
+
+
 // 装备类型
 Vue.prototype.$genre = {
     sutra: '法器',
@@ -39,6 +65,7 @@ Vue.prototype.$genre = {
     weapon: '神兵',
     accessory: '灵宝'
 };
+
 // 装备品阶
 Vue.prototype.$levels = {
     info: '黄阶',
@@ -52,17 +79,39 @@ Vue.prototype.$levels = {
 
 // 道具名称
 Vue.prototype.$propItemNames = {
-    money: '灵石',
-    flying: '传送符',
-    rootBone: '悟性丹',
-    currency: '鸿蒙石',
-    cultivateDan: '培养丹',
-    strengtheningStone: '炼器石'
+    money: {
+        name: '灵石',
+        desc: '可以通过分解获得装备获得',
+    },
+    flying: {
+        name: '传送符',
+        desc: '可以通过赠送礼物给NPC获得'
+    },
+    rootBone: {
+        name: '悟性丹',
+        desc: '可以通过击败世界BOSS获得'
+    },
+    qingyuan: {
+        name: '情缘',
+        desc: '可以通过赠送礼物给NPC获得'
+    },
+    currency: {
+        name: '鸿蒙石',
+        desc: '可以通过击败世界BOSS获得'
+    },
+    cultivateDan: {
+        name: '培养丹',
+        desc: '可以通过探索获得'
+    },
+    strengtheningStone: {
+        name: '炼器石',
+        desc: '可以通过分解装备获得'
+    }
 };
 
 // 单位转换
 Vue.prototype.$formatNumberToChineseUnit = (number) => {
-    number = number > 0 ? number : 0;
+    number = number > 0 ? Math.floor(number) : 0;
     // 中文单位数组，从小到大
     const units = ['', '万', '亿', '兆', '京', '垓', '秭', '穰', '沟', '涧', '正', '载', '极'];
     // 定义 1 万（10000）的 BigInt 形式

@@ -28,7 +28,7 @@
     export default {
         data () {
             return {
-                version: 0.77,
+                version: 0.8,
             };
         },
         computed: {

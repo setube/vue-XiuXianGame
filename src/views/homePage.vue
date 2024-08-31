@@ -843,7 +843,7 @@
                 const vuex = JSON.parse(localStorage.vuex);
                 const player = crypto.decryption(vuex.player);
                 const version = player.version ? player.version : 0;
-                if (!version || version <= 0.8) {
+                if (!version || version < 0.8) {
                     this.clearSave();
                     return;
                 }

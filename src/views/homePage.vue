@@ -1672,6 +1672,16 @@
                 // return percentage < 0 ? 100 : 100 - percentage;
                 return `${num3.toFixed(2)}%`
             },
+            async copyTextToClipboard (text) {
+                if (navigator.clipboard) {
+                    try {
+                        await navigator.clipboard.writeText(text);
+                        this.$notify({ title: '提示', message: '群号复制成功' });
+                    } catch (err) {
+                        this.$notify({ title: '提示', message: '群号复制失败, 请手动复制' });
+                    }
+                }
+            },
             qq () {
                 const qq = '920930589';
                 const h = this.$createElement;
@@ -1687,27 +1697,30 @@
                     message,
                     showCancelButton: false,
                     confirmButtonText: '复制群号',
-                    beforeClose: (action, instance, done) => {
+                    beforeClose: async (action, instance, done) => {
                         if (action === 'confirm') {
-                            this.$copyText(qq).then(() => {
-                                done();
-                                // 关闭弹窗
-                                this.show = false;
-                                this.$notify({ title: '提示', message: '群号复制成功' });
-                            }).catch(() => {
-                                const el = message.elm;
-                                // 移除disabled样式
-                                el.className = 'el-input';
-                                [...el.children].forEach(item => {
-                                    // 取消disabled
-                                    item.disabled = false;
-                                    // 自动聚焦
-                                    item.focus();
-                                    // 自动全选
-                                    item.select();
-                                });
-                                this.$notify({ title: '提示', message: '群号复制失败, 请手动复制' });
-                            });
+                            if (window.navigator.clipboard) {
+                                try {
+                                    await window.navigator.clipboard.writeText(qq);
+                                    done();
+                                    // 关闭弹窗
+                                    this.show = false;
+                                    this.$notify({ title: '提示', message: '群号复制成功' });
+                                } catch (err) {
+                                    const el = message.elm;
+                                    // 移除disabled样式
+                                    el.className = 'el-input';
+                                    [...el.children].forEach(item => {
+                                        // 取消disabled
+                                        item.disabled = false;
+                                        // 自动聚焦
+                                        item.focus();
+                                        // 自动全选
+                                        item.select();
+                                    });
+                                    this.$notify({ title: '提示', message: '群号复制失败, 请手动复制' });
+                                }
+                            }
                         } else {
                             done();
                         }

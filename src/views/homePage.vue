@@ -592,28 +592,20 @@
         </el-dialog>
         <el-dialog title="数据管理" :visible.sync="show" width="600px">
             <div class="dialog-footer">
-                <el-button type="info" class="dialog-footer-button computer" @click="exportData('computer')" v-if="innerWidth > 750">
+                <el-button type="info" class="dialog-footer-button" @click="exportData">
                     导出存档
                 </el-button>
-                <el-button type="info" class="dialog-footer-button mobile" @click="exportData('mobile')" v-else>
-                    导出存档
-                </el-button>
-                <el-upload action="#" class="dialog-upload computer" :http-request="importData" :show-file-list="false" accept="application/json" v-if="innerWidth > 750">
+                <el-upload action="#" class="dialog-upload" :http-request="importData" :show-file-list="false" accept="application/json">
                     <el-button type="warning" class="dialog-footer-button">
                         导入存档
                     </el-button>
                 </el-upload>
-                <div class="dialog-upload mobile" v-else>
-                    <el-button type="warning" class="dialog-footer-button" @click="importMobileData">
-                        导入存档
-                    </el-button>
-                </div>
                 <el-button type="danger" class="dialog-footer-button" @click="deleteData">
                     删除存档
                 </el-button>
-                <a class="el-button dialog-footer-button el-button--primary" href="https://qm.qq.com/q/D23KDtpCQC" target="_blank">
+                <el-button type="primary" class="dialog-footer-button" @click="qq">
                     官方群聊
-                </a>
+                </el-button>
             </div>
         </el-dialog>
     </div>
@@ -741,11 +733,7 @@
                 storyText: '',
                 // 商店商品价格
                 shopPrice: 100,
-                // 移动端导入的数据
-                mobileData: '',
                 shopActive: 'weapon',
-                // 当前网页宽度
-                innerWidth: 0,
                 // 灵宠信息弹窗
                 petItemShow: false,
                 backPackItem: [
@@ -835,8 +823,6 @@
             },
         },
         mounted () {
-            // 获取网页宽度
-            this.innerWidth = window.innerWidth;
             // 判断本地有没有玩家存档数据
             const local = this.$store.state;
             if (localStorage.vuex) {
@@ -1019,36 +1005,6 @@
                     location.reload(1);
                 }).catch(() => { });
             },
-            // 手机导入存档
-            importMobileData () {
-                const h = this.$createElement;
-                this.$msgbox({
-                    title: '存档导入',
-                    message: h('div', { attrs: { class: 'el-textarea' } }, [h('textarea', {
-                        on: {
-                            input: (value) => {
-                                this.mobileData = value.target.value;
-                            }
-                        },
-                        attrs: {
-                            rows: 5,
-                            class: 'el-textarea__inner',
-                            placeholder: '请粘贴从其他设备复制存档数据到这里',
-                            autocomplete: 'off'
-                        },
-                        value: ''
-                    })]),
-                    showCancelButton: true,
-                    confirmButtonText: '导入'
-                }).then(() => {
-                    // 导入存档
-                    localStorage.setItem('vuex', this.mobileData);
-                    // 发送提示
-                    this.$notify({ title: '提示', message: '存档导入成功' });
-                    // 刷新页面
-                    location.reload(1);
-                }).catch(() => { });
-            },
             // 电脑导入存档
             importData (data) {
                 const file = data.file;
@@ -1069,52 +1025,18 @@
                 reader.readAsText(file);
             },
             // 导出存档
-            exportData (type) {
-                // 是否为移动端
-                if (type == 'mobile') {
-                    const h = this.$createElement;
-                    this.$msgbox({
-                        title: '存档导出',
-                        message: h('div', { attrs: { class: 'el-textarea' } }, [h('textarea', {
-                            on: {
-                                input: localStorage.vuex
-                            },
-                            attrs: {
-                                rows: 5,
-                                class: 'el-textarea__inner',
-                                placeholder: '存档数据',
-                                autocomplete: 'off'
-                            },
-                            value: localStorage.vuex,
-                            domProps: {
-                                value: localStorage.vuex
-                            }
-                        })]),
-                        showCancelButton: true,
-                        confirmButtonText: '复制'
-                    }).then(() => {
-                        this.$copyText(localStorage.vuex).then(() => {
-                            this.$notify({ title: '提示', message: '存档复制成功' });
-                        });
-                    }).catch(() => { });
-                } else {
-                    const today = new Date();
-                    const year = today.getFullYear();
-                    const month = String(today.getMonth() + 1).padStart(2, '0');
-                    const day = String(today.getDate()).padStart(2, '0');
-                    const hours = String(today.getHours()).padStart(2, '0');
-                    const minutes = String(today.getMinutes()).padStart(2, '0');
-                    const seconds = String(today.getSeconds()).padStart(2, '0');
-                    const blob = new Blob([localStorage.getItem('vuex')], { type: 'application/json;charset=utf-8' });
-                    const name = `文字修仙小游戏存档${year}-${month}-${day} ${hours}:${minutes}:${seconds}.json`;
-                    const url = URL.createObjectURL(blob);
-                    const downloadLink = document.createElement('a');
-                    downloadLink.href = url;
-                    downloadLink.download = name;
-                    document.body.appendChild(downloadLink);
-                    downloadLink.click();
-                    document.body.removeChild(downloadLink);
-                }
+            exportData () {
+                let FileSaver = require('file-saver');
+                const today = new Date();
+                const year = today.getFullYear();
+                const month = String(today.getMonth() + 1).padStart(2, '0');
+                const day = String(today.getDate()).padStart(2, '0');
+                const hours = String(today.getHours()).padStart(2, '0');
+                const minutes = String(today.getMinutes()).padStart(2, '0');
+                const seconds = String(today.getSeconds()).padStart(2, '0');
+                const blob = new Blob([localStorage.getItem('vuex')], { type: 'application/json;charset=utf-8' });
+                const name = `我的文字修仙全靠刷${year}-${month}-${day}_${hours}:${minutes}:${seconds}.json`;
+                FileSaver.saveAs(blob, name);
             },
             // 批量分解装备弹窗
             sellingEquipmentBox () {
@@ -1335,7 +1257,7 @@
                 // 基础成功率
                 let baseSuccessRate = 1;
                 // 每级降低成功率
-                let decrementPerLevel = 0.04;
+                let decrementPerLevel = 0.03;
                 // 炼器增幅
                 let increase = this.increase ? 0.1 : 0;
                 // 最终成功率
@@ -1750,6 +1672,48 @@
                 // return percentage < 0 ? 100 : 100 - percentage;
                 return `${num3.toFixed(2)}%`
             },
+            qq () {
+                const qq = '920930589';
+                const h = this.$createElement;
+                const message = h('el-input', {
+                    attrs: {
+                        type: 'text',
+                        value: qq,
+                        disabled: true
+                    }
+                });
+                this.$msgbox({
+                    title: '官方群聊',
+                    message,
+                    showCancelButton: false,
+                    confirmButtonText: '复制群号',
+                    beforeClose: (action, instance, done) => {
+                        if (action === 'confirm') {
+                            this.$copyText(qq).then(() => {
+                                done();
+                                // 关闭弹窗
+                                this.show = false;
+                                this.$notify({ title: '提示', message: '群号复制成功' });
+                            }).catch(() => {
+                                const el = message.elm;
+                                // 移除disabled样式
+                                el.className = 'el-input';
+                                [...el.children].forEach(item => {
+                                    // 取消disabled
+                                    item.disabled = false;
+                                    // 自动聚焦
+                                    item.focus();
+                                    // 自动全选
+                                    item.select();
+                                });
+                                this.$notify({ title: '提示', message: '群号复制失败, 请手动复制' });
+                            });
+                        } else {
+                            done();
+                        }
+                    }
+                }).catch(() => { });
+            }
         }
     }
 </script>

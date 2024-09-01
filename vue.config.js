@@ -1,5 +1,5 @@
 const WebpackObfuscator = require('webpack-obfuscator');
-
+// const UnicodeStringPlugin = require('./UnicodeStringPlugin.js');
 module.exports = {
     parallel: true,
     publicPath: './',
@@ -17,6 +17,10 @@ module.exports = {
     },
     configureWebpack: {
         plugins: [
+            // new UnicodeStringPlugin({
+            //     allowedExtensions: ['.js', '.vue'],
+            //     logFile: 'extracted_strings.log' // Specify your log file name
+            // })
             ...(process.env.NODE_ENV === 'production' ? [
                 new WebpackObfuscator({
                     log: false,

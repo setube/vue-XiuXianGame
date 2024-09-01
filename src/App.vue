@@ -134,6 +134,7 @@
 <style>
     body {
         background: #fff;
+        overflow: auto;
     }
 
     a {

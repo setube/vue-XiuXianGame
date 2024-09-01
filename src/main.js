@@ -4,7 +4,7 @@ import App from './App.vue'
 import VueRouter from 'vue-router';
 import store from '@/plugins/store';
 import router from '@/plugins/router';
-import VueClipboard from 'vue-clipboard2';
+import VueClipboard from 'vue-clipboard2'; //一键复制
 import 'element-ui/lib/theme-chalk/index.css';
 import ElementUI, { Notification } from 'element-ui';
 

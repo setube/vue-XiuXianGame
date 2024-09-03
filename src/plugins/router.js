@@ -1,22 +1,4 @@
-import VueRouter from 'vue-router';
-import map from '../views/mapExploration.vue';
-import boss from '../views/bossPage.vue';
-import home from '../views/homePage.vue';
-import index from '../views/indexPage.vue';
-import equipAll from '../views/equipAll.vue';
-import explore from '../views/explorePage.vue';
-import cultivate from '../views/cultivatePage.vue';
-
-let originalPush = VueRouter.prototype.push;
-let originalRepace = VueRouter.prototype.replace;
-
-VueRouter.prototype.push = function push (location) {
-    return originalPush.call(this, location).catch(e => e);
-};
-
-VueRouter.prototype.replace = function replace (location) {
-    return originalRepace.call(this, location).catch(e => e);
-};
+import { createRouter, createWebHistory } from 'vue-router';
 
 const routes = [
     {
@@ -25,7 +7,7 @@ const routes = [
         meta: {
             keepAlive: false
         },
-        component: index
+        component: () => import('@/views/indexPage.vue')
     },
     {
         path: '/home',
@@ -33,7 +15,7 @@ const routes = [
         meta: {
             keepAlive: false
         },
-        component: home
+        component: () => import('@/views/homePage.vue')
     },
     {
         path: '/cultivate',
@@ -41,7 +23,7 @@ const routes = [
         meta: {
             keepAlive: false
         },
-        component: cultivate
+        component: () => import('@/views/cultivatePage.vue')
     },
     {
         path: '/map',
@@ -49,7 +31,7 @@ const routes = [
         meta: {
             keepAlive: false
         },
-        component: map
+        component: () => import('@/views/mapExploration.vue')
     },
     {
         path: '/explore',
@@ -57,7 +39,7 @@ const routes = [
         meta: {
             keepAlive: false
         },
-        component: explore
+        component: () => import('@/views/explorePage.vue')
     },
     {
         path: '/boss',
@@ -65,7 +47,7 @@ const routes = [
         meta: {
             keepAlive: false
         },
-        component: boss
+        component: () => import('@/views/bossPage.vue')
     },
     {
         path: '/equipAll',
@@ -73,11 +55,12 @@ const routes = [
         meta: {
             keepAlive: true
         },
-        component: equipAll
+        component: () => import('@/views/equipAll.vue')
     },
 ];
 
-const router = new VueRouter({
+const router = createRouter({
+    history: createWebHistory(),
     routes
 });
 

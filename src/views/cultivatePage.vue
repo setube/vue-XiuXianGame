@@ -57,7 +57,7 @@
         methods: {
             startCultivate () {
                 this.isStart = false;
-                const zs = player.reincarnation * 10;
+                const zs = this.player.reincarnation * 10;
                 const time = zs >= 200 ? 100 : 300 - zs;
                 const timerId = setInterval(() => {
                     if (this.player.cultivation <= this.player.maxCultivation) {

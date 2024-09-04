@@ -112,7 +112,7 @@
                 if (this.isEnd) return;
                 this.isEnd = true;
                 this.victory = false;
-                const zs = player.reincarnation * 10;
+                const zs = this.player.reincarnation * 10;
                 const time = zs >= 200 ? 100 : 300 - zs;
                 const timerId = setInterval(() => {
                     this.fightMonster();

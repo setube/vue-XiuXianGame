@@ -10,12 +10,13 @@
 
 ## 我的文字修仙全靠刷
 
-- 前端框架 [Vue.js](https://vuejs.org)
-- 前端UI [Element](https://element.eleme.cn)
+- 前端框架 [Vue.js](https://cn.vuejs.org)
+- 前端UI [Element Plus](https://element-plus.org/)
   
 Docker贡献者：
 
 - wuchenchina [无尘](https://github.com/wuchenchina)
+- CoolXiTech [酷曦科技](https://github.com/CoolXiTech)
   
 鸣谢以上开源项目及贡献者，排名不分先后.
 

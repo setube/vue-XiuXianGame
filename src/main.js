@@ -1,27 +1,25 @@
-import Vue from 'vue'
-import Vuex from 'vuex';
+import {createApp} from 'vue'
 import App from './App.vue'
-import VueRouter from 'vue-router';
 import store from '@/plugins/store';
 import router from '@/plugins/router';
-import 'element-ui/lib/theme-chalk/index.css';
-import ElementUI, { Notification } from 'element-ui';
+import 'element-plus/dist/index.css';
+import ElementPlus from 'element-plus';
 
-Vue.use(Vuex).use(VueRouter).use(ElementUI);
+const app = createApp(App);
 
-Vue.config.productionTip = false;
+app.config.productionTip = false;
 
 // 通知
-Vue.prototype.$notify = (data) => {
+app.config.globalProperties.$notify = (data) => {
     Notification.closeAll();
-    Notification(data);
+    Notification.notify(data);
 }
 
 // 最高等级
-Vue.prototype.$maxLv = 144;
+app.config.globalProperties.$maxLv = 144;
 
 // 境界名称
-Vue.prototype.$levelNames = (level) => {
+app.config.globalProperties.$levelNames = (level) => {
     const levelsPerStage = 9;
     const stageIndex = Math.floor((level - 1) / levelsPerStage);
     const stageLevel = (level - 1) % levelsPerStage + 1;
@@ -52,13 +50,13 @@ const dropdownTypeObject = {
     dodge: '闪避'
 };
 
-Vue.prototype.$dropdownType = Object.entries(dropdownTypeObject).map(([type, name]) => {
+app.config.globalProperties.$dropdownType = Object.entries(dropdownTypeObject).map(([type, name]) => {
     return { type, name };
 });
 
 
 // 装备类型
-Vue.prototype.$genre = {
+app.config.globalProperties.$genre = {
     sutra: '法器',
     armor: '护甲',
     weapon: '神兵',
@@ -66,7 +64,7 @@ Vue.prototype.$genre = {
 };
 
 // 装备品阶
-Vue.prototype.$levels = {
+app.config.globalProperties.$levels = {
     info: '黄阶',
     pink: '仙阶',
     danger: '神阶',
@@ -77,7 +75,7 @@ Vue.prototype.$levels = {
 };
 
 // 道具名称
-Vue.prototype.$propItemNames = {
+app.config.globalProperties.$propItemNames = {
     money: {
         name: '灵石',
         desc: '可以通过分解获得装备获得',
@@ -109,7 +107,7 @@ Vue.prototype.$propItemNames = {
 };
 
 // 单位转换
-Vue.prototype.$formatNumberToChineseUnit = (number) => {
+app.config.globalProperties.$formatNumberToChineseUnit = (number) => {
     number = number > 0 ? Math.floor(number) : 0;
     // 中文单位数组，从小到大
     const units = ['', '万', '亿', '兆', '京', '垓', '秭', '穰', '沟', '涧', '正', '载', '极'];
@@ -130,12 +128,11 @@ Vue.prototype.$formatNumberToChineseUnit = (number) => {
         }
     }
     // 将数字转换为字符串，并加上对应的中文单位
-    let result = num.toString() + units[unitIndex] + additionalUnits;
-    return result;
+    return num.toString() + units[unitIndex] + additionalUnits;
 };
 
 // 平滑至底
-Vue.prototype.$smoothScrollToBottom = (element) => {
+app.config.globalProperties.$smoothScrollToBottom = (element) => {
     const start = element.scrollTop;
     const end = element.scrollHeight;
     const duration = 300;
@@ -153,8 +150,7 @@ Vue.prototype.$smoothScrollToBottom = (element) => {
     window.requestAnimationFrame(scroll);
 };
 
-new Vue({
-    store,
-    router,
-    render: h => h(App),
-}).$mount('#app');
+app.use(ElementPlus);
+app.use(store);
+app.use(router);
+app.mount('#app');

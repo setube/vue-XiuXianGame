@@ -351,8 +351,7 @@
                 // 成功几率
                 const successRate = this.calculateCaptureRate();
                 // 是否成功收服
-                // const isSuccess = successRate >= monster.getRandomInt(1, 100);
-                const isSuccess = true;
+                const isSuccess = successRate >= monster.getRandomInt(1, 100);
                 // 如果成功收服
                 if (isSuccess) {
                     // 总背包容量大于灵宠背包容量就可以收服对方

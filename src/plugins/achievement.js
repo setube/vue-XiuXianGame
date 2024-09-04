@@ -91,11 +91,11 @@ const achievement = {
                 name: '灵宠天花板',
                 award: 10000,
                 condition: {
-                    dodge: 0.44,
-                    health: 22000,
-                    attack: 6600,
-                    defense: 660,
-                    critical: 0.44
+                    dodge: 0.47,
+                    health: 23500,
+                    attack: 7050,
+                    defense: 705,
+                    critical: 0.47
                 }
             }
         ]

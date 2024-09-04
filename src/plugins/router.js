@@ -1,3 +1,10 @@
+import map from '../views/mapExploration.vue';
+import boss from '../views/bossPage.vue';
+import home from '../views/homePage.vue';
+import index from '../views/indexPage.vue';
+import explore from '../views/explorePage.vue';
+import equipAll from '../views/equipAll.vue';
+import cultivate from '../views/cultivatePage.vue';
 import { createRouter, createWebHashHistory } from 'vue-router';
 
 const routes = [
@@ -7,7 +14,7 @@ const routes = [
         meta: {
             keepAlive: false
         },
-        component: () => import('@/views/indexPage.vue')
+        component: index
     },
     {
         path: '/home',
@@ -15,7 +22,7 @@ const routes = [
         meta: {
             keepAlive: false
         },
-        component: () => import('@/views/homePage.vue')
+        component: home
     },
     {
         path: '/cultivate',
@@ -23,7 +30,7 @@ const routes = [
         meta: {
             keepAlive: false
         },
-        component: () => import('@/views/cultivatePage.vue')
+        component: cultivate
     },
     {
         path: '/map',
@@ -31,7 +38,7 @@ const routes = [
         meta: {
             keepAlive: false
         },
-        component: () => import('@/views/mapExploration.vue')
+        component: map
     },
     {
         path: '/explore',
@@ -39,7 +46,7 @@ const routes = [
         meta: {
             keepAlive: false
         },
-        component: () => import('@/views/explorePage.vue')
+        component: explore
     },
     {
         path: '/boss',
@@ -47,7 +54,7 @@ const routes = [
         meta: {
             keepAlive: false
         },
-        component: () => import('@/views/bossPage.vue')
+        component: boss
     },
     {
         path: '/equipAll',
@@ -55,8 +62,8 @@ const routes = [
         meta: {
             keepAlive: true
         },
-        component: () => import('@/views/equipAll.vue')
-    },
+        component: equipAll
+    }
 ];
 const router = createRouter({
     history: createWebHashHistory(),

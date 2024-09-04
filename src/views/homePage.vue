@@ -145,7 +145,7 @@
                                                 </tag>
                                             </template>
                                         </div>
-                                        <tag type="success" class="dialog-footer-button" :disable-transitions="true" v-if="!player.isNewbie" @click="newbiePack(4)">
+                                        <tag type="success" class="dialog-footer-button" v-if="!player.isNewbie" @click="newbiePack(4)">
                                             领取新手礼包
                                         </tag>
                                     </div>

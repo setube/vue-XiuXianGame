@@ -1,5 +1,5 @@
 <template>
-    <el-tag :class="customTypeClass">
+    <el-tag :disable-transitions="true" :class="customTypeClass">
         <slot></slot>
     </el-tag>
 </template>

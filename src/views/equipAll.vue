@@ -8,9 +8,9 @@
                             <div class="inventory-content">
                                 <template v-for="(item, index) in i.data">
                                     <div class="Illustration-item" v-if="item.type == i.type" :key="index" @click="illustrationsInfo(k, index)">
-                                        <el-tag :type="item.quality">
+                                        <tag :type="item.quality">
                                             {{ item.name }}
-                                        </el-tag>
+                                        </tag>
                                     </div>
                                 </template>
                             </div>
@@ -23,10 +23,10 @@
                     <el-tab-pane :label="i.name" :name="i.type" v-for="(i, k) in achievementAll" :key="k">
                         <div class="achievement-content" v-if="i.data.length > 0">
                             <div class="achievement-item" v-for="(item, index) in i.data" :key="index" @click="achievementInfo(item)">
-                                <el-tag :type="getTagClass(i.type, item.id) ? 'success' : 'info'">
+                                <tag :type="getTagClass(i.type, item.id) ? 'success' : 'info'">
                                     {{ item.name }}
                                     ({{ getTagClass(i.type, item.id) ? '已完成' : '未完成' }})
-                                </el-tag>
+                                </tag>
                             </div>
                         </div>
                         <div class="achievement-content" v-else>
@@ -45,6 +45,7 @@
 </template>
 
 <script>
+    import tag from '@/components/tag.vue';
     // 图鉴
     import equipAll from '@/plugins/equipAll';
     // 成就
@@ -59,6 +60,9 @@
                 illustrationsItems: [],
                 illustrationsActive: 'weapon',
             }
+        },
+        components: {
+            tag
         },
         mounted () {
             this.achievementAll = achievement.all();

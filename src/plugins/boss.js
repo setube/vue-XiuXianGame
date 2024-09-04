@@ -56,10 +56,10 @@ const boss = {
         for (const [quality, { names, probability }] of Object.entries(weaponTypes)) {
             cumulativeProbability += probability;
             if (random < cumulativeProbability) {
-                const Attack = this.getRandomInt(500, 1000) * lv * 10;
-                const defense = this.getRandomInt(500, 1000) * lv * 10;
-                const Health = this.getRandomInt(5000, 10000) * lv * 10;
                 const dodge = this.getRandomFloatInRange(0.05, 0.1);
+                const Attack = this.getRandomInt(500, 1000) * lv * 10;
+                const Health = this.getRandomInt(5000, 10000) * lv * 10;
+                const defense = this.getRandomInt(500, 1000) * lv * 10;
                 const Criticalhitrate = this.getRandomFloatInRange(0.05, 0.1);
                 return {
                     id: Date.now(), // 装备ID

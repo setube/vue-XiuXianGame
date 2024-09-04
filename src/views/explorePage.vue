@@ -2,11 +2,13 @@
     <div class="cultivate">
         你遇到了<span class="el-tag el-tag--danger" @click="openMonsterInfo">{{ monster.name }}</span>
         <div class="storyText">
-            <div class="storyText-box" ref="storyText">
-                <p class="fighting" v-if="isFighting">
-                    {{ guashaRounds }}回合 / 10回合
-                </p>
-                <p v-for="(item, index) in texts" :key="index" v-html="item" @click="openEquipmentInfo(openEquipItemInfo)" />
+            <div class="storyText-box">
+                <el-scrollbar ref="scrollbar" always>
+                    <p class="fighting" v-if="isFighting">
+                        {{ guashaRounds }}回合 / 10回合
+                    </p>
+                    <p v-for="(item, index) in texts" :key="index" v-html="item" @click="openEquipmentInfo(openEquipItemInfo)" />
+                </el-scrollbar>
             </div>
         </div>
         <div class="actions">
@@ -76,7 +78,6 @@
         mounted () {
             this.player = this.$store.state.player;
             this.encounterMonster();
-            history.pushState(null, null, document.URL);
         },
         methods: {
             // 回家疗伤
@@ -111,9 +112,11 @@
                 if (this.isEnd) return;
                 this.isEnd = true;
                 this.victory = false;
+                const zs = player.reincarnation * 10;
+                const time = zs >= 200 ? 100 : 300 - zs;
                 const timerId = setInterval(() => {
                     this.fightMonster();
-                    const element = this.$refs.storyText;
+                    const element = this.$refs.scrollbar.wrapRef;
                     const observer = new MutationObserver(() => {
                         this.$smoothScrollToBottom(element);
                     });
@@ -121,7 +124,7 @@
                         childList: true,
                         subtree: true
                     });
-                }, 300);
+                }, time);
                 this.timerIds.push(timerId);
             },
             // 停止攻击
@@ -220,7 +223,7 @@
                 } else {
                     this.guashaRounds = 10;
                     this.$router.push('/map');
-                    this.$notify({ title: '提示', message: '你选择了撤退。' });
+                    this.$notifys({ title: '提示', message: '你选择了撤退。' });
                 }
             },
             // 发现道具
@@ -302,6 +305,8 @@
                             <p>暴击率: ${(item.critical * 100).toFixed(2) ?? 0}%</p>
                         </div>
                     </div>`,
+                    showCancelButton: false,
+                    confirmButtonText: '确定',
                     dangerouslyUseHTMLString: true
                 }).catch(() => { });
             },
@@ -346,7 +351,8 @@
                 // 成功几率
                 const successRate = this.calculateCaptureRate();
                 // 是否成功收服
-                const isSuccess = successRate >= monster.getRandomInt(1, 100);
+                // const isSuccess = successRate >= monster.getRandomInt(1, 100);
+                const isSuccess = true;
                 // 如果成功收服
                 if (isSuccess) {
                     // 总背包容量大于灵宠背包容量就可以收服对方
@@ -435,8 +441,8 @@
             calculateCaptureRate () {
                 // 基础100%几率
                 const baseRate = 100;
-                // 每升一级减少10%的基础几率
-                const decayFactor = 0.90;
+                // 每升一级减少的基础几率
+                const decayFactor = 0.9800;
                 // 根据等级计算实际几率
                 let captureRate = baseRate * Math.pow(decayFactor, this.player.level);
                 // 确保几率在 0% 到 100% 之间

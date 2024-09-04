@@ -27,7 +27,7 @@
             <el-button class="down-button" @click="move('down')" :disabled="isDownObstacle || playerY === gridSize - 1">往南</el-button>
             <el-button class="right-button" @click="move('right')" :disabled="isRightObstacle || playerX === gridSize - 1">往东</el-button>
         </div>
-        <el-drawer :title="npcInfo.name" :visible.sync="npcShow" direction="rtl" class="strengthen">
+        <el-drawer v-model="npcShow" :title="npcInfo.name" direction="rtl" class="strengthen">
             <div class="wife-box">
                 <div class="attributes">
                     <div class="attribute-box">
@@ -64,7 +64,7 @@
                 </div>
                 <div class="gift-box" v-if="giftShow">
                     <div class="gift-item" v-for="(item, index) in giftItems" :key="index" @click="giftInfo(item, index)">
-                        <el-tag :type="item.lv">{{item.name}}</el-tag>
+                        <tag :type="item.lv">{{item.name}}</tag>
                         <span class="gift-name">{{item.price}}灵石</span>
                     </div>
                 </div>
@@ -76,6 +76,7 @@
 <script>
     // npc
     import npc from '@/plugins/npc';
+    import tag from '@/components/tag.vue';
 
     export default {
         data () {
@@ -91,6 +92,9 @@
                 npcCount: 10, // NPC的数量
                 obstacleCount: 0, // 障碍物的数量 (总格子的10%)
             };
+        },
+        components: {
+            tag
         },
         computed: {
             giftItems () {
@@ -169,23 +173,52 @@
             // 初始化地图
             initializeGrid () {
                 this.grid = Array(this.totalCells).fill().map(() => ({ type: 'empty' }));
-                // 定义安全区域，防止障碍物包围玩家
-                const safeZone = new Set([
-                    this.playerY * this.gridSize + this.playerX,
-                    (this.playerY - 1) * this.gridSize + this.playerX,
-                    (this.playerY + 1) * this.gridSize + this.playerX,
-                    this.playerY * this.gridSize + (this.playerX - 1),
-                    this.playerY * this.gridSize + (this.playerX + 1)
-                ]);
-                // 随机生成障碍物，避开安全区域
-                this.generateItems('obstacle', this.obstacleCount, safeZone);
-                // 随机生成NPC，避开安全区域和障碍物
-                this.generateNpcs(this.npcCount, safeZone);
+                // 定义更大的安全区域，防止障碍物包围玩家
+                const safeZone = new Set();
+                for (let y = this.playerY - 1; y <= this.playerY + 1; y++) {
+                    for (let x = this.playerX - 1; x <= this.playerX + 1; x++) {
+                        if (y >= 0 && y < this.gridSize && x >= 0 && x < this.gridSize) safeZone.add(y * this.gridSize + x);
+                    }
+                }
+                // 生成障碍物，直到找到一个可行的地图
+                do {
+                    this.generateItems('obstacle', this.obstacleCount, safeZone);
+                } while (!this.isPathAvailable());
+                // 生成NPC，直到找到一个可行的地图
+                do {
+                    this.generateNpcs(this.npcCount, safeZone);
+                } while (!this.isPathAvailable());
                 // 更新玩家初始位置
                 this.updatePlayerPosition();
             },
+
+            // 检查玩家是否有可行路径到达地图边界
+            isPathAvailable () {
+                const visited = new Set();
+                const queue = [[this.playerY, this.playerX]];
+                const directions = [[0, 1], [1, 0], [0, -1], [-1, 0]];
+                while (queue.length > 0) {
+                    const [y, x] = queue.shift();
+                    if (y === 0 || y === this.gridSize - 1 || x === 0 || x === this.gridSize - 1) return true;
+                    for (const [dy, dx] of directions) {
+                        const newY = y + dy;
+                        const newX = x + dx;
+                        const index = newY * this.gridSize + newX;
+                        if (newY >= 0 && newY < this.gridSize && newX >= 0 && newX < this.gridSize &&
+                            !visited.has(index) && this.grid[index].type === 'empty') {
+                            visited.add(index);
+                            queue.push([newY, newX]);
+                        }
+                    }
+                }
+                return false;
+            },
             // 生成指定数量的障碍物
             generateItems (type, count, excludeSet) {
+                // 清空之前生成的障碍物
+                this.grid.forEach(cell => {
+                    if (cell.type === 'obstacle') cell.type = 'empty';
+                });
                 let placed = 0;
                 while (placed < count) {
                     const index = Math.floor(Math.random() * this.totalCells);
@@ -197,6 +230,10 @@
             },
             // 生成指定数量的NPC
             generateNpcs (count, excludeSet) {
+                // 清空之前生成的NPC
+                this.grid.forEach(cell => {
+                    if (cell.type === 'npc') cell.type = 'empty';
+                });
                 const npcs = this.player.npcs.length ? this.player.npcs : npc.npcNames();
                 const isData = this.player.npcs.length;
                 const createNPCData = (name, index, favorability) => {
@@ -243,10 +280,10 @@
                             critical: 0,
                             reincarnation: 0
                         });
-                        this.$notify({ title: '提示', message: '你成功邀请对方与你结为道侣', position: 'top-left' });
+                        this.$notifys({ title: '提示', message: '你成功邀请对方与你结为道侣', position: 'top-left' });
                     } else {
                         this.npcInfo.favorability = 0;
-                        this.$notify({ title: '提示', message: '对方拒绝了你的邀请, 好感度清空', position: 'top-left' });
+                        this.$notifys({ title: '提示', message: '对方拒绝了你的邀请, 好感度清空', position: 'top-left' });
                     }
                     // 更新玩家存档
                     this.$store.commit('setPlayer', this.player);
@@ -269,7 +306,7 @@
                     dangerouslyUseHTMLString: true
                 }).then(() => {
                     if (item.price > this.player.props.money) {
-                        this.$notify({ title: '赠送提示', message: '灵石不足, 赠送失败', position: 'top-left' });
+                        this.$notifys({ title: '赠送提示', message: '灵石不足, 赠送失败', position: 'top-left' });
                         return;
                     }
                     // 扣除灵石数量
@@ -282,7 +319,7 @@
                     this.player.props.qingyuan += index;
                     // 更新玩家存档
                     this.$store.commit('setPlayer', this.player);
-                    this.$notify({ title: '赠送提示', message: `赠送成功, ${this.npcInfo.name}对你的好感度增加了, 并赠与了你${index}张传送符和${index}点情缘`, position: 'top-left' });
+                    this.$notifys({ title: '赠送提示', message: `赠送成功, ${this.npcInfo.name}对你的好感度增加了, 并赠与了你${index}张传送符和${index}点情缘`, position: 'top-left' });
                 }).catch(() => { });
             },
             // 地图信息
@@ -302,17 +339,17 @@
                     dangerouslyUseHTMLString: true
                 }).then(() => {
                     if (!this.player.props.flying) {
-                        this.$notify({ title: '传送提示', message: '传送失败, 传送符不足', position: 'top-left' });
+                        this.$notifys({ title: '传送提示', message: '传送失败, 传送符不足', position: 'top-left' });
                         return;
                     }
                     if (item.type != 'empty') {
-                        this.$notify({ title: '传送提示', message: '传送失败, 该坐标有障碍物或NPC', position: 'top-left' });
+                        this.$notifys({ title: '传送提示', message: '传送失败, 该坐标有障碍物或NPC', position: 'top-left' });
                         return;
                     }
                     this.playerY = y;
                     this.playerX = x;
                     this.updatePlayerPosition();
-                    this.$notify({ title: '传送提示', message: '传送成功', position: 'top-left' });
+                    this.$notifys({ title: '传送提示', message: '传送成功', position: 'top-left' });
                 }).catch(() => { });
             },
             // 更新玩家在地图上的位置

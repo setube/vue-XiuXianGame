@@ -10,10 +10,10 @@ const shop = {
         const getAttribute = (type, lv, attribute) => {
             // 根据装备品质调整装备属性值
             const multiplier = 15;
-            const Attack = this.getRandomInt(200, 1000) * lv;
-            const defense = this.getRandomInt(200, 1000) * lv;
-            const Health = this.getRandomInt(2000, 10000) * lv;
             const dodge = this.getRandomFloatInRange(0.02, 0.25);
+            const Attack = this.getRandomInt(200, 1000) * lv;
+            const Health = this.getRandomInt(2000, 10000) * lv;
+            const defense = this.getRandomInt(200, 1000) * lv;
             const CriticalHitrate = this.getRandomFloatInRange(0.02, 0.25);
             const attrs = {
                 score: this.calculateEquipmentScore(dodge, Attack, Health, CriticalHitrate, defense), // 装备评分

@@ -4,7 +4,6 @@ const equips = {
         lv = lv == 0 ? 1 : lv;
         // 如果已领取新手礼包
         if (isNewbie) lv = this.getRandomInt(1, lv);
-
         // 装备的抽中概率
         const weaponTypes = {
             info: { names: names_a, probability: 50 }, // 白装
@@ -17,17 +16,17 @@ const equips = {
         const totalProbability = Object.values(weaponTypes).reduce((acc, { probability }) => acc + probability, 0);
         const random = Math.floor(Math.random() * totalProbability);
         let cumulativeProbability = 0;
-        const dodge = this.equip_Criticalhitrate(lv);
-        const attack = this.equip_Attack(lv);
-        const health = this.equip_Health(lv);
-        const defense = this.equip_Attack(lv);
-        const critical = this.equip_Criticalhitrate(lv);
         for (const [quality, { names, probability }] of Object.entries(weaponTypes)) {
             cumulativeProbability += probability;
             if (random < cumulativeProbability) {
                 // 根据装备品质调整装备属性值
                 const qualityMultiplier = { info: 1.2, success: 2, primary: 3, purple: 5, warning: 7, danger: 10 };
                 const multiplier = qualityMultiplier[quality];
+                const dodge = ['accessory', 'sutra'].includes(type) ? this.equip_Criticalhitrate(lv) : 0;
+                const attack = ['weapon', 'accessory', 'sutra'].includes(type) ? Math.floor(this.equip_Attack(lv) * multiplier) : 0;
+                const health = ['armor', 'accessory', 'sutra'].includes(type) ? Math.floor(this.equip_Health(lv) * multiplier) : 0;
+                const defense = ['armor', 'accessory', 'sutra'].includes(type) ? Math.floor(this.equip_Attack(lv) * multiplier) : 0;
+                const critical = ['weapon', 'accessory', 'sutra'].includes(type) ? this.equip_Criticalhitrate(lv) : 0;
                 const baseEquip = {
                     id: Date.now(), // 装备ID
                     name: names[Math.floor(Math.random() * names.length)], //装备名字
@@ -35,34 +34,22 @@ const equips = {
                     lock: false,
                     level: lv, // 装备等级
                     score: this.calculateEquipmentScore(dodge, attack, health, critical, defense), // 装备评分
-                    dodge: ['accessory', 'sutra'].includes(type) ? dodge : 0, // 闪避率
-                    attack: ['weapon', 'accessory', 'sutra'].includes(type) ? attack : 0, // 攻击力
-                    health: ['armor', 'accessory', 'sutra'].includes(type) ? health : 0, // 血量
-                    quality, // 装备品质
-                    defense: ['armor', 'accessory', 'sutra'].includes(type) ? defense : 0, // 装备防御
-                    critical: ['weapon', 'accessory', 'sutra'].includes(type) ? critical : 0, // 暴击率
+                    dodge, // 闪避率
+                    attack, // 攻击力
+                    health, // 血量
+                    defense, // 防御
+                    critical, // 暴击率
                     // 初始数据
                     initial: {
-                        dodge: ['accessory', 'sutra'].includes(type) ? dodge : 0, // 闪避率
-                        attack: ['weapon', 'accessory', 'sutra'].includes(type) ? attack : 0, // 攻击力
-                        health: ['armor', 'accessory', 'sutra'].includes(type) ? health : 0, // 血量
-                        defense: ['armor', 'accessory', 'sutra'].includes(type) ? defense : 0, // 装备防御
-                        critical: ['weapon', 'accessory', 'sutra'].includes(type) ? critical : 0, // 暴击率
+                        dodge, // 闪避率
+                        attack, // 攻击力
+                        health, // 血量
+                        defense, // 装备防御
+                        critical // 暴击率
                     },
+                    quality,
                     strengthen: 0 // 炼器等级
                 };
-                // 装备属性
-                baseEquip.dodge = parseFloat((baseEquip.dodge * multiplier)); // 闪避
-                baseEquip.attack = Math.floor(baseEquip.attack * multiplier); // 攻击
-                baseEquip.health = Math.floor(baseEquip.health * multiplier); // 血量
-                baseEquip.defense = Math.floor(baseEquip.defense * multiplier); // 防御
-                baseEquip.critical = parseFloat((baseEquip.critical * multiplier)); // 暴击
-                // 初始值
-                baseEquip.initial.dodge = parseFloat((baseEquip.initial.dodge * multiplier)); // 闪避
-                baseEquip.initial.attack = Math.floor(baseEquip.initial.attack * multiplier); // 攻击
-                baseEquip.initial.health = Math.floor(baseEquip.initial.health * multiplier); // 血量
-                baseEquip.initial.defense = Math.floor(baseEquip.initial.defense * multiplier); // 防御
-                baseEquip.initial.critical = parseFloat((baseEquip.initial.critical * multiplier)); // 暴击
                 return baseEquip;
             }
         }

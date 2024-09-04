@@ -1,22 +1,26 @@
-import {createApp} from 'vue'
 import App from './App.vue'
+import { createApp } from 'vue'
 import store from '@/plugins/store';
 import router from '@/plugins/router';
 import 'element-plus/dist/index.css';
-import ElementPlus from 'element-plus';
+import ElementPlus, { ElNotification } from 'element-plus';
+import * as ElementPlusIconsVue from '@element-plus/icons-vue';
 
 const app = createApp(App);
 
 app.config.productionTip = false;
 
 // 通知
-app.config.globalProperties.$notify = (data) => {
-    Notification.closeAll();
-    Notification.notify(data);
-}
+app.config.globalProperties.$notifys = (data) => {
+    // 关闭所有已有通知
+    ElNotification.closeAll();
+    // 显示新的通知
+    ElNotification(data);
+};
 
 // 最高等级
-app.config.globalProperties.$maxLv = 144;
+const maxLv = 144;
+app.config.globalProperties.$maxLv = maxLv;
 
 // 境界名称
 app.config.globalProperties.$levelNames = (level) => {
@@ -35,7 +39,7 @@ app.config.globalProperties.$levelNames = (level) => {
         '天仙', '金仙', '大罗金仙', '九天玄仙'
     ];
     if (level == 0) return '凡人';
-    else if (level >= 144) return '九天玄仙九层';
+    else if (level >= maxLv) return '九天玄仙九层';
     else return `${stageNames[stageIndex]}${numberName[stageLevel]}层`;
 }
 
@@ -150,6 +154,9 @@ app.config.globalProperties.$smoothScrollToBottom = (element) => {
     window.requestAnimationFrame(scroll);
 };
 
+for (const [key, component] of Object.entries(ElementPlusIconsVue)) {
+    app.component(key, component);
+}
 app.use(ElementPlus);
 app.use(store);
 app.use(router);

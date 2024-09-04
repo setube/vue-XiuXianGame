@@ -7,11 +7,13 @@
             </div>
         </div>
         <div class="storyText">
-            <div class="storyText-box" ref="storyText">
-                <p class="fighting" v-if="isFighting">
-                    {{ guashaRounds }}回合 / 50回合
-                </p>
-                <p v-for="(item, index) in texts" :key="index" v-html="item" @click="openEquipmentInfo(equipmentInfo)" />
+            <div class="storyText-box">
+                <el-scrollbar ref="scrollbar" always>
+                    <p class="fighting" v-if="isFighting">
+                        {{ guashaRounds }}回合 / 50回合
+                    </p>
+                    <p v-for="(item, index) in texts" :key="index" v-html="item" @click="openEquipmentInfo(equipmentInfo)" />
+                </el-scrollbar>
             </div>
         </div>
         <div class="actions">
@@ -59,9 +61,11 @@
             startFightBoss () {
                 if (this.isEnd) return;
                 this.isEnd = true;
+                const zs = player.reincarnation * 10;
+                const time = zs >= 200 ? 100 : 300 - zs;
                 const timerId = setInterval(() => {
                     this.fightBoss();
-                    const element = this.$refs.storyText;
+                    const element = this.$refs.scrollbar.wrapRef;
                     const observer = new MutationObserver(() => {
                         this.$smoothScrollToBottom(element);
                     });
@@ -69,7 +73,7 @@
                         childList: true,
                         subtree: true
                     });
-                }, 300);
+                }, time);
                 this.timerIds.push(timerId);
             },
             // 停止攻击
@@ -124,8 +128,10 @@
                 playerHarm = playerHarm <= 1 ? 1 : playerHarm; // 伤害小于1时强制破防
                 // 是否暴击
                 let isMCritical = false, isCritical = false;
-                // 是否闪避
+                // 玩家是否闪避
                 const isPlayerHit = Math.random() > this.boss.dodge;
+                // boss是否闪避
+                const isBHit = Math.random() > this.player.dodge;
 
                 // 检查boss是否暴击  
                 if (Math.random() < this.boss.critical) {
@@ -143,8 +149,8 @@
                     isCritical = true;
                 }
 
-                // 强制扣除玩家气血, 因为boss攻击必中
-                this.player.health -= monsterHarm;
+                // 如果玩家没有闪避，扣除玩家气血
+                if (isBHit) this.player.health -= monsterHarm;
 
                 // 如果boss没有闪避，扣除boss气血
                 if (isPlayerHit) this.boss.health -= playerHarm;
@@ -194,7 +200,7 @@
                         this.guashaRounds = 50;
                     } else {
                         this.texts = [...this.texts, isPlayerHit ? `你攻击了${this.boss.name}，${isCritical ? '触发暴击' : ''}造成了${playerHarm}点伤害，剩余${this.boss.health}气血。` : `你攻击了${this.boss.name}，对方闪避了你的攻击，你未造成伤害，剩余${this.boss.health}气血。 `];
-                        this.texts = [...this.texts, `${this.boss.name}攻击了你，${isMCritical ? '触发暴击' : ''}造成了${monsterHarm}点伤害`];
+                        this.texts = [...this.texts, isBHit ? `${this.boss.name}攻击了你，${isMCritical ? '触发暴击' : ''}造成了${monsterHarm}点伤害` : `${this.boss.name}攻击了你，你闪避了对方的攻击，对方未造成伤害，你剩余${this.player.health}气血。 `];
                     }
                 } else {
                     // 恢复默认回合数

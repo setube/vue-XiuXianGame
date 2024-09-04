@@ -32,7 +32,7 @@ const achievement = {
                 //达成条件
                 condition: {
                     dodge: 0,
-                    health: 22000,
+                    health: 23500,
                     attack: 0,
                     defense: 0,
                     critical: 0
@@ -45,7 +45,7 @@ const achievement = {
                 condition: {
                     dodge: 0,
                     health: 0,
-                    attack: 6600,
+                    attack: 7050,
                     defense: 0,
                     critical: 0
                 }
@@ -58,7 +58,7 @@ const achievement = {
                     dodge: 0,
                     health: 0,
                     attack: 0,
-                    defense: 660,
+                    defense: 705,
                     critical: 0
                 }
             },
@@ -67,7 +67,7 @@ const achievement = {
                 name: '闪避神宠',
                 award: 1000,
                 condition: {
-                    dodge: 0.44,
+                    dodge: 0.47,
                     health: 0,
                     attack: 0,
                     defense: 0,
@@ -83,7 +83,7 @@ const achievement = {
                     health: 0,
                     attack: 0,
                     defense: 0,
-                    critical: 0.44
+                    critical: 0.47
                 }
             },
             {

@@ -3,52 +3,40 @@ name: Build and Push xiuxian game
 on:
   push:
     branches:
-      - main  # 当代码推送到 main 分支时触发工作流
-  release:
-    types: [published]  # 当发布新的 Release 时触发工作流
-  workflow_dispatch:  # 手动触发
+      - main  # 当推送到 main 分支时触发
 
 jobs:
   build:
-    runs-on: ubuntu-latest  # 使用最新的 Ubuntu 环境
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v3  # 拉取仓库代码
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v3  # 设置 Node.js 环境
-        with:
-          node-version: 18  # 使用 Node.js 18
-
-      - name: Install dependencies
-        run: |
-          npm install -g pnpm  # 安装 pnpm
-          pnpm install  # 安装项目依赖
-
-      - name: Build project
-        run: pnpm run build  # 构建项目
-
-  deploy:
-    needs: build  # 在构建步骤完成后再执行
     runs-on: ubuntu-latest
 
     steps:
-      - name: Download latest release
-        run: |
-          # 下载最新的 release 包
-          curl -L -o latest_release.zip https://github.com/setube/vue-XiuXianGame/releases/latest/download/vue-XiuXianGame.zip
-          unzip latest_release.zip -d dist/  # 解压 release 包
-          rm latest_release.zip  # 删除压缩包
+      # Checkout the repository
+      - name: Checkout code
+        uses: actions/checkout@v2
 
-      - name: Deploy to server
-        env:
-          DEPLOY_SERVER: ${{ secrets.DEPLOY_SERVER }}  # 部署服务器地址
-          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}  # 部署服务器用户名
-          DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}  # 部署路径
-        run: |
-          # 将构建后的文件部署到远程服务器
-          scp -r dist/* $DEPLOY_USER@$DEPLOY_SERVER:$DEPLOY_PATH
+      # Set up Node.js environment
+      - name: Set up Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: '18'
 
-      - name: Notify deployment success
-        run: echo "Deployment completed successfully!"  # 部署成功提示
+      # Install dependencies and build the project
+      - name: Install dependencies
+        run: yarn install
+      - name: Build project
+        run: yarn build
+
+      # Log in to Docker Hub
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      # Build the xiuxian game
+      - name: Build xiuxian game
+        run: docker build -t setube/vue-xiuxiangame:latest .
+
+      # Push the xiuxian game to Docker Hub
+      - name: Push xiuxian game
+        run: docker push setube/vue-xiuxiangame:latest

@@ -1,23 +1,23 @@
-# 使用较新的 Node.js 镜像版本
-FROM node:20.16.0
+# 使用 Nginx 作为基础镜像
+FROM nginx:alpine
 
-# 创建并切换到工作目录
-WORKDIR /workspace
+# 拉取最新的 release 包
+RUN apk add --no-cache curl && \
+    curl -s https://api.github.com/repos/setube/vue-XiuXianGame/releases/latest \
+    | grep "zipball_url" \
+    | cut -d '"' -f 4 \
+    | xargs curl -L -o latest_release.zip
 
-# 设置 npm 镜像
-RUN npm config set registry https://registry.npmmirror.com
+# 解压 release 包
+RUN apk add --no-cache unzip && \
+    unzip latest_release.zip -d /usr/share/nginx/html && \
+    rm latest_release.zip
 
-# 克隆项目并移除不必要的目录
-RUN git clone https://mirror.ghproxy.com/https://github.com/setube/vue-XiuXianGame.git /workspace \
-    && mv /workspace/vue-XiuXianGame/* /workspace \
-    && rm -rf /workspace/vue-XiuXianGame
+# 将本地的 nginx 配置文件复制到容器中
+COPY nginx.conf /etc/nginx/conf.d/default.conf
 
-# 安装 pnpm 并安装项目依赖
-RUN npm install -g pnpm \
-    && pnpm install
+# 暴露 8080 端口
+EXPOSE 8080
 
-# 暴露 Vite 服务器的默认端口
-EXPOSE 5173
-
-# 启动 Vite 开发服务器
-CMD ["npx", "vite", "--host"]
+# 启动 Nginx
+CMD ["nginx", "-g", "daemon off;"]

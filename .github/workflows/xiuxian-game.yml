@@ -22,9 +22,7 @@ jobs:
 
       # Install dependencies and build the project
       - name: Install dependencies
-        run: yarn install
-      - name: Build project
-        run: yarn build
+        run: pnpm install
 
       # Log in to Docker Hub
       - name: Log in to Docker Hub
@@ -35,8 +33,8 @@ jobs:
 
       # Build the xiuxian game
       - name: Build xiuxian game
-        run: docker build -t setube/vue-xiuxiangame:latest .
+        run: docker build -t kpxyyyy/vue-xiuxiangame:latest .
 
       # Push the xiuxian game to Docker Hub
       - name: Push xiuxian game
-        run: docker push setube/vue-xiuxiangame:latest
+        run: docker push kpxyyyy/vue-xiuxiangame:latest

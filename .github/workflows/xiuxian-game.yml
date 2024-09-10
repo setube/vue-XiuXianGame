@@ -20,11 +20,7 @@ jobs:
         with:
           node-version: '18'
 
-      # Install dependencies and build the project
-      - name: Install dependencies
-        run: pnpm install
-
-      # Log in to Docker Hub
+      # 登录 Docker Hub
       - name: Log in to Docker Hub
         uses: docker/login-action@v2
         with:

@@ -1,4 +1,4 @@
-FROM node:20.16.0
+FROM node:latest
 
 RUN mkdir -p /workspace
 

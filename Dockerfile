@@ -12,7 +12,7 @@ RUN git clone https://mirror.ghproxy.com/https://github.com/setube/vue-XiuXianGa
 
 RUN mv ./vue-XiuXianGame/* . ; rm -rf ./vue-XiuXianGame/
 
-RUN npm install -g yarn ; yarn install
+RUN npm install -g pnpm ; pnpm install
 
 RUN npm run build
 

@@ -1,153 +1,109 @@
-import Vuex from 'vuex';
+import { defineStore } from 'pinia';
 import crypto from '@/plugins/crypto';
-import persistedState from 'vuex-persistedstate';
 
-
-export default new Vuex.Store(
-    {
-        state: {
-            // boss属性
-            boss: {
-                name: '',
-                text: '',
-                time: 0,
-                desc: '',
-                level: 0,
-                dodge: 0,
-                attack: 0,
-                health: 0,
-                conquer: false,
-                defense: 0,
-                critical: 0,
-                maxhealth: 0
-            },
-            // 玩家属性
-            player: {
-                //隐私政策
-                zc: false,
-                pet: {},
-                // npc
-                npcs: [],
-                // 跟随的道侣
-                wife: {},
-                // 出战的灵兽
-                // 收服的灵兽
-                pets: [],
-                // 已拥有的道侣
-                wifes: [],
-                props: {
-                    // 灵石
-                    money: 0,
-                    // 传送符
-                    flying: 0,
-                    // 情缘
-                    qingyuan: 0,
-                    // 悟性丹
-                    rootBone: 0,
-                    // 鸿蒙石数量
-                    currency: 0,
-                    // 培养丹数量
-                    cultivateDan: 0,
-                    // 炼器石数量
-                    strengtheningStone: 0,
-                },
-                // 人物评分
-                score: 0,
-                // 等级
-                level: 0,
-                // 闪避
-                dodge: 0,
-                // 点数
-                points: 0,
-                // 攻击
-                attack: 10,
-                // 当前血量
-                health: 100,
-                // 暴击率
-                critical: 0,
-                // 防御
-                defense: 10,
-                // 已击杀数量
-                taskNum: 0,
-                // 版本号
-                version: 0.8,
-                // 鸿蒙石数量
+export const useMainStore = defineStore('main', {
+    state: () => ({
+        // boss属性
+        boss: {
+            name: '',
+            text: '',
+            time: 0,
+            desc: '',
+            level: 0,
+            dodge: 0,
+            attack: 0,
+            health: 0,
+            conquer: false,
+            defense: 0,
+            critical: 0,
+            maxhealth: 0
+        },
+        // 玩家属性
+        player: {
+            zc: false,
+            pet: {},
+            dark: false,
+            npcs: [],
+            wife: {},
+            pets: [],
+            wifes: [],
+            props: {
+                money: 0,
+                flying: 0,
+                qingyuan: 0,
+                rootBone: 0,
                 currency: 0,
-                // 总血量
-                maxHealth: 100,
-                // 背包道具
-                inventory: [],
-                // 新手礼包
-                isNewbie: false,
-                // 商店数据
-                shopData: [],
-                // 装备
-                equipment: {
-                    // 法宝
-                    sutra: {},
-                    // 护甲
-                    armor: {},
-                    // 武器
-                    weapon: {},
-                    // 饰品
-                    accessory: {}
-                },
-                // 成就
-                achievement: {
-                    pet: [],
-                    monster: [],
-                    equipment: []
-                },
-                // 当前修为
-                cultivation: 0,
-                // 转生次数
-                reincarnation: 0,
-                // 下个等级所需修为
-                maxCultivation: 100,
-                // 背包容量
-                backpackCapacity: 50,
-                // 批量出售装备设置
-                sellingEquipmentData: [],
+                cultivateDan: 0,
+                strengtheningStone: 0
             },
-            // 地图数据
-            mapData: {
-                y: 0,
-                x: 0,
-                map: [],
+            score: 0,
+            level: 0,
+            dodge: 0,
+            points: 0,
+            attack: 10,
+            health: 100,
+            critical: 0,
+            defense: 10,
+            taskNum: 0,
+            version: 0.8,
+            currency: 0,
+            maxHealth: 100,
+            inventory: [],
+            isNewbie: false,
+            shopData: [],
+            equipment: {
+                sutra: {},
+                armor: {},
+                weapon: {},
+                accessory: {}
             },
+            achievement: {
+                pet: [],
+                monster: [],
+                equipment: []
+            },
+            cultivation: 0,
+            reincarnation: 0,
+            maxCultivation: 100,
+            backpackCapacity: 50,
+            sellingEquipmentData: []
         },
-        mutations: {
-            setMapData (state, data) {
-                state.mapData = data;
+        mapData: {
+            y: 0,
+            x: 0,
+            map: []
+        }
+    }),
+    actions: {
+        setMapData (data) {
+            this.mapData = data;
+        },
+        setBoss (data) {
+            this.boss = data;
+        },
+        setPlayer (data) {
+            this.player = data;
+        }
+    },
+    persist: {
+        key: 'vuex',
+        enabled: true,
+        storage: {
+            getItem: (key) => {
+                const encryptedState = localStorage.getItem(key);
+                const state = JSON.parse(encryptedState);
+                return {
+                    boss: crypto.decryption(state.boss),
+                    player: crypto.decryption(state.player)
+                };
             },
-            setBoss (state, data) {
-                state.boss = data;
-            },
-            setPlayer (state, data) {
-                state.player = data;
+            setItem: (key, value) => {
+                const state = JSON.parse(value);
+                return localStorage.setItem(key, JSON.stringify({
+                    boss: crypto.encryption(state.boss),
+                    player: crypto.encryption(state.player)
+                }));
             }
-        },
-        plugins: [
-            persistedState({
-                storage: window.localStorage,
-                reducer (val) {
-                    return {
-                        boss: crypto.encryption(val.boss),
-                        player: crypto.encryption(val.player)
-                    };
-                },
-                getState (key, storage) {
-                    const value = storage.getItem(key);
-                    if (value) {
-                        const state = JSON.parse(value);
-                        return {
-                            boss: crypto.decryption(state.boss),
-                            player: crypto.decryption(state.player)
-                        };
-                    }
-                    return {};
-                }
-            })
-        ]
+        }
     }
-);
+});

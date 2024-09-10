@@ -64,13 +64,13 @@
             };
         },
         mounted () {
-            const local = this.$store.state;
+            const local = this.$store;
             if (local) {
                 this.player = local.player;
                 this.player.zc = this.player.zc ? this.player.zc : false;
                 this.dialogVisible = !this.player.zc;
             }
-            if (window.location.host !== 'appassets.androidplatform.net' || this.player.zc) this.$router.push('/home');
+            if (location.host !== 'appassets.androidplatform.net' || this.player.zc) this.$router.push('/home');
         },
         methods: {
             zhengce (bool) {
@@ -78,7 +78,7 @@
                 else this.$notifys({ title: '提示', message: '未同意隐私政策无法进入游戏' });
                 this.player.zc = bool;
                 this.dialogVisible = false;
-                this.$store.commit('setPlayer', this.player);
+                this.$store.setPlayer(this.player);
             },
             goHome () {
                 if (!this.player.zc) {

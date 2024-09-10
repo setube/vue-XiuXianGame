@@ -3,7 +3,6 @@ import boss from '../views/bossPage.vue';
 import home from '../views/homePage.vue';
 import index from '../views/indexPage.vue';
 import explore from '../views/explorePage.vue';
-import equipAll from '../views/equipAll.vue';
 import cultivate from '../views/cultivatePage.vue';
 import { createRouter, createWebHashHistory } from 'vue-router';
 
@@ -55,14 +54,6 @@ const routes = [
             keepAlive: false
         },
         component: boss
-    },
-    {
-        path: '/equipAll',
-        name: 'equipAll',
-        meta: {
-            keepAlive: true
-        },
-        component: equipAll
     }
 ];
 const router = createRouter({

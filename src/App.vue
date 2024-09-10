@@ -1,27 +1,31 @@
 <template>
     <div class="game-container-wrapper" draggable="true">
-        <div class="github-corner" v-if="ifProtocol">
-            <a href="https://github.com/coolxitech/vue-XiuXianGame" target="_blank" aria-label="View source on GitHub">
-                <svg width="80" height="80" viewBox="0 0 250 250" style="fill:#151513; color:#fff; position: absolute; top: 0; border: 0; right: 0; z-index: 2;" aria-hidden="true">
-                    <path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z" />
-                    <path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" />
-                    <path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" />
-                </svg>
-            </a>
-        </div>
-        <div class="game-container">
+        <div :class="['game-container', { dark: player.dark }]">
             <router-view v-slot="{ Component }">
                 <keep-alive v-if="$route.meta.keepAlive">
                     <component :is="Component" :key="key" />
                 </keep-alive>
                 <component v-if="!$route.meta.keepAlive" :is="Component" :key="key" />
             </router-view>
-            <div class="bbh">
-                当前游戏版本{{ version }}
-            </div>
+            <el-switch size="large" v-model="player.dark">
+                <template #active-action>
+                    <i class="el-icon">
+                        <svg viewBox="0 0 24 24" class="dark-icon">
+                            <path d="M11.01 3.05C6.51 3.54 3 7.36 3 12a9 9 0 0 0 9 9c4.63 0 8.45-3.5 8.95-8c.09-.79-.78-1.42-1.54-.95A5.403 5.403 0 0 1 11.1 7.5c0-1.06.31-2.06.84-2.89c.45-.67-.04-1.63-.93-1.56z" fill="currentColor"></path>
+                        </svg>
+                    </i>
+                </template>
+                <template #inactive-action>
+                    <i class="el-icon">
+                        <svg viewBox="0 0 24 24" class="light-icon">
+                            <path d="M6.05 4.14l-.39-.39a.993.993 0 0 0-1.4 0l-.01.01a.984.984 0 0 0 0 1.4l.39.39c.39.39 1.01.39 1.4 0l.01-.01a.984.984 0 0 0 0-1.4zM3.01 10.5H1.99c-.55 0-.99.44-.99.99v.01c0 .55.44.99.99.99H3c.56.01 1-.43 1-.98v-.01c0-.56-.44-1-.99-1zm9-9.95H12c-.56 0-1 .44-1 .99v.96c0 .55.44.99.99.99H12c.56.01 1-.43 1-.98v-.97c0-.55-.44-.99-.99-.99zm7.74 3.21c-.39-.39-1.02-.39-1.41-.01l-.39.39a.984.984 0 0 0 0 1.4l.01.01c.39.39 1.02.39 1.4 0l.39-.39a.984.984 0 0 0 0-1.4zm-1.81 15.1l.39.39a.996.996 0 1 0 1.41-1.41l-.39-.39a.993.993 0 0 0-1.4 0c-.4.4-.4 1.02-.01 1.41zM20 11.49v.01c0 .55.44.99.99.99H22c.55 0 .99-.44.99-.99v-.01c0-.55-.44-.99-.99-.99h-1.01c-.55 0-.99.44-.99.99zM12 5.5c-3.31 0-6 2.69-6 6s2.69 6 6 6s6-2.69 6-6s-2.69-6-6-6zm-.01 16.95H12c.55 0 .99-.44.99-.99v-.96c0-.55-.44-.99-.99-.99h-.01c-.55 0-.99.44-.99.99v.96c0 .55.44.99.99.99zm-7.74-3.21c.39.39 1.02.39 1.41 0l.39-.39a.993.993 0 0 0 0-1.4l-.01-.01a.996.996 0 0 0-1.41 0l-.39.39c-.38.4-.38 1.02.01 1.41z" fill="currentColor"></path>
+                        </svg>
+                    </i>
+                </template>
+            </el-switch>
         </div>
-        <div class="wm_bg_1" />
-        <div class="wm_bg_2" />
+        <div class="wm_bg_1" v-if="!player.dark" />
+        <div class="wm_bg_2" v-if="!player.dark" />
     </div>
 </template>
 
@@ -29,20 +33,21 @@
     export default {
         data () {
             return {
-                version: 0.8,
+                player: {}
             };
+        },
+        watch: {
+            'player.dark' (val) {
+                document.querySelector('html').classList = val ? 'dark' : '';
+            }
         },
         computed: {
             key () {
                 return this.$route.path;
-            },
-            ifProtocol () {
-                return window.location.protocol !== 'file:';
             }
         },
         mounted () {
-        },
-        methods: {
+            this.player = this.$store.player;
         }
     };
 </script>
@@ -56,29 +61,12 @@
         margin: 10px 0;
     }
 
-    .bbh {
-        color: #ccc;
-        font-size: 15px;
-        text-align: center;
-        position: absolute;
-        bottom: -40px;
-        left: 0;
-        right: 0;
-    }
-
     .game-container-wrapper {
         display: flex;
         justify-content: center;
         align-items: center;
         min-height: 90vh;
         -webkit-user-drag: none
-    }
-
-    .github-corner {
-        position: fixed;
-        top: 0;
-        right: 0;
-        z-index: 10;
     }
 
     .game-container {
@@ -88,10 +76,12 @@
         margin: 0 auto;
         padding: 20px;
         background-color: rgba(255, 255, 255, 0.5);
-        border-radius: 10px;
-        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
         text-align: center;
         position: relative;
+    }
+
+    .game-container.dark {
+        background-color: #141414;
     }
 
     @media only screen and (min-width: 800px) {
@@ -124,6 +114,21 @@
         background: url(@/assets/wm_bg_2.png) top;
     }
 
+    .el-icon svg {
+        height: 1em;
+        width: 1em;
+    }
+
+    .light-icon {
+        color: #606266;
+    }
+
+    .dark-icon {
+        border-radius: 50%;
+        color: #cfd3dc;
+        background-color: #141414;
+    }
+
     @media only screen and (max-width: 750px) {
         .game-container {
             min-height: 574px;
@@ -133,9 +138,98 @@
 </style>
 
 <style>
-    body {
+    html {
         background: #fff;
         overflow: auto;
+        --el-color-pink-light: #f48fb1;
+        --el-color-pink-light-8: #f8bbd0;
+        --el-color-pink-light-9: #fce4ec;
+        --el-color-purple-light: #8560f5;
+        --el-color-purple-light-8: #d4adf7;
+        --el-color-purple-light-9: #f1e3f5;
+    }
+
+    html.dark {
+        color-scheme: dark;
+        background: #141414;
+        --el-color-pink-light-8: #5a3c47;
+        --el-color-pink-light-9: #3c2a2e;
+        --el-color-purple-light-8: #473b5a;
+        --el-color-purple-light-9: #2d2636;
+        --el-color-primary: #409eff;
+        --el-color-primary-light-3: #3375b9;
+        --el-color-primary-light-5: #2a598a;
+        --el-color-primary-light-7: #213d5b;
+        --el-color-primary-light-8: #1d3043;
+        --el-color-primary-light-9: #18222c;
+        --el-color-primary-dark-2: #66b1ff;
+        --el-color-success: #67c23a;
+        --el-color-success-light-3: #4e8e2f;
+        --el-color-success-light-5: #3e6b27;
+        --el-color-success-light-7: #2d481f;
+        --el-color-success-light-8: #25371c;
+        --el-color-success-light-9: #1c2518;
+        --el-color-success-dark-2: #85ce61;
+        --el-color-warning: #e6a23c;
+        --el-color-warning-light-3: #a77730;
+        --el-color-warning-light-5: #7d5b28;
+        --el-color-warning-light-7: #533f20;
+        --el-color-warning-light-8: #3e301c;
+        --el-color-warning-light-9: #292218;
+        --el-color-warning-dark-2: #ebb563;
+        --el-color-danger: #f56c6c;
+        --el-color-danger-light-3: #b25252;
+        --el-color-danger-light-5: #854040;
+        --el-color-danger-light-7: #582e2e;
+        --el-color-danger-light-8: #412626;
+        --el-color-danger-light-9: #2b1d1d;
+        --el-color-danger-dark-2: #f78989;
+        --el-color-error: #f56c6c;
+        --el-color-error-light-3: #b25252;
+        --el-color-error-light-5: #854040;
+        --el-color-error-light-7: #582e2e;
+        --el-color-error-light-8: #412626;
+        --el-color-error-light-9: #2b1d1d;
+        --el-color-error-dark-2: #f78989;
+        --el-color-info: #909399;
+        --el-color-info-light-3: #6b6d71;
+        --el-color-info-light-5: #525457;
+        --el-color-info-light-7: #393a3c;
+        --el-color-info-light-8: #2d2d2f;
+        --el-color-info-light-9: #202121;
+        --el-color-info-dark-2: #a6a9ad;
+        --el-box-shadow: 0px 12px 32px 4px rgba(0, 0, 0, .36), 0px 8px 20px rgba(0, 0, 0, .72);
+        --el-box-shadow-light: 0px 0px 12px rgba(0, 0, 0, .72);
+        --el-box-shadow-lighter: 0px 0px 6px rgba(0, 0, 0, .72);
+        --el-box-shadow-dark: 0px 16px 48px 16px rgba(0, 0, 0, .72), 0px 12px 32px #000000, 0px 8px 16px -8px #000000;
+        --el-bg-color-page: #0a0a0a;
+        --el-bg-color: #141414;
+        --el-bg-color-overlay: #1d1e1f;
+        --el-text-color-primary: #E5EAF3;
+        --el-text-color-regular: #CFD3DC;
+        --el-text-color-secondary: #A3A6AD;
+        --el-text-color-placeholder: #8D9095;
+        --el-text-color-disabled: #6C6E72;
+        --el-border-color-darker: #636466;
+        --el-border-color-dark: #58585B;
+        --el-border-color: #4C4D4F;
+        --el-border-color-light: #414243;
+        --el-border-color-lighter: #363637;
+        --el-border-color-extra-light: #2B2B2C;
+        --el-fill-color-darker: #424243;
+        --el-fill-color-dark: #39393A;
+        --el-fill-color: #303030;
+        --el-fill-color-light: #262727;
+        --el-fill-color-lighter: #1D1D1D;
+        --el-fill-color-extra-light: #191919;
+        --el-fill-color-blank: transparent;
+        --el-mask-color: rgba(0, 0, 0, .8);
+        --el-mask-color-extra-light: rgba(0, 0, 0, .3);
+    }
+
+    .dark .el-switch.is-checked .el-switch__core {
+        background-color: #2c2c2c;
+        border-color: #4C4D4F;
     }
 
     a {
@@ -163,6 +257,25 @@
         ::-webkit-scrollbar-thumb:hover {
             background-color: rgba(0, 0, 0, .3);
         }
+    }
+
+    .attributes {
+        display: flex;
+        justify-content: center;
+    }
+
+    .tag {
+        height: 32px;
+        padding: 0 10px;
+        line-height: 30px;
+        font-size: 12px;
+        border-width: 1px;
+        border-style: solid;
+        border-radius: 4px;
+        border: var(--el-border);
+        box-sizing: border-box;
+        white-space: nowrap;
+        display: inline-block;
     }
 
     .el-icon {
@@ -197,37 +310,37 @@
 
     /* 增加紫色装备配色 */
     .el-tag--purple {
-        background-color: #f1e3f5 !important;
-        border-color: #d4adf7 !important;
-        color: #8560f5 !important;
+        --el-tag-bg-color: var(--el-color-purple-light-9) !important;
+        --el-tag-border-color: var(--el-color-purple-light-8) !important;
+        --el-tag-text-color: var(--el-color-purple-light) !important;
     }
 
     .el-tag.el-tag--purple .el-tag__close {
-        color: #8560f5 !important;
+        --el-tag-text-color: var(--el-color-purple-light) !important;
     }
 
     .el-tag.el-tag--purple .el-tag__close:hover {
         color: #FFF !important;
-        background-color: #8560f5 !important;
+        background-color: var(--el-color-purple-light) !important;
     }
 
     /* 增加粉色装备配色 */
     .el-tag--pink {
-        background-color: #fce4ec !important;
-        border-color: #f8bbd0 !important;
-        color: #f48fb1 !important;
+        --el-tag-bg-color: var(--el-color-pink-light-9) !important;
+        --el-tag-border-color: var(--el-color-pink-light-8) !important;
+        --el-tag-text-color: var(--el-color-pink-light) !important;
     }
 
     .el-tag.el-tag--pink .el-tag__close {
-        color: #f48fb1 !important;
+        --el-tag-text-color: var(--el-color-pink-light) !important;
     }
 
     .el-tag.el-tag--pink .el-tag__close:hover {
         color: #FFF !important;
-        background-color: #f48fb1 !important;
+        background-color: var(--el-color-pink-light) !important;
     }
 
-    .el-button--pink {
+    /* .el-button--pink {
         color: #FFF !important;
         background-color: #FF82AB !important;
         border-color: #FF82AB !important;
@@ -243,7 +356,7 @@
     .el-button--pink.is-disabled {
         background-color: #ff82ab8f !important;
         border-color: #ff82ab00 !important;
-    }
+    } */
 
     .attribute .pet {
         border-color: transparent !important;

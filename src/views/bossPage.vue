@@ -48,8 +48,8 @@
             }
         },
         mounted () {
-            this.boss = this.$store.state.boss;
-            this.player = this.$store.state.player;
+            this.boss = this.$store.boss;
+            this.player = this.$store.player;
             this.currency = boss.getRandomInt(1, 10);
             this.assaultBoss();
         },
@@ -189,7 +189,7 @@
                         this.boss.health = 0;
                         this.boss.conquer = true;
                         this.stopFightBoss();
-                        this.$store.commit('setBoss', this.boss);
+                        this.$store.setBoss(this.boss);
                     } else if (this.player.health <= 0) {
                         this.isEnd = true;
                         // 恢复boss血量
@@ -212,7 +212,7 @@
                     this.texts = [...this.texts, `${this.boss.text}`];
                 }
                 // 更新玩家存档
-                this.$store.commit('setPlayer', this.player);
+                this.$store.setPlayer(this.player);
             },
             openEquipmentInfo (item) {
                 if (!this.isequipment) return;
@@ -253,7 +253,7 @@
                         // boss没有血量但时间大于等于5分钟，重新生成boss  
                         this.boss = boss.drawPrize(bossLv);
                         // 存档boss信息  
-                        this.$store.commit('setBoss', this.boss);
+                        this.$store.setBoss(this.boss);
                     }
                     // 如果boss没有血量  
                 } else {
@@ -261,7 +261,7 @@
                         // boss没有血量但时间大于等于5分钟，重新生成boss  
                         this.boss = boss.drawPrize(bossLv);
                         // 存档boss信息  
-                        this.$store.commit('setBoss', this.boss);
+                        this.$store.setBoss(this.boss);
                     } else {
                         this.isEnd = true;
                         this.texts = [...this.texts, 'BOSS还未刷新，请等待5分钟后再次挑战'];

@@ -633,7 +633,10 @@
                 </el-button>
             </div>
         </el-dialog>
-        <el-dialog title="数据管理" v-model="show" width="600px">
+        <el-dialog v-model="show" width="600px">
+            <template #header>
+                <span class="el-dialog__title">当前游戏版本为: {{ ver }}</span>
+            </template>
             <div class="dialog-footer">
                 <el-button type="info" class="dialog-footer-button" @click="exportData">
                     导出存档
@@ -646,29 +649,78 @@
                 <el-button type="danger" class="dialog-footer-button" @click="deleteData">
                     删除存档
                 </el-button>
-                <el-button type="primary" class="dialog-footer-button" @click="qq">
+                <el-button type="primary" class="dialog-footer-button" @click="copyContent('qq')">
                     官方群聊
                 </el-button>
+                <el-button type="success" class="dialog-footer-button" @click="copyContent('url')">开源地址</el-button>
             </div>
         </el-dialog>
+        <el-drawer title="图鉴与成就" v-model="equipAllShow" direction="rtl" class="equipAll">
+            <el-tabs v-model="activeName" type="border-card">
+                <el-tab-pane label="装备图鉴" name="illustrations">
+                    <div class="equipAll-box">
+                        <el-tabs v-model="illustrationsActive" :stretch="true">
+                            <el-tab-pane :label="i.name" :name="i.type" v-for="(i, k) in illustrationsItems" :key="k">
+                                <div class="equipAll-content">
+                                    <template v-for="(item, index) in i.data">
+                                        <div class="equipAll-item" v-if="item.type == i.type" :key="index" @click="illustrationsInfo(k, index)">
+                                            <tag :type="item.quality">
+                                                {{ item.name }}
+                                            </tag>
+                                        </div>
+                                    </template>
+                                </div>
+                            </el-tab-pane>
+                        </el-tabs>
+                    </div>
+                </el-tab-pane>
+                <el-tab-pane label="我的成就" name="achievement">
+                    <el-tabs v-model="achievementActive" :stretch="true">
+                        <el-tab-pane :label="i.name" :name="i.type" v-for="(i, k) in achievementAll" :key="k">
+                            <div class="achievement-content" v-if="i.data.length > 0">
+                                <div class="achievement-item" v-for="(item, index) in i.data" :key="index" @click="achievementInfo(item)">
+                                    <tag :type="getTagClass(i.type, item.id) ? 'success' : 'info'">
+                                        {{ item.name }}
+                                        ({{ getTagClass(i.type, item.id) ? '已完成' : '未完成' }})
+                                    </tag>
+                                </div>
+                            </div>
+                            <div class="achievement-content" v-else>
+                                此类成就暂未发布
+                            </div>
+                        </el-tab-pane>
+                    </el-tabs>
+                </el-tab-pane>
+            </el-tabs>
+            <div class="backtop" @click="equipAllShow = false">
+                <el-icon>
+                    <Close />
+                </el-icon>
+            </div>
+        </el-drawer>
     </div>
 </template>
 
 <script>
+    // 标签组件
+    import tag from '@/components/tag.vue';
     // 商店
     import shop from '@/plugins/shop';
     // 装备
     import equip from '@/plugins/equip';
     // 解密
     import crypto from '@/plugins/crypto';
-    // 标签组件
-    import tag from '@/components/tag.vue';
-
+    // 数据导出
     import { saveAs } from 'file-saver';
+    // 图鉴
+    import equipAll from '@/plugins/equipAll';
+    // 成就
+    import achievement from '@/plugins/achievement';
 
     export default {
         data () {
             return {
+                ver: 0.8,
                 show: false,
                 // 玩家属性
                 player: {
@@ -781,6 +833,7 @@
                 // 商店商品价格
                 shopPrice: 100,
                 shopActive: 'weapon',
+                activeName: 'illustrations',
                 // 灵宠信息弹窗
                 petItemShow: false,
                 backPackItem: [
@@ -791,6 +844,8 @@
                 ],
                 petRootBone: false,
                 petCollapse: '',
+                // 图鉴弹窗
+                equipAllShow: false,
                 // 道侣弹窗
                 wifeItemShow: false,
                 // 装备信息
@@ -801,6 +856,7 @@
                 strengthenShow: false,
                 // 炼器的信息
                 strengthenInfo: {},
+                achievementAll: [],
                 // 选择分解的装备品阶
                 checkedEquipmen: [],
                 inventoryActive: 'equipment',
@@ -809,10 +865,13 @@
                 AllEquipmenType: ['info', 'success', 'primary', 'purple', 'warning', 'danger', 'pink'],
                 // 灵宠转生勾选状态
                 petReincarnation: false,
+                achievementActive: 'pet',
                 inventoryCollapse: '',
+                petDropdownActive: '',
+                illustrationsItems: [],
                 // 批量分解弹窗
                 sellingEquipmentShow: false,
-                petDropdownActive: '',
+                illustrationsActive: 'weapon',
                 equipmentDropdownActive: ''
             }
         },
@@ -831,7 +890,7 @@
                 if (type == 'shop' && !this.player.shopData.length) {
                     this.player.shopData = shop.drawPrize(this.$maxLv);
                     // 更新玩家存档
-                    this.$store.commit('setPlayer', this.player);
+                    this.$store.setPlayer(this.player);
                 }
                 return type;
             },
@@ -870,7 +929,7 @@
         },
         mounted () {
             // 判断本地有没有玩家存档数据
-            const local = this.$store.state;
+            const local = this.$store;
             if (localStorage.vuex) {
                 const vuex = JSON.parse(localStorage.vuex);
                 const player = crypto.decryption(vuex.player);
@@ -883,7 +942,8 @@
             if (local) {
                 this.boss = local.boss;
                 this.player = local.player;
-                window.player = local.player;
+                this.achievementAll = achievement.all();
+                this.illustrationsItems = equipAll.drawPrize(this.$maxLv);
             }
             // 初始化游戏
             this.startGame();
@@ -908,13 +968,17 @@
                         }
                     },
                     { text: '批量处理', handler: this.sellingEquipmentBox },
-                    { text: '图鉴与成就', handler: () => this.$router.push('/equipAll') },
+                    {
+                        text: '图鉴与成就', handler: () => {
+                            this.equipAllShow = true;
+                        }
+                    },
                     { text: '世界BOSS', handler: () => this.$router.push('/boss') }
                 ];
                 // 初始化玩家当前气血
                 this.player.health = this.player.maxHealth;
                 // 更新玩家存档
-                this.$store.commit('setPlayer', this.player);
+                this.$store.setPlayer(this.player);
             },
             // 清空存档
             clearSave () {
@@ -972,7 +1036,7 @@
                 this.player.props.cultivateDan += cultivateDanTotal;
                 // 清空背包内所有未锁定灵宠
                 this.player.pets = pets.filter(item => item.lock);
-                this.$store.commit('setPlayer', this.player);
+                this.$store.setPlayer(this.player);
                 this.$notifys({ title: '灵宠放生提示', message: `所有非锁定灵宠已成功放生, 他们临走前一起赠与了你${cultivateDanTotal}个培养丹` });
             },
             // 批量分解装备
@@ -1007,14 +1071,14 @@
                 this.player.props.strengtheningStone += strengtheningStoneTotal;
                 // 清空背包内所有未锁定装备与选中分解的品阶
                 this.player.inventory = inventory.filter(item => !sellingEquipmen.includes(item.quality) || item.lock);
-                this.$store.commit('setPlayer', this.player);
+                this.$store.setPlayer(this.player);
                 this.$notifys({ title: '背包装备分解提示', message: `背包内所有非锁定装备已成功分解, 你获得了${strengtheningStoneTotal}个炼器石和${selling.length}个灵石` });
             },
             // 修改玩家装备分解设置
             sellingEquipmentDataChange (val) {
                 this.player.sellingEquipmentData = val;
                 // 更新玩家存档
-                this.$store.commit('setPlayer', this.player);
+                this.$store.setPlayer(this.player);
             },
             // 刷新商店
             refreshShop () {
@@ -1027,7 +1091,7 @@
                 // 更新鸿蒙商店数据
                 this.player.shopData = shop.drawPrize(this.$maxLv);
                 // 更新玩家存档
-                this.$store.commit('setPlayer', this.player);
+                this.$store.setPlayer(this.player);
                 this.$notifys({ title: '提示', message: '刷新成功' });
             },
             // 删档
@@ -1108,14 +1172,14 @@
                 // 关闭道具信息弹窗
                 this.inventoryShow = false;
                 // 更新玩家存档
-                this.$store.commit('setPlayer', this.player);
+                this.$store.setPlayer(this.player);
             },
             // 道具锁定or道具解锁
             inventoryLock (id) {
                 let inventoryItem = this.getObjectById(id, this.player.inventory);
                 inventoryItem.lock = !inventoryItem.lock;
                 // 更新玩家存档
-                this.$store.commit('setPlayer', this.player);
+                this.$store.setPlayer(this.player);
                 this.$notifys({
                     title: !inventoryItem.lock ? '装备解锁提示' : '装备锁定提示',
                     message: !inventoryItem.lock ? '装备解锁成功' : '装备锁定成功'
@@ -1142,7 +1206,7 @@
                 // 从灵宠背包中移除这个灵宠
                 this.player.pets = this.player.pets.filter(i => i.id !== item.id);
                 // 更新玩家存档
-                this.$store.commit('setPlayer', this.player);
+                this.$store.setPlayer(this.player);
             },
             // 放生灵宠
             petClose (item) {
@@ -1163,7 +1227,7 @@
                     // 删除道具
                     this.player.pets = this.player.pets.filter(obj => obj.id !== item.id);
                     // 更新玩家存档
-                    this.$store.commit('setPlayer', this.player);
+                    this.$store.setPlayer(this.player);
                     // 装备分解通知
                     this.$notifys({
                         title: `${item.name}已成功放生`,
@@ -1175,7 +1239,7 @@
             petLock (item) {
                 item.lock = !item.lock;
                 // 更新玩家存档
-                this.$store.commit('setPlayer', this.player);
+                this.$store.setPlayer(this.player);
                 this.$notifys({
                     title: !item.lock ? '灵宠解锁提示' : '灵宠锁定提示',
                     message: !item.lock ? '灵宠解锁成功' : '灵宠锁定成功'
@@ -1274,7 +1338,7 @@
                     // 扣除炼器石
                     this.player.props.strengtheningStone -= calculateCost;
                     // 更新玩家存档
-                    this.$store.commit('setPlayer', this.player);
+                    this.$store.setPlayer(this.player);
                 }).catch(() => { });
             },
             // 计算炼器所需消耗的道具数量
@@ -1391,7 +1455,7 @@
                     // 扣除培养丹
                     this.player.props.cultivateDan -= consume;
                     // 更新玩家存档
-                    this.$store.commit('setPlayer', this.player);
+                    this.$store.setPlayer(this.player);
                 }).catch(() => { });
             },
             // 道侣升级
@@ -1425,7 +1489,7 @@
                     // 扣除情缘点
                     this.player.props.qingyuan -= consume;
                     // 更新玩家存档
-                    this.$store.commit('setPlayer', this.player);
+                    this.$store.setPlayer(this.player);
                 }).catch(() => { });
             },
             // 计算灵宠升级所需消耗
@@ -1449,7 +1513,7 @@
                         this.player.inventory.push(item);
                     }
                     // 更新玩家存档
-                    this.$store.commit('setPlayer', this.player);
+                    this.$store.setPlayer(this.player);
                     // 跳转背包相关页
                     this.inventoryActive = item.type;
                     this.$notifys({ title: '购买提示', message: `您成功花费${this.shopPrice}鸿蒙石购买${item.name}` });
@@ -1473,7 +1537,7 @@
                 // 从道侣背包中移除这个道侣
                 this.player.wifes = this.player.wifes.filter(i => i.name !== item.name);
                 // 更新玩家存档
-                this.$store.commit('setPlayer', this.player);
+                this.$store.setPlayer(this.player);
             },
             // 道侣收回
             wifeRevoke () {
@@ -1484,7 +1548,7 @@
                 this.player.wife = {};
                 this.player.wifes.push(item);
                 // 更新玩家存档
-                this.$store.commit('setPlayer', this.player);
+                this.$store.setPlayer(this.player);
             },
             // 道侣信息
             wifeItemInfo (item) {
@@ -1560,7 +1624,7 @@
                         this.newbiePack(timesLeft);
                     }, 100);
                     // 更新玩家存档
-                    this.$store.commit('setPlayer', this.player);
+                    this.$store.setPlayer(this.player);
                 }
             },
             // 分解装备
@@ -1579,7 +1643,7 @@
                     // 关闭装备信息弹窗
                     this.inventoryShow = false;
                     // 更新玩家存档
-                    this.$store.commit('setPlayer', this.player);
+                    this.$store.setPlayer(this.player);
                     // 装备分解通知
                     this.$notifys({ title: '背包装备售卖提示', message: `${item.name}已成功卖出, 你获得了${num}个炼器石` });
                 }).catch(() => { });
@@ -1611,7 +1675,7 @@
                 // 收回当前出战的灵宠
                 this.player.pet = {};
                 // 更新玩家存档
-                this.$store.commit('setPlayer', this.player);
+                this.$store.setPlayer(this.player);
             },
             // 计算灵宠等级
             computePetsLevel (lv) {
@@ -1657,7 +1721,7 @@
                 // 清空身上当前类型的装备
                 equipment[type] = {};
                 // 更新玩家存档
-                this.$store.commit('setPlayer', this.player);
+                this.$store.setPlayer(this.player);
             },
             // 装备信息
             equipmentInfo (type) {
@@ -1698,7 +1762,7 @@
                     // 扣除点数
                     this.player.points--;
                     // 更新玩家存档
-                    this.$store.commit('setPlayer', this.player);
+                    this.$store.setPlayer(this.player);
                     this.$notifys({ title: '加点提示', message: `加点成功${typeNames[type]}增加了${numText}点` });
                 }
             },
@@ -1710,33 +1774,23 @@
                 // return percentage < 0 ? 100 : 100 - percentage;
                 return `${num3.toFixed(2)}%`
             },
-            async copyTextToClipboard (text) {
-                if (navigator.clipboard) {
-                    try {
-                        await navigator.clipboard.writeText(text);
-                        this.$notifys({ title: '提示', message: '群号复制成功' });
-                    } catch (err) {
-                        this.$notifys({ title: '提示', message: '群号复制失败, 请手动复制' });
-                    }
-                }
-            },
-            qq () {
-                const qq = '920930589';
-                this.$prompt('', '官方群聊', {
-                    inputValue: qq,
+            copyContent (type) {
+                const content = type == 'qq' ? '920930589' : 'https://github.com/coolxitech/vue-XiuXianGame';
+                this.$prompt('', type == 'qq' ? '官方群聊' : '开源地址', {
+                    inputValue: content,
                     showCancelButton: false,
-                    confirmButtonText: '复制群号',
+                    confirmButtonText: '复制',
                     beforeClose: async (action, instance, done) => {
                         if (action === 'confirm') {
                             if (window.navigator.clipboard) {
                                 try {
-                                    await window.navigator.clipboard.writeText(qq);
+                                    await window.navigator.clipboard.writeText(content);
                                     done();
                                     // 关闭弹窗
                                     this.show = false;
-                                    this.$notifys({ title: '提示', message: '群号复制成功' });
+                                    this.$notifys({ title: '提示', message: '复制成功' });
                                 } catch (err) {
-                                    this.$notifys({ title: '提示', message: '群号复制失败, 请手动复制' });
+                                    this.$notifys({ title: '提示', message: '复制失败, 请手动复制' });
                                 }
                             }
                         } else {
@@ -1744,7 +1798,54 @@
                         }
                     }
                 }).catch(() => { });
-            }
+            },
+            getTagClass (type, index) {
+                const achievements1 = this.$store.player.achievement[type] || [];
+                return Array.isArray(achievements1) && achievements1.some(ach => ach.id === index);
+            },
+            // 成就详细
+            achievementInfo (item) {
+                this.$confirm('', `${item.name}`, {
+                    center: true,
+                    message: `<div class="monsterinfo">
+                        <div class="monsterinfo-box">
+                            <p>气血: ${item.condition.health}</p>
+                            <p>攻击: ${item.condition.attack}</p>
+                            <p>防御: ${item.condition.defense}</p>
+                            <p>闪避率: ${(item.condition.dodge * 100).toFixed(2)}%</p>
+                            <p>暴击率: ${(item.condition.critical * 100).toFixed(2)}%</p>
+                            <p>完成奖励: ${item.award}培养丹</p>
+                        </div>
+                    </div>`,
+                    showCancelButton: false,
+                    confirmButtonText: '知道了',
+                    dangerouslyUseHTMLString: true
+                }).then(() => { }).catch(() => { });
+            },
+            // 图鉴装备信息
+            illustrationsInfo (i, ii) {
+                const info = this.illustrationsItems[i].data[ii];
+                this.$confirm('', info.name, {
+                    center: true,
+                    message: `<div class="monsterinfo">
+                        <div class="monsterinfo-box">
+                            <p>类型: ${this.$genre[info.type]}</p>
+                            <p>境界: ${this.$levelNames(info.level)}</p>
+                            <p>品质: ${this.$levels[info.quality]}</p>
+                            <p>气血: ${this.$formatNumberToChineseUnit(info.health)}</p>
+                            <p>攻击: ${this.$formatNumberToChineseUnit(info.attack)}</p>
+                            <p>防御: ${this.$formatNumberToChineseUnit(info.defense)}</p>
+                            <p>闪避率: ${info.dodge > 0 ? (info.dodge * 100 > 100 ? 100 : (info.dodge * 100).toFixed(2)) : 0}%</p>
+                            <p>暴击率: ${info.critical > 0 ? (info.critical * 100 > 100 ? 100 : (info.critical * 100).toFixed(2)) : 0}%</p>
+                            <p>装备评分: ${this.$formatNumberToChineseUnit(info.score)}</p>
+                            <p>获得率: ${info.prize}%</p>
+                        </div>
+                    </div>`,
+                    showCancelButton: false,
+                    confirmButtonText: '知道了',
+                    dangerouslyUseHTMLString: true
+                }).catch(() => { });
+            },
         }
     }
 </script>
@@ -1752,24 +1853,6 @@
 <style scoped>
     .index-box {
         margin-top: 15px;
-    }
-
-    .attributes {
-        display: flex;
-        justify-content: center;
-    }
-
-    .tag {
-        height: 32px;
-        padding: 0 10px;
-        line-height: 30px;
-        font-size: 12px;
-        border-width: 1px;
-        border-style: solid;
-        border-radius: 4px;
-        box-sizing: border-box;
-        white-space: nowrap;
-        display: inline-block;
     }
 
     .attribute {
@@ -1894,6 +1977,49 @@
 
     }
 
+    .equipAll-content {
+        display: flex;
+        flex-wrap: wrap;
+    }
+
+    .equipAll-item {
+        width: 20%;
+        margin-top: 10px;
+    }
+
+    .achievement-content {
+        display: flex;
+        flex-wrap: wrap;
+        width: 100%;
+        justify-content: center;
+        color: var(--el-text-color-primary);
+    }
+
+    .achievement-item {
+        width: 33.33%;
+        margin-top: 10px;
+    }
+
+    .backtop {
+        background-color: #4d4d4d;
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        color: #fff;
+        position: fixed;
+        z-index: 1;
+        bottom: 20px;
+        right: 20px;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+    }
+    .dark .backtop {
+        background-color: #fff;
+        color: #4d4d4d;
+    }
+
     @media only screen and (max-width: 750px) {
         .title {
             font-size: 20px;
@@ -1936,10 +2062,32 @@
             margin-left: 0 !important;
             margin-top: 10px;
         }
+
+        .equipAll-item {
+            width: 33%;
+        }
+
+        .achievement-item {
+            width: 50%;
+        }
+
+        .backtop {
+            display: flex;
+        }
     }
 </style>
 
 <style>
+    .equipAll {
+        width: 60% !important;
+    }
+
+    @media only screen and (max-width: 750px) {
+        .equipAll {
+            width: 100% !important;
+        }
+    }
+
     .el-collapse-item__content,
     .el-collapse-item div[role='tab'] {
         display: flex;

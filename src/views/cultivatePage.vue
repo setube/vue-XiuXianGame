@@ -50,7 +50,7 @@
             this.stopObserving(); // 停止观察
         },
         mounted () {
-            this.player = this.$store.state.player;
+            this.player = this.$store.player;
             this.startCultivate();
             this.setupObserver(); // 设置 MutationObserver
         },
@@ -107,7 +107,7 @@
                     this.player.maxCultivation = Math.floor(100 * Math.pow(2, this.$maxLv * reincarnation));
                     this.stopCultivate();
                 }
-                this.$store.commit('setPlayer', this.player);
+                this.$store.setPlayer(this.player);
             },
             reincarnationBreakthrough () {
                 let reincarnation = this.player.reincarnation;
@@ -136,7 +136,7 @@
                                 message: `转生成功, 当前为${this.player.reincarnation}转, 背包总容量增加50`,
                                 dangerouslyUseHTMLString: true
                             });
-                            this.$store.commit('setPlayer', this.player);
+                            this.$store.setPlayer(this.player);
                         }).catch(() => {
                         });
                     } else {

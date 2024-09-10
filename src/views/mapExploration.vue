@@ -154,9 +154,9 @@
             }
         },
         mounted () {
-            this.player = this.$store.state.player;
+            this.player = this.$store.player;
             this.obstacleCount = Math.floor(this.totalCells * 0.1);
-            const mapData = this.$store.state.mapData;
+            const mapData = this.$store.mapData;
             if (mapData.map.length) {
                 this.grid = mapData.map;
                 this.playerY = mapData.y;
@@ -256,7 +256,7 @@
                             this.player.npcs = arr;
                             placed = true;
                             // 更新玩家存档
-                            this.$store.commit('setPlayer', this.player);
+                            this.$store.setPlayer(this.player);
                         }
                     }
                 }
@@ -286,7 +286,7 @@
                         this.$notifys({ title: '提示', message: '对方拒绝了你的邀请, 好感度清空', position: 'top-left' });
                     }
                     // 更新玩家存档
-                    this.$store.commit('setPlayer', this.player);
+                    this.$store.setPlayer(this.player);
                 }).catch(() => { });
             },
             // 礼物信息
@@ -318,7 +318,7 @@
                     // 增加情缘点
                     this.player.props.qingyuan += index;
                     // 更新玩家存档
-                    this.$store.commit('setPlayer', this.player);
+                    this.$store.setPlayer(this.player);
                     this.$notifys({ title: '赠送提示', message: `赠送成功, ${this.npcInfo.name}对你的好感度增加了, 并赠与了你${index}张传送符和${index}点情缘`, position: 'top-left' });
                 }).catch(() => { });
             },
@@ -358,7 +358,7 @@
                 const playerIndex = this.playerY * this.gridSize + this.playerX;
                 this.grid[playerIndex].type = 'player';
                 // 更新地图数据
-                this.$store.commit('setMapData', {
+                this.$store.setMapData({
                     y: this.playerY,
                     x: this.playerX,
                     map: this.grid,
@@ -385,22 +385,30 @@
                 let newY = this.playerY;
                 direction = typeof direction === 'string' ? direction : direction.key;
                 switch (direction) {
+                    case 'w':
                     case 'up':
                     case 'ArrowUp':
                         if (newY > 0) newY--;
                         break;
+                    case 's':
                     case 'down':
                     case 'ArrowDown':
                         if (newY < this.gridSize - 1) newY++;
                         break;
+                    case 'a':
                     case 'left':
                     case 'ArrowLeft':
                         if (newX > 0) newX--;
                         break;
+                    case 'd':
                     case 'right':
                     case 'ArrowRight':
                         if (newX < this.gridSize - 1) newX++;
                         break;
+                    case 'Enter':
+                        if (this.isNpc) this.talkToNpc();
+                        break;
+                    default: return;
                 }
                 const newIndex = newY * this.gridSize + newX;
                 // 仅在目标位置为空地时移动玩家
@@ -518,11 +526,6 @@
         padding: 0 5px;
     }
 
-    .attributes {
-        display: flex;
-        justify-content: center;
-    }
-
     .attribute-box {
         display: flex;
         flex-wrap: wrap;
@@ -531,19 +534,6 @@
     .attribute {
         width: 100%;
         margin: 4px;
-    }
-
-    .tag {
-        height: 32px;
-        padding: 0 10px;
-        line-height: 30px;
-        font-size: 12px;
-        border-width: 1px;
-        border-style: solid;
-        border-radius: 4px;
-        box-sizing: border-box;
-        white-space: nowrap;
-        display: inline-block;
     }
 
     .click-box {

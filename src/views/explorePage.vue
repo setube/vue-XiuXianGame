@@ -76,13 +76,13 @@
             this.stopFight();
         },
         mounted () {
-            this.player = this.$store.state.player;
+            this.player = this.$store.player;
             this.encounterMonster();
         },
         methods: {
             // 回家疗伤
             goHome () {
-                this.$store.state.mapData = { y: 0, x: 0, map: [] };
+                this.$store.mapData = { y: 0, x: 0, map: [] };
                 this.$router.push('/home');
             },
             // 怪物信息
@@ -212,7 +212,7 @@
                     this.stopFight();
                 }
                 // 更新玩家存档
-                this.$store.commit('setPlayer', this.player);
+                this.$store.setPlayer(this.player);
             },
             // 逃跑
             runAway () {
@@ -286,7 +286,7 @@
                     }
                 }
                 // 更新玩家存档
-                this.$store.commit('setPlayer', this.player);
+                this.$store.setPlayer(this.player);
             },
             // 发现的装备信息
             openEquipmentInfo (item) {
@@ -423,7 +423,7 @@
                         });
                         this.texts = [...this.texts, `收服${item.name}成功`];
                         // 更新玩家存档
-                        this.$store.commit('setPlayer', this.player);
+                        this.$store.setPlayer(this.player);
                     } else {
                         this.texts = [...this.texts, `灵宠背包容量已满, 收服${item.name}失败, 转生可增加灵宠背包容量`];
                     }

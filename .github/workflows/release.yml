@@ -30,7 +30,7 @@ jobs:
         id: get_body
         run: |
           versionlog=$(jq -r '.versionlog' package.json)
-          echo "VERSIONLOG=$versionlog" >> $GITHUB_ENV
+          echo "$versionlog" > versionlog.txt
 
       - name: 获取指定版本号
         id: get_version
@@ -42,10 +42,9 @@ jobs:
         id: create_release
         uses: actions/create-release@v1
         with:
-          tag_name: v${{ env.VERSION }}
-          release_name: Release ${{ env.VERSION }}
-          body: |
-            ${{ env.VERSIONLOG }}
+          tag_name: ${{ env.VERSION }}
+          release_name: ${{ env.VERSION }}版本
+          body_path: ./versionlog.txt
           draft: false
           prerelease: false
         env:

@@ -24,9 +24,11 @@ jobs:
     - name: Build project
       run: npm run build
 
-    - name: Generate version tag
-      id: generate_tag
-      run: echo "RELEASE_TAG=v0.$(date +%s)" >> $GITHUB_ENV
+    - name: Read version from config.json
+      id: get_version
+      run: |
+        version=$(jq -r '.version' config.json)
+        echo "VERSION=$version" >> $GITHUB_ENV
 
     - name: Create Release
       uses: actions/create-release@v1

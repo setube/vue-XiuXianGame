@@ -24,10 +24,10 @@ jobs:
     - name: Build project
       run: npm run build
 
-    - name: Read version from config.json
+    - name: Read version from package.json
       id: get_version
       run: |
-        version=$(jq -r '.version' config.json)
+        version=$(jq -r '.version' package.json)
         echo "VERSION=$version" >> $GITHUB_ENV
 
     - name: Create Release

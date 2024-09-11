@@ -11,20 +11,20 @@ jobs:
 
     steps:
       # 检出仓库的代码
-      - name: Checkout code
+      - name: 检查代码
         uses: actions/checkout@v2
 
       # 登录 Docker Hub
-      - name: Log in to Docker Hub
+      - name: 登录 Docker Hub
         uses: docker/login-action@v2
         with:
           username: ${{ secrets.DOCKERHUB_USER }}  # 使用 GitHub Secrets 中的 Docker 用户名
           password: ${{ secrets.DOCKERHUB_TOKEN }}  # 使用 GitHub Secrets 中的 Docker 密码
 
       # 构建 Docker 镜像，使用提供的 Dockerfile
-      - name: Build xiuxian game
+      - name: 构建Docker镜像
         run: docker build -t kpxyyyy/vue-xiuxiangame:latest .
 
       # 将构建好的 Docker 镜像推送到 Docker Hub
-      - name: Push xiuxian game
+      - name: 推送到Docker Hub
         run: docker push kpxyyyy/vue-xiuxiangame:latest  # 推送到 Docker Hub

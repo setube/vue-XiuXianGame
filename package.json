@@ -35,7 +35,7 @@
         "unplugin-auto-import": "^0.18.2",
         "unplugin-icons": "^0.19.2",
         "vite": "^5.4.3",
-        "vite-plugin-bundle-obfuscator": "^1.0.7"
+        "vite-plugin-bundle-obfuscator": "^1.0.8"
     },
     "eslintConfig": {
         "root": true,

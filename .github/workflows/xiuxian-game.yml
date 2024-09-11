@@ -10,33 +10,45 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # Checkout the repository
+      # 检出仓库的代码
       - name: Checkout code
         uses: actions/checkout@v2
 
-      # Set up Node.js environment
+      # 设置 Node.js 环境
       - name: Set up Node.js
         uses: actions/setup-node@v2
         with:
-          node-version: '18'
+          node-version: '18'  # 使用 Node.js 18 版本
 
-      # Install dependencies and build the project
+      # 安装依赖并构建项目
       - name: Install dependencies
-        run: yarn install
+        run: yarn install  # 安装项目的依赖
       - name: Build project
-        run: yarn build
+        run: yarn build  # 构建项目，生成 dist 文件夹
 
-      # Log in to Docker Hub
+      # 将 dist 文件夹打包归档，准备 Docker 构建
+      - name: Archive dist folder
+        run: tar -cvf dist.tar dist/  # 将 dist 文件夹打包成 tar 文件
+
+      # 解压 dist.tar
+      - name: Extract dist.tar
+        run: tar -xvf dist.tar  # 解压 dist.tar 文件
+
+      # 登录 Docker Hub
       - name: Log in to Docker Hub
         uses: docker/login-action@v2
         with:
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
+          username: ${{ secrets.DOCKER_USERNAME }}  # 使用 GitHub Secrets 中的 Docker 用户名
+          password: ${{ secrets.DOCKER_PASSWORD }}  # 使用 GitHub Secrets 中的 Docker 密码
 
-      # Build the xiuxian game
+      # 构建 Docker 镜像，使用解压后的 dist 文件夹
       - name: Build xiuxian game
-        run: docker build -t setube/vue-xiuxiangame:latest .
+        run: |
+          docker build -t setube/vue-xiuxiangame:latest -f- . <<EOF
+          FROM nginx:alpine  # 使用 NGINX Alpine 版本作为基础镜像
+          COPY dist/ /usr/share/nginx/html  # 将解压后的 dist 文件夹复制到 NGINX 的 web 目录
+          EOF
 
-      # Push the xiuxian game to Docker Hub
+      # 将构建好的 Docker 镜像推送到 Docker Hub
       - name: Push xiuxian game
-        run: docker push setube/vue-xiuxiangame:latest
+        run: docker push setube/vue-xiuxiangame:latest  # 推送到 Docker Hub

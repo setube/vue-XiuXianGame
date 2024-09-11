@@ -23,9 +23,9 @@ jobs:
 
     - name: Build project
       run: npm run build
-
+      
     - name: Read version from package.json
-      id: get_version
+      id: generate_tag
       run: |
         version=$(jq -r '.version' package.json)
         echo "VERSION=$version" >> $GITHUB_ENV

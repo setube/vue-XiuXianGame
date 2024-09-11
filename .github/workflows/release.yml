@@ -23,12 +23,10 @@ jobs:
 
     - name: Build project
       run: npm run build
-      
-    - name: Read version from package.json
+
+    - name: Generate version tag
       id: generate_tag
-      run: |
-        version=$(jq -r '.version' package.json)
-        echo "VERSION=$version" >> $GITHUB_ENV
+      run: echo "RELEASE_TAG=v1.0.$(date +'%Y-%m-%d_%s')" >> $GITHUB_ENV
 
     - name: Create Release
       uses: actions/create-release@v1

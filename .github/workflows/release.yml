@@ -24,11 +24,15 @@ jobs:
     - name: Build project
       run: npm run build
 
+    - name: Generate version tag
+      id: generate_tag
+      run: echo "RELEASE_TAG=v0.$(date +%s)" >> $GITHUB_ENV
+
     - name: Create Release
       uses: actions/create-release@v1
       with:
-        tag_name: ${{ github.sha }}
-        release_name: Release ${{ github.sha }}
+        tag_name: ${{ env.RELEASE_TAG }}
+        release_name: Release ${{ env.RELEASE_TAG }}
         body: |
           Release description
         draft: false

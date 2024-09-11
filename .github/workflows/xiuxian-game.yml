@@ -1,30 +1,26 @@
-name: Build and Push xiuxian game
+name: 自动化创建Docker镜像
 
 on:
   push:
     branches:
-      - main  # 当推送到 main 分支时触发
+      - main
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
-      # 检出仓库的代码
-      - name: Checkout code
+      - name: 检查代码
         uses: actions/checkout@v2
 
-      # 登录 Docker Hub
-      - name: Log in to Docker Hub
+      - name: 登录 Docker Hub
         uses: docker/login-action@v2
         with:
-          username: ${{ secrets.DOCKER_USERNAME }}  # 使用 GitHub Secrets 中的 Docker 用户名
-          password: ${{ secrets.DOCKER_PASSWORD }}  # 使用 GitHub Secrets 中的 Docker 密码
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
 
-      # 构建 Docker 镜像，使用提供的 Dockerfile
-      - name: Build xiuxian game
-        run: docker build -t setube/vue-xiuxiangame:latest .
+      - name: 构建Docker镜像
+        run: docker build -t setube/vue-xiuxiangame:latest
 
-      # 将构建好的 Docker 镜像推送到 Docker Hub
-      - name: Push xiuxian game
-        run: docker push setube/vue-xiuxiangame:latest  # 推送到 Docker Hub
+      - name: 推送到Docker Hub
+        run: docker push setube/vue-xiuxiangame:latest 

@@ -1137,7 +1137,7 @@
                 const minutes = String(today.getMinutes()).padStart(2, '0');
                 const seconds = String(today.getSeconds()).padStart(2, '0');
                 const blob = new Blob([localStorage.getItem('vuex')], { type: 'application/json;charset=utf-8' });
-                const name = `我的文字修仙全靠刷${year}-${month}-${day}_${hours}:${minutes}:${seconds}.json`;
+                const name = `我的文字修仙全靠刷-[存档导出时间${year}${month}${day}${hours}${minutes}${seconds}]-[游戏版本${this.ver}].json`;
                 saveAs(blob, name);
             },
             // 批量分解装备弹窗

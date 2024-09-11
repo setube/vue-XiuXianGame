@@ -45,7 +45,7 @@
                 observer: null // 用于保存 MutationObserver 实例
             };
         },
-        beforeDestroy () {
+        beforeUnmount () {
             this.stopCultivate();
             this.stopObserving(); // 停止观察
         },

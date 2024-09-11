@@ -2,6 +2,7 @@ import App from './App.vue';
 import { createApp } from 'vue';
 import { createPinia } from 'pinia';
 import 'element-plus/dist/index.css';
+import 'normalize.css/normalize.css';
 import router from '@/plugins/router';
 import { useMainStore } from '@/plugins/store';
 import ElementPlus, { ElNotification } from 'element-plus';

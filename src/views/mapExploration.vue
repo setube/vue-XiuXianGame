@@ -14,9 +14,9 @@
                 <div class="color-box empty"></div> 空地
             </div>
         </div>
-        <div class="map" ref="map">
+        <div class="map">
             <div class="grid-container">
-                <div v-for="(cell, index) in grid" :key="index" :ref="'cell-' + index" :class="['grid-item', cell.type]" @click="gridInfo(index, cell)"></div>
+                <div v-for="(cell, index) in grid" :key="index" :ref="'cell-' + index" :class="['grid-item', cell.type]" :style="{ backgroundColor: cell.his }" @click="gridInfo(index, cell)"></div>
             </div>
         </div>
         <div class="controls">
@@ -77,6 +77,23 @@
     // npc
     import npc from '@/plugins/npc';
     import tag from '@/components/tag.vue';
+
+    // 优先队列实现
+    class PriorityQueue {
+        constructor() {
+            this.elements = [];
+        }
+        add (element, priority) {
+            this.elements.push({ element, priority });
+            this.elements.sort((a, b) => a.priority - b.priority);
+        }
+        poll () {
+            return this.elements.shift().element;
+        }
+        isEmpty () {
+            return this.elements.length === 0;
+        }
+    }
 
     export default {
         data () {
@@ -166,48 +183,73 @@
             }
             window.addEventListener('keydown', this.move);
         },
-        beforeDestroy () {
+        beforeUnmount () {
             window.removeEventListener('keydown', this.move);
         },
         methods: {
             // 初始化地图
             initializeGrid () {
-                this.grid = Array(this.totalCells).fill().map(() => ({ type: 'empty' }));
-                // 定义更大的安全区域，防止障碍物包围玩家
+                this.grid = Array(this.totalCells).fill().map(() => ({ his: '', type: 'empty' }));
+                const safeZone = this.createSafeZone();
+                // 生成障碍物
+                this.generateItems('obstacle', this.obstacleCount, safeZone);
+                // 确保障碍物生成不会堵塞路径
+                this.ensurePathAvailability();
+                // 生成NPC
+                this.generateNpcs(this.npcCount, safeZone);
+                // 确保NPC生成不会堵塞路径
+                this.ensurePathAvailability();
+                // 更新玩家初始位置
+                this.updatePlayerPosition();
+            },
+            // 创建安全区域
+            createSafeZone () {
                 const safeZone = new Set();
                 for (let y = this.playerY - 1; y <= this.playerY + 1; y++) {
                     for (let x = this.playerX - 1; x <= this.playerX + 1; x++) {
                         if (y >= 0 && y < this.gridSize && x >= 0 && x < this.gridSize) safeZone.add(y * this.gridSize + x);
                     }
                 }
-                // 生成障碍物，直到找到一个可行的地图
-                do {
-                    this.generateItems('obstacle', this.obstacleCount, safeZone);
-                } while (!this.isPathAvailable());
-                // 生成NPC，直到找到一个可行的地图
-                do {
-                    this.generateNpcs(this.npcCount, safeZone);
-                } while (!this.isPathAvailable());
-                // 更新玩家初始位置
-                this.updatePlayerPosition();
+                return safeZone;
             },
-
-            // 检查玩家是否有可行路径到达地图边界
+            // 确保地图的路径可用性
+            ensurePathAvailability () {
+                while (!this.isPathAvailable()) {
+                    // 重新生成障碍物
+                    this.generateItems('obstacle', this.obstacleCount, this.createSafeZone());
+                    // 重新生成NPC
+                    this.generateNpcs(this.npcCount, this.createSafeZone());
+                }
+            },
+            // 使用 A* 算法检查路径可用性
             isPathAvailable () {
-                const visited = new Set();
-                const queue = [[this.playerY, this.playerX]];
+                const start = [this.playerY, this.playerX];
                 const directions = [[0, 1], [1, 0], [0, -1], [-1, 0]];
-                while (queue.length > 0) {
-                    const [y, x] = queue.shift();
-                    if (y === 0 || y === this.gridSize - 1 || x === 0 || x === this.gridSize - 1) return true;
+                const heuristic = (a, b) => Math.abs(a[0] - b[0]) + Math.abs(a[1] - b[1]);
+                const end = [0, 0];
+                const openSet = new PriorityQueue();
+                const cameFrom = new Map();
+                const gScore = new Map();
+                const fScore = new Map();
+                openSet.add(start, 0);
+                gScore.set(start.toString(), 0);
+                fScore.set(start.toString(), heuristic(start, end));
+                while (!openSet.isEmpty()) {
+                    const current = openSet.poll();
+                    if (current[0] === 0 || current[0] === this.gridSize - 1 || current[1] === 0 || current[1] === this.gridSize - 1) return true;
                     for (const [dy, dx] of directions) {
-                        const newY = y + dy;
-                        const newX = x + dx;
-                        const index = newY * this.gridSize + newX;
+                        const newY = current[0] + dy;
+                        const newX = current[1] + dx;
+                        const neighbor = [newY, newX];
                         if (newY >= 0 && newY < this.gridSize && newX >= 0 && newX < this.gridSize &&
-                            !visited.has(index) && this.grid[index].type === 'empty') {
-                            visited.add(index);
-                            queue.push([newY, newX]);
+                            this.grid[newY * this.gridSize + newX].type === 'empty') {
+                            const tentativeGScore = gScore.get(current.toString()) + 1;
+                            if (!gScore.has(neighbor.toString()) || tentativeGScore < gScore.get(neighbor.toString())) {
+                                cameFrom.set(neighbor.toString(), current);
+                                gScore.set(neighbor.toString(), tentativeGScore);
+                                fScore.set(neighbor.toString(), tentativeGScore + heuristic(neighbor, end));
+                                openSet.add(neighbor, fScore.get(neighbor.toString()));
+                            }
                         }
                     }
                 }
@@ -215,7 +257,6 @@
             },
             // 生成指定数量的障碍物
             generateItems (type, count, excludeSet) {
-                // 清空之前生成的障碍物
                 this.grid.forEach(cell => {
                     if (cell.type === 'obstacle') cell.type = 'empty';
                 });
@@ -230,7 +271,7 @@
             },
             // 生成指定数量的NPC
             generateNpcs (count, excludeSet) {
-                // 清空之前生成的NPC
+                window.player = this.player
                 this.grid.forEach(cell => {
                     if (cell.type === 'npc') cell.type = 'empty';
                 });
@@ -242,7 +283,7 @@
                         name,
                         position: index,
                         favorability: isData ? favorability : 0,
-                        reincarnation: 10,
+                        reincarnation: 10
                     };
                 };
                 let arr = [];
@@ -250,16 +291,26 @@
                     for (let placed = false; !placed;) {
                         const index = Math.floor(Math.random() * this.totalCells);
                         if (!excludeSet.has(index) && this.grid[index].type === 'empty') {
+                            const favorability = isData ? npcs[i].favorability : 0;
+                            const lightness = this.calculateLightness(favorability);
+                            this.grid[index].his = `hsl(340, 82%, ${lightness}%, 1)`;
                             this.grid[index].type = 'npc';
                             const npcData = isData ? createNPCData(npcs[i].name, index, npcs[i].favorability) : createNPCData(npcs[i], index, 0);
                             arr.push(npcData);
                             this.player.npcs = arr;
                             placed = true;
-                            // 更新玩家存档
                             this.$store.setPlayer(this.player);
                         }
                     }
                 }
+            },// 根据亲密度计算颜色亮度
+            calculateLightness (favorability) {
+                const maxFavorability = 1000;
+                const minLightness = 30; // 最暗
+                const maxLightness = 80; // 最亮
+                // 根据亲密度百分比计算亮度
+                const percentage = favorability / maxFavorability;
+                return minLightness + (maxLightness - minLightness) * percentage;
             },
             harvestNpc (item) {
                 this.$confirm('与对方结为道侣有50%的概率失败, 失败后好感度会清空, 请问还想与对方结为道侣吗?', '结为道侣', {
@@ -324,6 +375,8 @@
             },
             // 地图信息
             gridInfo (index, item) {
+                // 如果坐标不是空地
+                if (item.type != 'empty') return;
                 const x = index % this.gridSize;
                 const y = Math.floor(index / this.gridSize);
                 this.$confirm('地图坐标信息', '地图坐标信息', {
@@ -335,15 +388,12 @@
                         </div>
                     </div>`,
                     lockScroll: false,
+                    cancelButtonText: '取消传送',
                     confirmButtonText: '立即传送',
                     dangerouslyUseHTMLString: true
                 }).then(() => {
                     if (!this.player.props.flying) {
                         this.$notifys({ title: '传送提示', message: '传送失败, 传送符不足', position: 'top-left' });
-                        return;
-                    }
-                    if (item.type != 'empty') {
-                        this.$notifys({ title: '传送提示', message: '传送失败, 该坐标有障碍物或NPC', position: 'top-left' });
                         return;
                     }
                     this.playerY = y;
@@ -363,8 +413,13 @@
                     x: this.playerX,
                     map: this.grid,
                 });
+                // 20%概率遇怪
                 const rand = this.isLucky(20);
-                if (rand && playerIndex != 0) this.$router.push('/explore');
+                if (rand && playerIndex != 0) {
+                    this.$router.push('/explore');
+                    // 移除键盘监听
+                    window.removeEventListener('keydown', this.move);
+                }
                 // 每次更新玩家位置后调用
                 if (playerIndex != 0) this.updateScroll(playerIndex);
             },
@@ -474,7 +529,7 @@
     }
 
     .npc {
-        background-color: blue;
+        background-color: rgb(139, 14, 56);
     }
 
     .empty {

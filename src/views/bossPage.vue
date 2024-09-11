@@ -53,7 +53,7 @@
             this.currency = boss.getRandomInt(1, 10);
             this.assaultBoss();
         },
-        beforeDestroy () {
+        beforeUnmount () {
             this.stopFightBoss();
         },
         methods: {

@@ -72,7 +72,7 @@
                 openEquipItemInfo: {},
             }
         },
-        beforeDestroy () {
+        beforeUnmount () {
             this.stopFight();
         },
         mounted () {

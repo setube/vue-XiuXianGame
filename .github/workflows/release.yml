@@ -1,0 +1,66 @@
+name: 自动化创建发行包
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 检查代码
+        uses: actions/checkout@v3
+
+      - name: 添加Node.js环境
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20'
+
+      - name: 安装环境需求
+        run: |
+          npm install -g pnpm
+          pnpm install
+
+      - name: 构建项目
+        run: npx vite build
+
+      - name: 获取版本更新内容
+        id: get_body
+        run: |
+          versionlog=$(jq -r '.versionlog' package.json)
+          echo "VERSIONLOG=$versionlog" >> $GITHUB_ENV
+
+      - name: 获取指定版本号
+        id: get_version
+        run: |
+          version=$(jq -r '.version' package.json)
+          echo "VERSION=$version" >> $GITHUB_ENV
+
+      - name: 创建发行请求
+        id: create_release
+        uses: actions/create-release@v1
+        with:
+          tag_name: v${{ env.VERSION }}
+          release_name: Release ${{ env.VERSION }}
+          body: |
+            ${{ env.VERSIONLOG }}
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: 压缩发行包
+        run: |
+          zip -r release-assets.zip ./dist
+
+      - name: 上传发行包
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./release-assets.zip
+          asset_name: dist.zip
+          asset_content_type: application/zip

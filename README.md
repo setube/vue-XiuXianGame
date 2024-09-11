@@ -2,19 +2,27 @@
     <img src="https://i0.hdslb.com/bfs/article/2954c995c96dd4ece5922282f54ec58b8941412.png" width="400">
 </p>
 <p align="center">
-    <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/license-MIT-blue" alt="license MIT"></a>
-    <a href="https://qm.qq.com/q/iifNs5qukg"><img src="https://img.shields.io/badge/QQ%E7%BE%A4-920930589-green" alt="QQ群：920930589"></a>
-    <a href="https://www.taptap.cn/app/719622"><img src="https://img.shields.io/badge/TapTap-%E6%88%91%E7%9A%84%E6%96%87%E5%AD%97%E4%BF%AE%E4%BB%99%E5%85%A8%E9%9D%A0%E5%88%B7-18d6e0" alt="TapTap"></a>
-    <a href="https://hellogithub.com/repository/e73a691ffcfa4d0e92a05912fe8c0b46" target="_blank"><img src="https://abroad.hellogithub.com/v1/widgets/recommend.svg?rid=e73a691ffcfa4d0e92a05912fe8c0b46&claim_uid=OCYdts5lPczHag4&theme=small" alt="Featured｜HelloGitHub" /></a>
+    <a href="https://opensource.org/licenses/MIT" target="_blank">
+        <img src="https://img.shields.io/badge/license-MIT-blue" alt="license MIT">
+    </a>
+    <a href="https://qm.qq.com/q/iifNs5qukg" target="_blank">
+        <img src="https://img.shields.io/badge/QQ%E7%BE%A4-920930589-green" alt="QQ群：920930589">
+    </a>
+    <a href="https://www.taptap.cn/app/719622" target="_blank">
+        <img src="https://img.shields.io/badge/TapTap-%E6%88%91%E7%9A%84%E6%96%87%E5%AD%97%E4%BF%AE%E4%BB%99%E5%85%A8%E9%9D%A0%E5%88%B7-18d6e0" alt="TapTap">
+    </a>
+    <a href="https://hellogithub.com/repository/e73a691ffcfa4d0e92a05912fe8c0b46" target="_blank">
+        <img src="https://abroad.hellogithub.com/v1/widgets/recommend.svg?rid=e73a691ffcfa4d0e92a05912fe8c0b46&claim_uid=OCYdts5lPczHag4&theme=small" alt="Featured｜HelloGitHub" />
+    </a>
 </p>
 
 ## 我的文字修仙全靠刷
 
-- 前端框架 [Vue.js](https://cn.vuejs.org)
-- 前端UI [Element Plus](https://element-plus.org/)
+- 项目框架 [Vue.js](https://cn.vuejs.org)
+- 项目UI [Element Plus](https://element-plus.org/zh-CN)
+- 状态管理库 [Pinia](https://pinia.vuejs.org/zh)
   
 Docker贡献者：
-
 - wuchenchina [无尘](https://github.com/wuchenchina)
 - CoolXiTech [酷曦科技](https://github.com/CoolXiTech)
   

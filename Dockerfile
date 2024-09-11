@@ -1,4 +1,4 @@
-FROM node:20.16.0
+FROM node:latest
 
 RUN mkdir -p /workspace
 
@@ -14,6 +14,4 @@ RUN mv ./vue-XiuXianGame/* . ; rm -rf ./vue-XiuXianGame/
 
 RUN npm install -g pnpm ; pnpm install
 
-RUN npm run build
-
-CMD ["vite"]
+CMD ["npx", "vite", "--host"]

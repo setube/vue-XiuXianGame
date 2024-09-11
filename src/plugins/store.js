@@ -87,22 +87,21 @@ export const useMainStore = defineStore('main', {
     },
     persist: {
         key: 'vuex',
-        enabled: true,
-        storage: {
-            getItem: (key) => {
-                const encryptedState = localStorage.getItem(key);
-                const state = JSON.parse(encryptedState);
+        paths: ['boss', 'player'],
+        storage: localStorage,
+        serializer: {
+            serialize: (state) => {
+                return JSON.stringify({
+                    boss: crypto.encryption(state.boss),
+                    player: crypto.encryption(state.player)
+                });
+            },
+            deserialize: (value) => {
+                const state = JSON.parse(value);
                 return {
                     boss: crypto.decryption(state.boss),
                     player: crypto.decryption(state.player)
                 };
-            },
-            setItem: (key, value) => {
-                const state = JSON.parse(value);
-                return localStorage.setItem(key, JSON.stringify({
-                    boss: crypto.encryption(state.boss),
-                    player: crypto.encryption(state.player)
-                }));
             }
         }
     }

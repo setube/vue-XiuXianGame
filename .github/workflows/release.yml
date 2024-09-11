@@ -50,7 +50,7 @@ jobs:
           zip -r release-assets.zip ./dist
 
       - name: Upload Release Asset
-        uses: actions/upload-release-asset@v2
+        uses: actions/upload-release-asset@v1
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
           asset_path: ./release-assets.zip

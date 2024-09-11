@@ -14,4 +14,4 @@ RUN mv ./vue-XiuXianGame/* . ; rm -rf ./vue-XiuXianGame/
 
 RUN npm install -g pnpm ; pnpm install
 
-CMD ["npx", "vite", "--host"]
+CMD ["npx", "vite", "--host", "0.0.0.0"]

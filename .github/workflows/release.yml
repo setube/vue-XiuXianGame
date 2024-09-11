@@ -1,25 +1,41 @@
-name: Release
+name: Build and Release
+
 on:
   push:
     branches:
-      - master
+      - main
+
 jobs:
-  release:
-    name: Release
-    runs-on: ubuntu-18.04
+  build:
+    runs-on: ubuntu-latest
+
     steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-        with:
-          fetch-depth: 0
-      - name: Setup Node.js
-        uses: actions/setup-node@v1
-        with:
-          node-version: 12
-      - name: Install dependencies
-        run: npm ci
-      - name: Release
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-        run: npx semantic-release
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '14'
+
+    - name: Install dependencies
+      run: npm install
+
+    - name: Build project
+      run: npm run build
+
+    - name: Generate version tag
+      id: generate_tag
+      run: echo "RELEASE_TAG=v0.$(date +%s)" >> $GITHUB_ENV
+
+    - name: Create Release
+      uses: actions/create-release@v1
+      with:
+        tag_name: ${{ env.RELEASE_TAG }}
+        release_name: ${{ env.RELEASE_TAG }} 版本
+        body: |
+          自动化打包
+        draft: false
+        prerelease: false
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

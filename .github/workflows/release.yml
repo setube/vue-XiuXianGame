@@ -1,49 +1,25 @@
-name: Build and Release
-
+name: Release
 on:
   push:
     branches:
-      - main
-
+      - master
 jobs:
-  build:
-    runs-on: ubuntu-latest
-
+  release:
+    name: Release
+    runs-on: ubuntu-18.04
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v3
-
-    - name: Set up Node.js
-      uses: actions/setup-node@v3
-      with:
-        node-version: '14'
-
-    - name: Install dependencies
-      run: npm install
-
-    - name: Build project
-      run: npm run build
-
-    - name: Generate version tag
-      id: generate_tag
-      run: echo "RELEASE_TAG=v0.$(date +%s)" >> $GITHUB_ENV
-
-    - name: Create Release
-      uses: actions/create-release@v1
-      with:
-        tag_name: ${{ env.RELEASE_TAG }}
-        release_name: Release ${{ env.RELEASE_TAG }}
-        body: |
-          Release description
-        draft: false
-        prerelease: false
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-    - name: Upload Release Asset
-      uses: actions/upload-release-asset@v1
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./path/to/your/asset.zip
-        asset_name: asset.zip
-        asset_content_type: application/zip
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - name: Setup Node.js
+        uses: actions/setup-node@v1
+        with:
+          node-version: 12
+      - name: Install dependencies
+        run: npm ci
+      - name: Release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: npx semantic-release

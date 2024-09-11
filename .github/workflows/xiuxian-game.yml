@@ -18,8 +18,8 @@ jobs:
       - name: 登录 Docker Hub
         uses: docker/login-action@v2
         with:
-          username: ${{ secrets.DOCKERHUB_USER }}  # 使用 GitHub Secrets 中的 Docker 用户名
-          password: ${{ secrets.DOCKERHUB_TOKEN }}  # 使用 GitHub Secrets 中的 Docker 密码
+          username: ${{ secrets.DOCKER_USERNAME }}  # 使用 GitHub Secrets 中的 Docker 用户名
+          password: ${{ secrets.DOCKER_PASSWORD }}  # 使用 GitHub Secrets 中的 Docker 密码
 
       # 构建 Docker 镜像，使用提供的 Dockerfile
       - name: 构建Docker镜像

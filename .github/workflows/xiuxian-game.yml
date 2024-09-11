@@ -20,7 +20,7 @@ jobs:
           password: ${{ secrets.DOCKER_PASSWORD }}
 
       - name: 构建Docker镜像
-        run: docker build -t setube/vue-xiuxiangame:latest
+        run: docker build -t setube/vue-xiuxiangame:latest .
 
       - name: 推送到Docker Hub
         run: docker push setube/vue-xiuxiangame:latest 

@@ -1,8 +1,8 @@
 {
     "name": "xiuxian-game",
     "private": true,
-    "version": "0.8.4",
-    "versionlog": "优化地图生成逻辑\n增加地图NPC根据亲密度更改辨识度\n修复从地图进入对战后键盘监听问题",
+    "version": "0.8.5",
+    "versionlog": "优化地图生成逻辑\n优化地图生成队列性能",
     "type": "module",
     "scripts": {
         "dev": "vite --open",

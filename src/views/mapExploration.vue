@@ -78,36 +78,100 @@
     import npc from '@/plugins/npc';
     import tag from '@/components/tag.vue';
 
-    // 优先队列实现
-    class PriorityQueue {
+    // 基于最小堆的优先队列实现
+    class MinHeap {
         constructor() {
-            this.elements = [];
+            // 初始化堆为空数组
+            this.heap = [];
         }
-        add (element, priority) {
-            this.elements.push({ element, priority });
-            this.elements.sort((a, b) => a.priority - b.priority);
+        // 向堆中添加一个新节点
+        add (node, priority) {
+            // 将新节点和优先级添加到堆的末尾
+            this.heap.push({ node, priority });
+            // 将新节点上浮到正确的位置以维护堆的性质
+            this.bubbleUp(this.heap.length - 1);
         }
+        // 上浮操作，将节点移动到正确的位置以维护堆的性质
+        bubbleUp (index) {
+            // 当前节点的父节点索引
+            while (index > 0) {
+                const parentIndex = Math.floor((index - 1) / 2);
+                // 如果父节点的优先级小于等于当前节点的优先级，则堆的性质已经满足
+                if (this.heap[parentIndex].priority <= this.heap[index].priority) break;
+                // 交换当前节点与父节点的位置
+                [this.heap[parentIndex], this.heap[index]] = [this.heap[index], this.heap[parentIndex]];
+                // 更新当前节点的索引为其父节点的索引
+                index = parentIndex;
+            }
+        }
+        // 移除并返回堆中的最小节点（即优先级最高的节点）
         poll () {
-            return this.elements.shift().element;
+            // 堆顶的最小节点
+            const min = this.heap[0];
+            // 从堆中移除最后一个节点并保存
+            const end = this.heap.pop();
+            // 如果堆中还有其他节点，则将最后一个节点移动到堆顶并进行下沉操作
+            if (this.heap.length > 0) {
+                this.heap[0] = end;
+                this.bubbleDown(0);
+            }
+            // 返回最小节点
+            return min.node;
         }
+        // 下沉操作，将节点移动到正确的位置以维护堆的性质
+        bubbleDown (index) {
+            const length = this.heap.length;
+            const element = this.heap[index];
+            while (true) {
+                // 当前节点的左子节点和右子节点的索引
+                let leftChildIndex = 2 * index + 1;
+                let rightChildIndex = 2 * index + 2;
+                let swapIndex = null;
+                // 如果左子节点存在且其优先级小于当前节点的优先级，则选择左子节点进行交换
+                if (leftChildIndex < length) {
+                    if (this.heap[leftChildIndex].priority < element.priority) {
+                        swapIndex = leftChildIndex;
+                    }
+                }
+                // 如果右子节点存在且其优先级小于当前节点或左子节点的优先级，则选择右子节点进行交换
+                if (rightChildIndex < length) {
+                    if (
+                        (swapIndex === null && this.heap[rightChildIndex].priority < element.priority) ||
+                        (swapIndex !== null && this.heap[rightChildIndex].priority < this.heap[leftChildIndex].priority)
+                    ) swapIndex = rightChildIndex;
+                }
+                // 如果没有需要交换的子节点，退出循环
+                if (swapIndex === null) break;
+                // 交换当前节点与选择的子节点的位置
+                [this.heap[index], this.heap[swapIndex]] = [this.heap[swapIndex], this.heap[index]];
+                // 更新当前节点的索引为交换后子节点的索引
+                index = swapIndex;
+            }
+        }
+        // 检查堆是否为空
         isEmpty () {
-            return this.elements.length === 0;
+            return this.heap.length === 0;
         }
     }
-
     export default {
         data () {
             return {
-                grid: [], // 保存每个格子的状态
+                // 保存每个格子的状态
+                grid: [],
                 player: {},
-                playerX: 0, // 玩家在X轴的位置
-                playerY: 0, // 玩家在Y轴的位置
+                // 玩家在X轴的位置
+                playerX: 0,
+                // 玩家在Y轴的位置
+                playerY: 0,
                 npcInfo: {},
                 npcShow: false,
-                gridSize: 50, // 地图的大小 (50x50)
+                // 地图的大小 (50x50)
+                gridSize: 50,
                 giftShow: false,
-                npcCount: 10, // NPC的数量
-                obstacleCount: 0, // 障碍物的数量 (总格子的10%)
+                // NPC的数量
+                npcCount: 10,
+                // 障碍物的数量 (总格子的10%)
+                obstacleCount: 0
             };
         },
         components: {
@@ -189,6 +253,7 @@
         methods: {
             // 初始化地图
             initializeGrid () {
+                // 生成地图
                 this.grid = Array(this.totalCells).fill().map(() => ({ his: '', type: 'empty' }));
                 const safeZone = this.createSafeZone();
                 // 生成障碍物
@@ -202,108 +267,139 @@
                 // 更新玩家初始位置
                 this.updatePlayerPosition();
             },
-            // 创建安全区域
+            // 创建一个安全区域，该区域是围绕玩家当前位置的 5x5 网格
             createSafeZone () {
                 const safeZone = new Set();
-                for (let y = this.playerY - 1; y <= this.playerY + 1; y++) {
-                    for (let x = this.playerX - 1; x <= this.playerX + 1; x++) {
-                        if (y >= 0 && y < this.gridSize && x >= 0 && x < this.gridSize) safeZone.add(y * this.gridSize + x);
+                for (let y = this.playerY - 2; y <= this.playerY + 2; y++) {
+                    for (let x = this.playerX - 2; x <= this.playerX + 2; x++) {
+                        // 确保坐标在有效的网格范围内
+                        if (y >= 0 && y < this.gridSize && x >= 0 && x < this.gridSize)
+                            safeZone.add(y * this.gridSize + x); // 将坐标转换为一维索引并添加到安全区域集合中
                     }
                 }
+                // 返回安全区域集合
                 return safeZone;
             },
-            // 确保地图的路径可用性
+            // 确保地图中有可用路径，如果没有则重新生成障碍物和 NPC
             ensurePathAvailability () {
                 while (!this.isPathAvailable()) {
-                    // 重新生成障碍物
+                    // 重新生成障碍物，排除在安全区域内的网格
                     this.generateItems('obstacle', this.obstacleCount, this.createSafeZone());
-                    // 重新生成NPC
+                    // 重新生成 NPC，排除在安全区域内的网格
                     this.generateNpcs(this.npcCount, this.createSafeZone());
                 }
             },
-            // 使用 A* 算法检查路径可用性
+            // 使用 A* 算法检查从起点到终点的路径是否可用
             isPathAvailable () {
+                // 起点坐标
                 const start = [this.playerY, this.playerX];
+                // 终点坐标
+                const end = [49, 49];
+                // 四个方向的移动方式
                 const directions = [[0, 1], [1, 0], [0, -1], [-1, 0]];
-                const heuristic = (a, b) => Math.abs(a[0] - b[0]) + Math.abs(a[1] - b[1]);
-                const end = [0, 0];
-                const openSet = new PriorityQueue();
-                const cameFrom = new Map();
-                const gScore = new Map();
-                const fScore = new Map();
-                openSet.add(start, 0);
+                // 计算启发式函数（曼哈顿距离加上一个小权重）
+                const heuristic = (a, b) => {
+                    const d1 = Math.abs(a[0] - b[0]);
+                    const d2 = Math.abs(a[1] - b[1]);
+                    return d1 + d2 + 0.1 * Math.min(d1, d2);
+                }
+                // 初始化 A* 算法所需的数据结构
+                const openSet = new MinHeap(); // 用于存储待检查的节点
+                const cameFrom = new Map(); // 记录路径
+                const gScore = new Map(); // 记录从起点到当前节点的实际代价
+                const fScore = new Map(); // 记录从起点到终点的估算代价
                 gScore.set(start.toString(), 0);
                 fScore.set(start.toString(), heuristic(start, end));
+                openSet.add(start, fScore.get(start.toString()));
                 while (!openSet.isEmpty()) {
+                    // 获取具有最低 f 值的节点
                     const current = openSet.poll();
-                    if (current[0] === 0 || current[0] === this.gridSize - 1 || current[1] === 0 || current[1] === this.gridSize - 1) return true;
+                    // 如果当前节点是终点，则路径可用
+                    if (current[0] === 49 && current[1] === 49) return true;
                     for (const [dy, dx] of directions) {
                         const newY = current[0] + dy;
                         const newX = current[1] + dx;
                         const neighbor = [newY, newX];
+                        // 确保邻居节点在有效的网格范围内且为空
                         if (newY >= 0 && newY < this.gridSize && newX >= 0 && newX < this.gridSize &&
                             this.grid[newY * this.gridSize + newX].type === 'empty') {
                             const tentativeGScore = gScore.get(current.toString()) + 1;
+                            // 如果找到更短的路径
                             if (!gScore.has(neighbor.toString()) || tentativeGScore < gScore.get(neighbor.toString())) {
                                 cameFrom.set(neighbor.toString(), current);
                                 gScore.set(neighbor.toString(), tentativeGScore);
-                                fScore.set(neighbor.toString(), tentativeGScore + heuristic(neighbor, end));
-                                openSet.add(neighbor, fScore.get(neighbor.toString()));
+                                const fScoreValue = tentativeGScore + heuristic(neighbor, end);
+                                fScore.set(neighbor.toString(), fScoreValue);
+                                openSet.add(neighbor, fScoreValue);
                             }
                         }
                     }
                 }
+                // 如果没有找到路径，则返回 false
                 return false;
             },
-            // 生成指定数量的障碍物
+            // 生成指定数量的障碍物，并确保生成后路径仍然可用
             generateItems (type, count, excludeSet) {
+                // 将所有现有的障碍物转换为空
                 this.grid.forEach(cell => {
                     if (cell.type === 'obstacle') cell.type = 'empty';
                 });
                 let placed = 0;
                 while (placed < count) {
                     const index = Math.floor(Math.random() * this.totalCells);
+                    // 确保新生成的障碍物不在安全区域内且为空
                     if (!excludeSet.has(index) && this.grid[index].type === 'empty') {
                         this.grid[index].type = type;
                         placed++;
+                        // 生成障碍物后立即检查路径是否可行
+                        if (!this.isPathAvailable()) {
+                            // 如果阻塞路径，回溯这个障碍物的生成
+                            this.grid[index].type = 'empty';
+                            placed--;
+                        }
                     }
                 }
             },
-            // 生成指定数量的NPC
+            // 生成指定数量的 NPC，并确保生成后路径仍然可用
             generateNpcs (count, excludeSet) {
-                window.player = this.player
+                // 将所有现有的 NPC 转换为空
                 this.grid.forEach(cell => {
                     if (cell.type === 'npc') cell.type = 'empty';
                 });
                 const npcs = this.player.npcs.length ? this.player.npcs : npc.npcNames();
                 const isData = this.player.npcs.length;
-                const createNPCData = (name, index, favorability) => {
-                    return {
-                        lv: 144,
-                        name,
-                        position: index,
-                        favorability: isData ? favorability : 0,
-                        reincarnation: 10
-                    };
-                };
                 let arr = [];
-                for (let i = 0; i < count; i++) {
-                    for (let placed = false; !placed;) {
-                        const index = Math.floor(Math.random() * this.totalCells);
-                        if (!excludeSet.has(index) && this.grid[index].type === 'empty') {
-                            const favorability = isData ? npcs[i].favorability : 0;
-                            const lightness = this.calculateLightness(favorability);
-                            this.grid[index].his = `hsl(340, 82%, ${lightness}%, 1)`;
-                            this.grid[index].type = 'npc';
-                            const npcData = isData ? createNPCData(npcs[i].name, index, npcs[i].favorability) : createNPCData(npcs[i], index, 0);
-                            arr.push(npcData);
-                            this.player.npcs = arr;
-                            placed = true;
-                            this.$store.setPlayer(this.player);
+                let placed = 0;
+                while (placed < count) {
+                    const index = Math.floor(Math.random() * this.totalCells);
+                    // 确保新生成的 NPC 不在安全区域内且为空
+                    if (!excludeSet.has(index) && this.grid[index].type === 'empty') {
+                        const favorability = isData ? npcs[placed].favorability : 0;
+                        const lightness = this.calculateLightness(favorability);
+                        // 设置 NPC 的颜色
+                        this.grid[index].his = `hsl(340, 82%, ${lightness}%, 1)`;
+                        this.grid[index].type = 'npc';
+                        const npcData = {
+                            lv: 144,
+                            name: isData ? npcs[placed].name : npcs[placed],
+                            position: index,
+                            favorability: favorability,
+                            reincarnation: 10
+                        };
+                        arr.push(npcData);
+                        this.player.npcs = arr;
+                        placed++;
+                        this.$store.setPlayer(this.player);
+                        // 生成 NPC 后立即检查路径是否可行
+                        if (!this.isPathAvailable()) {
+                            // 如果阻塞路径，回溯这个 NPC 的生成
+                            this.grid[index].type = 'empty';
+                            placed--;
                         }
                     }
                 }
-            },// 根据亲密度计算颜色亮度
+            },
+            // 根据亲密度计算颜色亮度
             calculateLightness (favorability) {
                 const maxFavorability = 1000;
                 const minLightness = 30; // 最暗

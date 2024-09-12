@@ -100,6 +100,8 @@
                             <p>神装掉落率: 100%</p>
                         </div>
                     </div>`,
+                    showCancelButton: false,
+                    confirmButtonText: '知道了',
                     dangerouslyUseHTMLString: true
                 }).catch(() => { });
             },

@@ -52,7 +52,8 @@ export default defineConfig({
                 unicodeEscapeSequence: true,
                 identifierNamesGenerator: 'hexadecimal'
             },
-            excludes: ['**/node_modules/**', 'node_modules', '/node_modules/', 'router.js']
+            excludes: ['router.js'],
+            autoExcludeNodeModules: true
         })
     ],
     resolve: {

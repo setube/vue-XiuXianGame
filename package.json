@@ -1,8 +1,8 @@
 {
     "name": "xiuxian-game",
     "private": true,
-    "version": "0.8.5",
-    "versionlog": "优化地图生成逻辑\n优化地图生成队列性能",
+    "version": "0.8.5.1",
+    "versionlog": "更新依赖减轻js体量",
     "type": "module",
     "scripts": {
         "dev": "vite --open",
@@ -36,7 +36,7 @@
         "unplugin-auto-import": "^0.18.2",
         "unplugin-icons": "^0.19.2",
         "vite": "^5.4.3",
-        "vite-plugin-bundle-obfuscator": "^1.0.8"
+        "vite-plugin-bundle-obfuscator": "^1.0.9"
     },
     "eslintConfig": {
         "root": true,

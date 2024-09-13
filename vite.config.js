@@ -1,6 +1,7 @@
 import path from 'path';
 import vue from '@vitejs/plugin-vue';
 import Icons from 'unplugin-icons/vite';
+import { VitePWA } from 'vite-plugin-pwa';
 import AutoImport from 'unplugin-auto-import/vite';
 import Components from 'unplugin-vue-components/vite';
 import IconsResolver from 'unplugin-icons/resolver';
@@ -16,6 +17,30 @@ export default defineConfig({
         vue(),
         Icons({
             autoInstall: true
+        }),
+        VitePWA({
+            manifest: {
+                name: '我的文字修仙全靠刷',
+                icons: [
+                    {
+                        src: '/icons/icon-192x192.png',
+                        sizes: '192x192',
+                        type: 'image/png'
+                    },
+                    {
+                        src: '/icons/icon-512x512.png',
+                        sizes: '512x512',
+                        type: 'image/png'
+                    }
+                ],
+                short_name: '文字修仙',
+                description: '文字游戏: 我的文字修仙全靠刷',
+                theme_color: '#141414'
+            }, 
+            devOptions: {
+                enabled: true
+            },
+            registerType: 'autoUpdate'
         }),
         AutoImport({
             resolvers: [

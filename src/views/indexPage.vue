@@ -70,7 +70,7 @@
                 this.player.zc = this.player.zc ? this.player.zc : false;
                 this.dialogVisible = !this.player.zc;
             }
-            if (location.host !== 'appassets.androidplatform.net' || this.player.zc) this.$router.push('/home');
+            if (!this.$isAPP || this.player.zc) this.$router.push('/home');
         },
         methods: {
             zhengce (bool) {

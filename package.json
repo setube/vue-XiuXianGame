@@ -1,13 +1,13 @@
 {
     "name": "xiuxian-game",
     "private": true,
-    "version": "0.8.7",
-    "versionlog": "移除无用&重复依赖\n优化Dockerfile文件",
+    "version": "0.8.8",
+    "versionlog": "优化对启动vite preview的问题\n新增对PWA应用的支持",
     "type": "module",
     "scripts": {
         "dev": "vite --open",
         "build": "vite build",
-        "preview": "vite preview --open"
+        "preview": "vite preview --open --host --port 8080"
     },
     "dependencies": {
         "@element-plus/icons-vue": "^2.3.1",
@@ -33,7 +33,8 @@
         "unplugin-auto-import": "^0.18.2",
         "unplugin-icons": "^0.19.2",
         "vite": "^5.4.3",
-        "vite-plugin-bundle-obfuscator": "^1.0.9"
+        "vite-plugin-bundle-obfuscator": "^1.0.9",
+        "vite-plugin-pwa": "^0.20.5"
     },
     "eslintConfig": {
         "root": true,

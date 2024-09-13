@@ -67,6 +67,9 @@ app.config.globalProperties.$genre = {
     accessory: '灵宝'
 };
 
+app.config.globalProperties.$isAPP = location.host == 'appassets.androidplatform.net';
+
+
 app.config.globalProperties.$levels = {
     info: '黄阶',
     pink: '仙阶',

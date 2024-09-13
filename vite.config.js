@@ -7,6 +7,7 @@ import IconsResolver from 'unplugin-icons/resolver';
 import { defineConfig } from 'vite';
 import { ElementPlusResolver } from 'unplugin-vue-components/resolvers';
 import vitePluginBundleObfuscator from 'vite-plugin-bundle-obfuscator';
+import {VitePWA} from "vite-plugin-pwa";
 
 
 export default defineConfig({
@@ -54,6 +55,27 @@ export default defineConfig({
             },
             excludes: ['router.js'],
             autoExcludeNodeModules: true
+        }),
+        VitePWA({
+            registerType: 'autoUpdate',
+            manifest: {
+                name: '我的文字修仙全靠刷',
+                short_name: '文字修仙',
+                description: '文字游戏: 我的文字修仙全靠刷',
+                theme_color: '#42b883',
+                icons: [
+                    {
+                        src: '/icons/icon-192x192.png',
+                        sizes: '192x192',
+                        type: 'image/png'
+                    },
+                    {
+                        src: '/icons/icon-512x512.png',
+                        sizes: '512x512',
+                        type: 'image/png'
+                    }
+                ]
+            }
         })
     ],
     resolve: {

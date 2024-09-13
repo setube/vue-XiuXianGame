@@ -7,7 +7,7 @@
     "scripts": {
         "dev": "vite --open",
         "build": "vite build",
-        "preview": "vite preview --open"
+        "preview": "vite preview --open --host --port 8080"
     },
     "dependencies": {
         "@element-plus/icons-vue": "^2.3.1",
@@ -21,6 +21,7 @@
         "postcss": "^8.4.44",
         "terser": "^5.31.6",
         "unplugin-vue-components": "^0.27.4",
+        "vite-plugin-pwa": "^0.20.5",
         "vue": "^3.4.37",
         "vue-router": "^4.4.3"
     },

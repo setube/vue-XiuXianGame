@@ -1,8 +1,8 @@
 {
     "name": "xiuxian-game",
     "private": true,
-    "version": "0.8.5.1",
-    "versionlog": "更新依赖减轻js体量",
+    "version": "0.8.7",
+    "versionlog": "移除无用&重复依赖\n优化Dockerfile文件",
     "type": "module",
     "scripts": {
         "dev": "vite --open",
@@ -12,7 +12,6 @@
     "dependencies": {
         "@element-plus/icons-vue": "^2.3.1",
         "autoprefixer": "^10.4.20",
-        "core-js": "^3.8.3",
         "crypto-js": "^4.2.0",
         "element-plus": "^2.8.1",
         "file-saver": "^2.0.5",

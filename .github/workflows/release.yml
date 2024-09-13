@@ -52,6 +52,7 @@ jobs:
 
       - name: 压缩发行包
         run: |
+          rm -f ./dist/CNAME
           zip -r release-assets.zip ./dist
 
       - name: 上传发行包

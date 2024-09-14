@@ -1,8 +1,8 @@
 {
     "name": "xiuxian-game",
     "private": true,
-    "version": "0.8.8",
-    "versionlog": "优化对启动vite preview的问题\n新增对PWA应用的支持",
+    "version": "0.8.9",
+    "versionlog": "优化部分UI体验\n地图探索新增钓鱼功能\n修复回家后地图不会刷新BUG",
     "type": "module",
     "scripts": {
         "dev": "vite --open",

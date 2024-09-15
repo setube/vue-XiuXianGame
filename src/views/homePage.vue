@@ -318,7 +318,7 @@
                 </div>
             </div>
         </el-drawer>
-        <el-drawer title="装备炼器" v-model="strengthenShow" direction="rtl" class="strengthen">
+        <el-drawer title="炼器" v-model="strengthenShow" direction="rtl" class="strengthen">
             <div class="strengthen-box" v-if="strengthenShow">
                 <div class="attributes">
                     <div class="attribute-box">
@@ -698,6 +698,35 @@
                 </el-icon>
             </div>
         </el-drawer>
+        <el-drawer title="新手礼包" v-model="newBieBox" :before-close="confirmCollectionNewBie" class="newBieBox" direction="rtl">
+            <div class="newBie">
+                <tag v-for="(item, index) in newBieData" class="inventory-item" :type="item.quality" :key="index" @click="newBieInfo(item)">
+                    {{ item.name }}({{ $genre[item.type] }}) <el-icon>
+                        <View />
+                    </el-icon>
+                </tag>
+            </div>
+            <el-button type="primary" :loading="newBieLoading" @click="refreshNewBie">{{ newBieLoading ? '刷新中...' : '刷新装备'}}</el-button>
+            <el-button type="primary" @click="confirmCollectionNewBie">领取装备</el-button>
+        </el-drawer>
+        <el-dialog v-model="newBieInfoBox" :title="newBieItem.name" width="420px">
+            <div class="monsterinfo">
+                <div class="newbieinfo-box">
+                    <p>类型: {{ $genre[newBieItem.type] }}</p>
+                    <p>境界: {{ $levelNames(newBieItem.level) }}</p>
+                    <p>品质: {{ $levels[newBieItem.quality] }}</p>
+                    <p>气血: {{ newBieItem?.health }}</p>
+                    <p>攻击: {{ newBieItem?.attack }}</p>
+                    <p>防御: {{ newBieItem?.defense }}</p>
+                    <p>闪避率: {{ newBieItem?.dodge > 0 ? (newBieItem?.dodge * 100 > 100 ? 100 : (newBieItem?.dodge * 100).toFixed(2)) : 0 }}%</p>
+                    <p>暴击率: {{ newBieItem?.critical > 0 ? (newBieItem?.critical * 100 > 100 ? 100 : (newBieItem?.critical * 100).toFixed(2)) : 0 }}%</p>
+                    <p>装备评分: {{ newBieItem?.score }}</p>
+                </div>
+            </div>
+            <div class="dialog-footer">
+                <el-button type="primary" class="inventory-button" @click="newBieInfoBox = false">确定</el-button>
+            </div>
+        </el-dialog>
     </div>
 </template>
 
@@ -829,11 +858,17 @@
                     success: 2,
                     warning: 5,
                 },
+                // 新手礼包弹窗
+                newBieBox: false,
                 storyText: '',
                 // 商店商品价格
                 shopPrice: 100,
+                // 新手礼包数据
+                newBieData: [],
                 shopActive: 'weapon',
                 activeName: 'illustrations',
+                /// 新手礼包装备信息
+                newBieItem: {},
                 // 灵宠信息弹窗
                 petItemShow: false,
                 backPackItem: [
@@ -850,6 +885,10 @@
                 wifeItemShow: false,
                 // 装备信息
                 inventoryInfo: {},
+                // 新手礼包装备信息弹窗
+                newBieInfoBox: false,
+                // 新手礼包刷新状态
+                newBieLoading: false,
                 // 装备信息弹窗
                 inventoryShow: false,
                 // 炼器弹窗
@@ -1596,36 +1635,68 @@
             // 赠送新手礼包
             newbiePack (timesLeft) {
                 // 如果没有领取新手礼包
-                if (!this.player.isNewbie) {
-                    // 初始化物品
-                    let equipItem = {};
-                    // 神兵
-                    if (timesLeft == 4) equipItem = equip.equip_Weapons(10, false);
-                    // 护甲
-                    else if (timesLeft == 3) equipItem = equip.equip_Armors(10, false);
-                    // 灵宝
-                    else if (timesLeft == 2) equipItem = equip.equip_Accessorys(10, false);
-                    // 法器
-                    else if (timesLeft == 1) equipItem = equip.equip_Sutras(10, false);
-                    // 发送通知
-                    else if (timesLeft == 0) {
-                        // 修改礼包领取状态
-                        this.player.isNewbie = true;
-                        this.$notifys({ title: '新手礼包领取提示', message: '新手礼包领取成功!' });
-                    }
-                    // 终止
-                    else return;
-                    // 将装备添加到库存
-                    if (JSON.stringify(equipItem) != '{}') this.player.inventory.push(equipItem);
-                    // 更新剩余次数  
-                    timesLeft--;
-                    // 设置延时以便下一次调用
-                    setTimeout(() => {
-                        this.newbiePack(timesLeft);
-                    }, 100);
+                if (this.player.isNewbie) {
+                    this.$notifys({ title: '提示', message: '新手礼包无法重复领取' });
+                    return;
+                }
+                this.newBieBox = true;
+                // 初始化物品
+                let equipItem = {};
+                // 神兵
+                if (timesLeft == 4) equipItem = equip.equip_Weapons(10, false);
+                // 护甲
+                else if (timesLeft == 3) equipItem = equip.equip_Armors(10, false);
+                // 灵宝
+                else if (timesLeft == 2) equipItem = equip.equip_Accessorys(10, false);
+                // 法器
+                else if (timesLeft == 1) equipItem = equip.equip_Sutras(10, false);
+                // 修改刷新按钮加载状态
+                else if (timesLeft == 0) this.newBieLoading = false;
+                // 终止
+                else return;
+                // 将装备添加到库存
+                if (JSON.stringify(equipItem) != '{}') this.newBieData.push(equipItem);
+                // 更新剩余次数  
+                timesLeft--;
+                // 设置延时以便下一次调用
+                setTimeout(() => {
+                    this.newbiePack(timesLeft);
+                }, 100);
+            },
+            // 刷新新手礼包
+            refreshNewBie () {
+                // 初始化数据
+                this.newBieData = [];
+                // 修改刷新按钮加载状态
+                this.newBieLoading = true;
+                // 赠送新手礼包
+                this.newbiePack(4);
+            },
+            // 新手礼包装备信息
+            newBieInfo (item) {
+                this.newBieItem = item;
+                this.newBieInfoBox = true;
+            },
+            // 确定领取新手礼包
+            confirmCollectionNewBie () {
+                this.$confirm('你确定已经获得到了自己满意的装备了吗?', '提示', {
+                    center: true,
+                    cancelButtonText: '不确定',
+                    confirmButtonText: '确定',
+                    dangerouslyUseHTMLString: true
+                }).then(() => {
+                    // 关闭弹窗
+                    this.newBieBox = false;
+                    // 更新玩家装备
+                    this.player.inventory = this.newBieData;
+                    // 清空
+                    this.newBieData = [];
+                    // 修改礼包领取状态
+                    this.player.isNewbie = true;
                     // 更新玩家存档
                     this.$store.setPlayer(this.player);
-                }
+                    this.$notifys({ title: '新手礼包领取提示', message: '新手礼包领取成功!' });
+                }).catch(() => { });
             },
             // 分解装备
             inventoryClose (item) {
@@ -1959,7 +2030,6 @@
     }
 
     /* 属性对比 */
-
     .el-icon-caret-top,
     .el-icon-caret-bottom {
         width: 1em;
@@ -2015,9 +2085,22 @@
         justify-content: center;
         cursor: pointer;
     }
+
     .dark .backtop {
         background-color: #fff;
         color: #4d4d4d;
+    }
+
+    /* 新手弹窗 */
+    .newBie {
+        display: flex;
+        flex-direction: column;
+        height: 128px;
+        margin-bottom: 10px;
+    }
+
+    .newbieinfo-box p {
+        margin-bottom: 10px;
     }
 
     @media only screen and (max-width: 750px) {
@@ -2085,6 +2168,11 @@
     @media only screen and (max-width: 750px) {
         .equipAll {
             width: 100% !important;
+        }
+
+        /* 新手弹窗 */
+        .newBieBox {
+            width: 60% !important;
         }
     }
 

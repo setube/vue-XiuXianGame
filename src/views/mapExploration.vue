@@ -23,7 +23,7 @@
             </div>
         </div>
         <div class="controls">
-            <el-button class="home-button" @click="$router.push('/home');">回家</el-button>
+            <el-button class="home-button" @click="goHome">回家</el-button>
             <el-button class="up-button" @click="move('up')" :disabled="isTopObstacle || playerY == 0">往北</el-button>
             <el-button class="dialogue-button" @click="() => { isNpc ? talkToNpc() : startGame() }" :disabled="!isNpc && !isFishing">{{ isNpc || !isFishing ? '对话' : '钓鱼'}}</el-button>
             <el-button class="left-button" @click="move('left')" :disabled="isLeftObstacle || playerX === 0">往西</el-button>
@@ -39,11 +39,18 @@
                         <div class="progress-text">{{ fishing.progressText }}%</div>
                     </div>
                     <div class="outer-container" ref="outerContainer" :style="{ border: fishing.overlap ? '2px solid var(--el-color-warning)' : '2px solid var(--el-border-color)'}">
-                        <div class="moving-container" ref="movingContainer"></div>
-                        <div class="inner-container" ref="innerContainer">
+                        <div class="moving-container" ref="movingContainer" :style="{ animation: fishing.overlap ? 'wobble .5s ease-in-out infinite' : '', transformorigin: fishing.overlap ?  'bottom center' : ''}">
                             <svg viewBox="0 0 1024 1024">
                                 <path d="M942 619.8c-27.4-29.4-42.5-67.6-42.5-107.8s15.1-78.4 42.5-107.8c14.8-15.8 18.6-38 10-58-8.6-19.8-27.3-32.2-48.9-32.3h-0.9c-35.3 0-70 9.4-100.2 27.2-29.4 17.3-53.9 41.9-71.1 71.4-2.8 4.8-7.3 6-9.7 6.4-4.2 0.6-8.4-0.8-11.3-3.8-38.3-38.2-82.9-68.2-132.5-89.1-51.4-21.7-105.9-32.7-162.2-32.7-29.1 0-57.6 2.9-85.5 8.7l-1.1 0.3c-33.5 7.1-66 18.3-97.1 33.6-28.6 14.1-55.7 31.5-80.5 51.8l-0.2 0.2c-2.1 1.7-4.1 3.4-6.2 5.2-0.4 0.4-0.9 0.8-1.3 1.1l-4.5 3.9c-0.6 0.5-1.2 1.1-1.8 1.6-1.7 1.5-3.3 3-5 4.5-0.8 0.7-1.6 1.5-2.4 2.3-1 1-2.1 2-3.1 2.9-0.8 0.8-1.6 1.5-2.4 2.3l-4.5 4.5c-0.8 0.8-1.6 1.6-2.4 2.5-1 1.1-2.1 2.1-3.1 3.2-0.7 0.8-1.4 1.5-2.2 2.3l-4.5 4.8c-0.6 0.7-1.3 1.4-1.9 2.1-1.3 1.5-2.7 3-4 4.5-0.3 0.4-0.7 0.8-1 1.1-1.6 1.9-3.3 3.8-4.9 5.7-0.4 0.5-0.9 1-1.3 1.6-1.7 2-3.3 4-4.9 6-14.1 17.6-21.9 39.7-21.9 62.2s7.8 44.6 21.9 62.2c1.6 2 3.3 4 4.9 6 0.4 0.5 0.9 1 1.3 1.6 1.6 1.9 3.2 3.8 4.9 5.7 0.3 0.4 0.7 0.7 1 1.1 1.3 1.5 2.7 3 4 4.5 0.6 0.7 1.3 1.4 1.9 2.1 1.5 1.6 3 3.3 4.6 4.9 0.7 0.7 1.4 1.5 2.1 2.2 1 1.1 2.1 2.2 3.1 3.2l2.4 2.4c1.5 1.5 3 3 4.6 4.5 0.8 0.8 1.6 1.5 2.4 2.3 1 1 2.1 2 3.1 3 0.8 0.7 1.6 1.5 2.4 2.2 1.7 1.5 3.3 3 5 4.5 0.6 0.5 1.2 1.1 1.8 1.6l4.5 3.9c0.4 0.4 0.9 0.7 1.3 1.1 2.1 1.8 4.1 3.5 6.2 5.2 0.1 0 0.1 0.1 0.2 0.1 24.8 20.3 51.9 37.8 80.5 51.9 31.2 15.3 63.7 26.5 97.1 33.6l1.1 0.3c27.8 5.8 56.4 8.7 85.5 8.7 56.2 0 110.8-11 162.2-32.7 49.6-20.9 94.2-50.9 132.5-89.1 3-3 7.1-4.3 11.3-3.8 2.4 0.3 6.9 1.6 9.7 6.4 17.1 29.4 41.7 54.1 71.1 71.4 30.3 17.8 64.9 27.2 100.2 27.2h0.9c21.5-0.1 40.3-12.5 48.8-32.3 8.6-20.3 4.8-42.5-10-58.3z m-619.8 59.4c-76.3-19.4-145.4-62.9-196.3-123.6-0.3-0.4-0.6-0.7-0.9-1.1-1.5-1.8-2.9-3.5-4.4-5.3 0 0 0-0.1-0.1-0.1-11.5-14.4-15.5-32.4-11.9-49.4 0.3-1.6 0.8-3.2 1.2-4.8s1-3.2 1.6-4.7c2.2-5.4 5.2-10.6 9-15.4 1.5-1.8 3-3.7 4.5-5.5 0.3-0.3 0.6-0.7 0.9-1 50.9-60.7 120.1-104.2 196.3-123.6 54.7 38.3 87.1 100.2 87.1 167.2 0.1 67.2-32.3 129.1-87 167.3z m593.1-17.3c-1.1 2.5-4.4 8.2-12.3 8.2h-0.8c-28.2 0-55.8-7.5-80-21.7-23.5-13.8-43.1-33.5-56.8-57-8.3-14.3-22.6-23.7-39.1-25.9-16.6-2.2-32.9 3.3-44.8 15.1-71.3 71-165.9 110.2-266.4 110.2-13.9 0-27.8-0.8-41.4-2.3 47.9-45.6 75.5-108.9 75.5-176.6s-27.6-131-75.5-176.6c13.7-1.5 27.5-2.3 41.4-2.3 100.5 0 195.2 39.1 266.4 110.2 11.8 11.8 28.1 17.3 44.8 15.1 16.5-2.2 30.8-11.6 39.1-25.9 13.7-23.5 33.3-43.2 56.8-57 24.1-14.2 51.8-21.7 80-21.7h0.7c7.9 0 11.2 5.7 12.3 8.2s3 8.9-2.5 14.8c-34.3 36.8-53.2 84.8-53.2 135.1s18.9 98.3 53.2 135.1c5.6 6.1 3.7 12.5 2.6 15z" :fill="fishing.overlap ? 'var(--el-color-warning)' : 'var(--el-border-color)'" />
                                 <path d="M273 515.4m-30 0a30 30 0 1 0 60 0 30 30 0 1 0-60 0Z" :fill="fishing.overlap ? 'var(--el-color-warning)' : 'var(--el-border-color)'" />
+                            </svg>
+                        </div>
+                        <div class="inner-container" ref="innerContainer">
+                            <svg viewBox="0 0 1024 1024">
+                                <path d="M893.456828 709.055005" :fill="fishing.overlap ? 'var(--el-color-warning)' : 'var(--el-border-color)'" />
+                                <path d="M491.889987 337.939709" :fill="fishing.overlap ? 'var(--el-color-warning)' : 'var(--el-border-color)'" />
+                                <path d="M568.154951 338.993714" :fill="fishing.overlap ? 'var(--el-color-warning)' : 'var(--el-border-color)'" />
+                                <path d="M789.271978 570.404178c-10.123568-32.030507-33.907251-88.211041-88.099501-128.403438 59.974953 92.142583 39.444361 191.201693 16.587793 231.574193 19.583011-9.214872 48.428989-39.642882 48.428989-39.642882s5.043876 37.219693-1.590218 81.112366c-2.619664 2.876514-4.52199 6.466272-5.253654 10.576893-14.963807 83.60514-81.932034 172.931584-216.578664 172.931584-129.71634 0-226.874147-110.219287-226.874147-262.079974L315.892577 167.967526c0-1.240247 2.843768-2.440585 2.641153-3.623527 24.40483-7.115048 43.811832-29.649274 43.811832-56.31561 0-32.355919-25.581632-58.68968-57.93755-58.68968s-58.313104 26.332738-58.313104 58.68968c0 23.514553 11.484565 43.790342 31.504528 53.148477-0.724501 2.143826-3.66139 4.402263-3.66139 6.791683l0 468.503347c0 176.588881 114.748441 304.763099 269.192975 304.763099 130.210597 0 230.4066-78.81709 255.399831-201.286376 2.036379-0.156566 4.120854-0.963954 4.539386-2.777253C817.526485 674.573679 802.432719 618.005312 789.271978 570.404178zM305.160141 81.350796c14.71412 0 26.676569 11.962449 26.676569 26.676569s-11.962449 26.676569-26.676569 26.676569-26.676569-11.962449-26.676569-26.676569S290.446022 81.350796 305.160141 81.350796z" :fill="fishing.overlap ? 'var(--el-color-warning)' : 'var(--el-border-color)'" />
                             </svg>
                         </div>
                     </div>
@@ -116,8 +123,6 @@
                 npcInfo: {},
                 // 钓鱼相关
                 fishing: {
-                    // 所在地图
-                    map: [],
                     // 分数
                     score: 0,
                     bottom: '0px',
@@ -150,6 +155,8 @@
                 giftShow: false,
                 // NPC的数量
                 npcCount: 10,
+                // 钓鱼点坐标
+                fishingMap: [],
                 // 钓鱼弹窗
                 fishingShow: false,
                 // 障碍物的数量
@@ -221,8 +228,9 @@
             }
         },
         mounted () {
-            this.player = this.$store.player;
-            const mapData = this.$store.mapData;
+            const store = this.$store;
+            this.player = store.player;
+            const mapData = store.mapData;
             if (mapData.map.length) {
                 this.grid = mapData.map;
                 this.playerY = mapData.y;
@@ -230,21 +238,40 @@
             } else {
                 this.initializeGrid();
             }
+            if (store.mapScroll) this.$nextTick(() => this.updateScroll(store.mapScroll))
             window.addEventListener('keydown', this.move);
         },
         beforeUnmount () {
-            // 如果玩家不在出生点
-            if (this.playerX != 0 && this.playerY != 0) {
-                this.$store.mapData = { y: 0, x: 0, map: [] };
-                // 重置所有钓鱼数据
-                this.resetFishingData(false);
-                // 清空所有定时
-                this.fishing.timerIds.forEach(id => clearInterval(id));
-            }
+            // 清空所有定时
+            this.clearAllTiming();
             // 移除键盘监听
             window.removeEventListener('keydown', this.move);
         },
+        watch: {
+            fishingMap: {
+                handler: function (val) {
+                    console.log('fishingMap changed:', val);
+                },
+                deep: true
+            }
+        },
         methods: {
+            // 回家
+            goHome () {
+                this.$router.push('/home');
+                if (this.playerX !== 0 || this.playerY !== 0) {
+                    this.$store.mapData = { y: 0, x: 0, map: [] };
+                    // 重置所有钓鱼数据
+                    this.resetFishingData(false);
+                    // 清空所有定时
+                    this.clearAllTiming();
+                    this.$store.setMapScroll(0);
+                }
+            },
+            // 清空所有定时
+            clearAllTiming () {
+                this.fishing.timerIds.forEach(id => clearInterval(id));
+            },
             // 初始化地图
             initializeGrid () {
                 // 生成地图
@@ -345,6 +372,7 @@
                     if (cell.type === type) cell.type = 'empty';
                 });
                 let placed = 0;
+                const arr = [];
                 while (placed < count) {
                     const index = Math.floor(Math.random() * this.totalCells);
                     // 确保新生成的障碍物不在安全区域内且为空
@@ -353,9 +381,8 @@
                         placed++;
                         // 存储钓鱼点坐标
                         if (type === 'fishing') {
-                            const x = index % this.gridSize;
-                            const y = Math.floor(index / this.gridSize);
-                            this.fishing.map.push(index);
+                            arr.push(index);
+                            this.$store.setFishingMap(arr);
                         }
                         // 生成障碍物后立即检查路径是否可行
                         if (!this.isPathAvailable()) {
@@ -578,7 +605,10 @@
             // 自动滚动到玩家所在行
             updateScroll (playerIndex) {
                 const playerCell = this.$refs[`cell-${playerIndex}`][0];
-                if (playerCell) playerCell.scrollIntoView({ block: 'center', inline: 'center', behavior: 'smooth' });
+                if (playerCell) {
+                    this.$store.setMapScroll(playerIndex);
+                    playerCell.scrollIntoView({ block: 'center', inline: 'center', behavior: 'smooth' });
+                }
             },
             // 找到并与附近的NPC对话
             talkToNpc () {
@@ -614,8 +644,8 @@
                 const move = () => {
                     // 如果时间已到，停止移动
                     if (this.fishing.timeExpired) {
-                        // 清除所有定时器
-                        this.fishing.timerIds.forEach(id => clearInterval(id));
+                        // 清空所有定时
+                        this.clearAllTiming();
                         return;
                     }
                     // 随机生成新的Y轴位置
@@ -726,9 +756,11 @@
             // 结束游戏
             endGame () {
                 this.fishingShow = false;
-                this.fishing.timerIds.forEach(id => clearInterval(id));
+                // 清空所有定时
+                this.clearAllTiming();
                 // 移除钓鱼点
-                const index = this.fishing.map.find(index => this.nearbyIndices.includes(index));
+                const index = this.$store.fishingMap.find(index => this.nearbyIndices.includes(index));
+                console.log(this.$store.fishingMap, index)
                 this.grid[index].type = 'empty';
                 cancelAnimationFrame(this.fishing.moveUpAnimationId);
                 cancelAnimationFrame(this.fishing.moveDownAnimationId);
@@ -995,6 +1027,7 @@
         .legend {
             flex-wrap: wrap;
         }
+
         .legend-item {
             width: 33.333%;
             margin: 10px 0 0 0;
@@ -1109,13 +1142,18 @@
     }
 
     .moving-container {
-        width: 100px;
-        height: 100px;
-        background-color: lightblue;
+        width: 50px;
+        height: 50px;
+        /* background-color: lightblue; */
         position: absolute;
         top: 0;
         left: 50%;
         transform: translateX(-50%);
+    }
+
+    .moving-container svg {
+        width: 36px;
+        height: 36px;
     }
 
     .inner-container {
@@ -1127,8 +1165,9 @@
     }
 
     .inner-container svg {
-        width: 50px;
-        height: 50px;
+        width: 36px;
+        height: 36px;
+        transform: scaleX(-1);
     }
 
     .button {
@@ -1136,5 +1175,30 @@
         padding: 10px 20px;
         font-size: 16px;
         width: 100%;
+    }
+</style>
+
+<style>
+    /* 钓鱼动画 */
+    @keyframes wobble {
+        0% {
+            transform: translateX(-50%) rotate(0);
+        }
+
+        25% {
+            transform: translateX(-50%) rotate(-5deg);
+        }
+
+        50% {
+            transform: translateX(-50%) rotate(0);
+        }
+
+        75% {
+            transform: translateX(-50%) rotate(5deg);
+        }
+
+        100% {
+            transform: translateX(-50%) rotate(0);
+        }
     }
 </style>

@@ -12,7 +12,28 @@ import vitePluginBundleObfuscator from 'vite-plugin-bundle-obfuscator';
 
 export default defineConfig({
     base: './',
-    logLevel: 'error',
+    build: {
+        minify: 'terser',
+        rollupOptions: {
+            output: {
+                manualChunks: (id) => {
+                    if (id.includes('node_modules')) return 'vendor';
+                },
+                chunkFileNames: 'assets/js/[name]-[hash].js',
+                entryFileNames: 'assets/js/[name]-[hash].js',
+                assetFileNames: (assetInfo) => {
+                    if (assetInfo.name && assetInfo.name.endsWith('.ico')) return '[name].[ext]';
+                    return 'assets/[ext]/[name]-[hash].[ext]';
+                }
+            }
+        },
+        terserOptions: {
+            compress: {
+                drop_console: false,
+                drop_debugger: true
+            }
+        }
+    },
     plugins: [
         vue(),
         Icons({
@@ -35,8 +56,8 @@ export default defineConfig({
                 ],
                 short_name: '文字修仙',
                 description: '文字游戏: 我的文字修仙全靠刷',
-                theme_color: '#141414'
-            }, 
+                theme_color: '#4d4d4d'
+            },
             devOptions: {
                 enabled: true
             },
@@ -86,28 +107,6 @@ export default defineConfig({
             '@': path.resolve(__dirname, 'src')
         }
     },
-    build: {
-        minify: 'terser',
-        rollupOptions: {
-            output: {
-                manualChunks: (id) => {
-                    if (id.includes('node_modules')) return 'vendor';
-                },
-                chunkFileNames: 'assets/js/[name]-[hash].js',
-                entryFileNames: 'assets/js/[name]-[hash].js',
-                assetFileNames: (assetInfo) => {
-                    if (assetInfo.name && assetInfo.name.endsWith('.ico')) return '[name].[ext]';
-                    return 'assets/[ext]/[name]-[hash].[ext]';
-                }
-            }
-        },
-        terserOptions: {
-            compress: {
-                //生产环境时移除console
-                drop_console: false,
-                drop_debugger: true
-            }
-        }
-    },
+    logLevel: 'error'
 });
 

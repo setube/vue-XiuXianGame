@@ -84,6 +84,7 @@
             goHome () {
                 this.$store.mapData = { y: 0, x: 0, map: [] };
                 this.$router.push('/home');
+                this.$store.setMapScroll(0);
             },
             // 怪物信息
             openMonsterInfo () {

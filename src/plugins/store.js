@@ -72,17 +72,25 @@ export const useMainStore = defineStore('main', {
             y: 0,
             x: 0,
             map: []
-        }
+        },
+        mapScroll: 0,
+        fishingMap: [],
     }),
     actions: {
-        setMapData (data) {
-            this.mapData = data;
-        },
         setBoss (data) {
             this.boss = data;
         },
         setPlayer (data) {
             this.player = data;
+        },
+        setMapData (data) {
+            this.mapData = data;
+        },
+        setMapScroll (data) {
+            this.mapScroll = data;
+        },
+        setFishingMap (data) {
+            this.fishingMap = data;
         }
     },
     persist: {

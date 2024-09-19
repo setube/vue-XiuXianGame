@@ -55,7 +55,7 @@
                         </el-icon>
                     </div>
                     <div class="tag attribute" @click="$notifys({title: '获得方式', message: '每转生一次可以增加50容量'})">
-                        背包总容量: {{ player.backpackCapacity }}
+                        背包容量: {{ player.inventory.length }} / {{ player.backpackCapacity }}
                         <el-icon>
                             <Warning />
                         </el-icon>

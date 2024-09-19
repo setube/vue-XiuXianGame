@@ -68,6 +68,20 @@ export const useMainStore = defineStore('main', {
             backpackCapacity: 50,
             sellingEquipmentData: []
         },
+        // 怪物信息
+        monster: {
+            name: '',
+            // 气血
+            health: 0,
+            // 攻击
+            attack: 0,
+            // 防御
+            defense: 0,
+            // 闪避率
+            dodge: 0,
+            // 暴击
+            critical: 0
+        },
         mapData: {
             y: 0,
             x: 0,
@@ -82,6 +96,9 @@ export const useMainStore = defineStore('main', {
         },
         setPlayer (data) {
             this.player = data;
+        },
+        setMonster (data) {
+            this.monster = data;
         },
         setMapData (data) {
             this.mapData = data;

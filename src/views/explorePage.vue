@@ -1,42 +1,51 @@
 <template>
-    <div class="cultivate">
-        你遇到了<span class="el-tag el-tag--danger" @click="openMonsterInfo">{{ monster.name }}</span>
-        <div class="storyText">
-            <div class="storyText-box">
-                <el-scrollbar ref="scrollbar" always>
-                    <p class="fighting" v-if="isFighting">
-                        {{ guashaRounds }}回合 / 10回合
-                    </p>
-                    <p v-for="(item, index) in texts" :key="index" v-html="item" @click="openEquipmentInfo(openEquipItemInfo)" />
-                </el-scrollbar>
+    <div class="explore">
+        <div class="cultivate" v-if="$store.monster.name">
+            你遇到了<span class="el-tag el-tag--danger" @click="openMonsterInfo">{{ monster.name }}</span>
+            <div class="storyText">
+                <div class="storyText-box">
+                    <el-scrollbar ref="scrollbar" always>
+                        <p class="fighting" v-if="isFighting">
+                            {{ guashaRounds }}回合 / 10回合
+                        </p>
+                        <p v-for="(item, index) in texts" :key="index" v-html="item" @click="openEquipmentInfo(openEquipItemInfo)" />
+                    </el-scrollbar>
+                </div>
+            </div>
+            <div class="actions">
+                <div class="action">
+                    <el-button class="item" @click="operate('startFight')" :disabled="isEnd">
+                        发起战斗<span class="shortcutKeys">(Q)</span>
+                    </el-button>
+                </div>
+                <div class="action">
+                    <el-button class="item" @click="operate('harvestPet')" :disabled="isCaptureFailed">
+                        收服对方<span class="shortcutKeys">(E)</span>
+                    </el-button>
+                </div>
+                <div class="action">
+                    <el-button class="item" @click="operate('runAway')" :disabled="isFailedRetreat">
+                        立马撤退<span class="shortcutKeys">(R)</span>
+                    </el-button>
+                </div>
+                <div class="action">
+                    <el-button class="item" @click="operate('explore')" :disabled="player.health <= 0" v-if="isEnd">
+                        继续探索<span class="shortcutKeys">(F)</span>
+                    </el-button>
+                </div>
+                <div class="action">
+                    <el-button class="item" @click="operate('goHome')" v-if="isEnd">
+                        回家疗伤<span class="shortcutKeys">(G)</span>
+                    </el-button>
+                </div>
             </div>
         </div>
-        <div class="actions">
-            <div class="action">
-                <el-button class="item" @click="operate('startFight')" :disabled="isEnd">
-                    发起战斗<span class="shortcutKeys">(Q)</span>
-                </el-button>
-            </div>
-            <div class="action">
-                <el-button class="item" @click="operate('harvestPet')" :disabled="isCaptureFailed">
-                    收服对方<span class="shortcutKeys">(E)</span>
-                </el-button>
-            </div>
-            <div class="action">
-                <el-button class="item" @click="operate('runAway')" :disabled="isFailedRetreat">
-                    立马撤退<span class="shortcutKeys">(R)</span>
-                </el-button>
-            </div>
-            <div class="action">
-                <el-button class="item" @click="operate('explore')" :disabled="player.health <= 0" v-if="isEnd">
-                    继续探索<span class="shortcutKeys">(F)</span>
-                </el-button>
-            </div>
-            <div class="action">
-                <el-button class="item" @click="operate('goHome')" v-if="isEnd">
-                    回家疗伤<span class="shortcutKeys">(G)</span>
-                </el-button>
-            </div>
+        <div class="cultivate error" v-else>
+            <el-result icon="error" title="缺少对战信息" sub-title="请返回地图重新探索">
+                <template #extra>
+                    <el-button :type="!player.dark ? 'primary' : ''" @click="$router.push('/map')">返回地图</el-button>
+                </template>
+            </el-result>
         </div>
     </div>
 </template>
@@ -44,8 +53,6 @@
 <script>
     // 装备
     import equip from '@/plugins/equip';
-    // 怪物
-    import monster from '@/plugins/monster';
     // 成就
     import achievement from '@/plugins/achievement';
 
@@ -59,6 +66,7 @@
                 player: {},
                 // 野怪信息
                 monster: {},
+                loading: true,
                 // 是否胜利
                 victory: false,
                 timerIds: [],
@@ -69,7 +77,7 @@
                 isFailedRetreat: false,
                 // 收服失败
                 isCaptureFailed: false,
-                openEquipItemInfo: {},
+                openEquipItemInfo: {}
             }
         },
         beforeUnmount () {
@@ -79,19 +87,23 @@
         },
         mounted () {
             this.player = this.$store.player;
-            this.encounterMonster();
+            // 判断野怪信息是否不为空
+            if (this.$store.monster.name) {
+                this.loading = false;
+                this.monster = this.$store.monster;
+            }
+            // 添加键盘监听
             window.addEventListener('keydown', this.operate);
         },
         methods: {
             // 玩家操作(绑定快捷键)
-            operate(oprName){
+            operate (oprName) {
                 oprName = typeof oprName === 'string' ? oprName : oprName.key;
-                console.log(oprName)
                 switch (oprName) {
                     // 发起战斗
                     case 'q':
                     case 'startFight':
-                        if(!this.isEnd) this.startFight()
+                        if (!this.isEnd) this.startFight()
                         break;
                     // 收服对方
                     case 'e':
@@ -111,12 +123,8 @@
                     // 继续探索
                     case 'f':
                     case 'explore':
-                        if (this.isEnd){
-                            this.$router.push('/map');
-                            // 移除键盘监听
-                            window.removeEventListener('keydown', this.operate);
-                        }
-                        break;
+                        if (this.isEnd) this.$router.push('/map');
+                        return;
                     default:
                         return;
                 }
@@ -125,8 +133,6 @@
             goHome () {
                 this.$store.mapData = { y: 0, x: 0, map: [] };
                 this.$router.push('/home');
-                // 移除键盘监听
-                window.removeEventListener('keydown', this.operate);
                 this.$store.setMapScroll(0);
             },
             // 怪物信息
@@ -367,35 +373,13 @@
             //     this.isFailedRetreat = false;
             //     this.isCaptureFailed = false;
             // },
-            // 遇怪逻辑
-            encounterMonster () {
-                // 玩家境界
-                let level = this.player.level == 0 ? 1 : this.player.level;
-                // 怪物难度根据玩家最高境界 + 转生次数
-                const monsterLv = level * this.player.reincarnation + level;
-                // 野怪属性
-                this.monster = {
-                    // 名称
-                    name: monster.monster_Names(monsterLv),
-                    // 气血
-                    health: monster.monster_Health(monsterLv),
-                    // 攻击
-                    attack: monster.monster_Attack(monsterLv),
-                    // 防御
-                    defense: monster.monster_Defense(monsterLv),
-                    // 闪避率
-                    dodge: monster.monster_Criticalhitrate(monsterLv),
-                    // 暴击
-                    critical: monster.monster_Criticalhitrate(monsterLv)
-                };
-            },
             // 收服灵宠
             harvestPet (item) {
                 this.isCaptureFailed = true;
                 // 成功几率
                 const successRate = this.calculateCaptureRate();
                 // 是否成功收服
-                const isSuccess = successRate >= monster.getRandomInt(1, 100);
+                const isSuccess = successRate >= this.getRandomInt(1, 100);
                 // 如果成功收服
                 if (isSuccess) {
                     // 总背包容量大于灵宠背包容量就可以收服对方
@@ -403,15 +387,15 @@
                         // 收服后的属性根据收服前的成功率算
                         const newProperties = Math.floor((100 - successRate) * 0.5);
                         // 攻击
-                        const attack = Math.floor(monster.getRandomInt(50, 150) * newProperties);
+                        const attack = Math.floor(this.getRandomInt(50, 150) * newProperties);
                         // 防御
-                        const defense = Math.floor(monster.getRandomInt(1, 15) * newProperties);
+                        const defense = Math.floor(this.getRandomInt(1, 15) * newProperties);
                         // 血量
-                        const health = Math.floor(monster.getRandomInt(100, 500) * newProperties);
+                        const health = Math.floor(this.getRandomInt(100, 500) * newProperties);
                         // 闪避
-                        const dodge = parseFloat(monster.getRandomFloatInRange(0.001, 0.01) * newProperties);
+                        const dodge = parseFloat(this.getRandomFloatInRange(0.001, 0.01) * newProperties);
                         // 暴击
-                        const critical = parseFloat(monster.getRandomFloatInRange(0.001, 0.01) * newProperties);
+                        const critical = parseFloat(this.getRandomFloatInRange(0.001, 0.01) * newProperties);
                         // 添加到灵宠背包里
                         this.player.pets.push({
                             id: Date.now(),
@@ -491,6 +475,14 @@
                 // 确保几率在 0% 到 100% 之间
                 captureRate = Math.floor(Math.max(0, Math.min(100, captureRate)));
                 return captureRate;
+            },
+            getRandomInt (min, max) {
+                min = Math.ceil(min);
+                max = Math.floor(max);
+                return Math.floor(Math.random() * (max - min + 1)) + min;
+            },
+            getRandomFloatInRange (min, max) {
+                return Math.random() * (max - min) + min;
             }
         }
     }
@@ -502,8 +494,21 @@
         margin: 5px;
     }
 
-    .shortcutKeys{
-        color:rgba(169, 169, 169, 0.4);
+    .shortcutKeys {
+        color: rgba(169, 169, 169, 0.4);
         margin-left: 2px;
+    }
+
+    .cultivate.error {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 770px;
+    }
+
+    @media only screen and (max-width: 750px) {
+        .shortcutKeys {
+            display: none;
+        }
     }
 </style>

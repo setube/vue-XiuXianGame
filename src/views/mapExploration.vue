@@ -23,12 +23,24 @@
             </div>
         </div>
         <div class="controls">
-            <el-button class="home-button" @click="goHome">回家</el-button>
-            <el-button class="up-button" @click="move('up')" :disabled="isTopObstacle || playerY == 0">往北</el-button>
-            <el-button class="dialogue-button" @click="() => { isNpc ? talkToNpc() : startGame() }" :disabled="!isNpc && !isFishing">{{ isNpc || !isFishing ? '对话' : '钓鱼'}}</el-button>
-            <el-button class="left-button" @click="move('left')" :disabled="isLeftObstacle || playerX === 0">往西</el-button>
-            <el-button class="down-button" @click="move('down')" :disabled="isDownObstacle || playerY === gridSize - 1">往南</el-button>
-            <el-button class="right-button" @click="move('right')" :disabled="isRightObstacle || playerX === gridSize - 1">往东</el-button>
+            <el-button class="home-button" @click="move('q')">
+                回家<span class="shortcutKeys">(Q)</span>
+            </el-button>
+            <el-button class="up-button" @click="move('up')" :disabled="isTopObstacle || playerY == 0">
+                往北<span class="shortcutKeys">(W)</span>
+            </el-button>
+            <el-button class="dialogue-button" @click="move('e')" :disabled="!isNpc && !isFishing">
+                {{ isNpc || !isFishing ? '对话' : '钓鱼'}}<span class="shortcutKeys">(E)</span>
+            </el-button>
+            <el-button class="left-button" @click="move('left')" :disabled="isLeftObstacle || playerX === 0">
+                往西<span class="shortcutKeys">(A)</span>
+            </el-button>
+            <el-button class="down-button" @click="move('down')" :disabled="isDownObstacle || playerY === gridSize - 1">
+                往南<span class="shortcutKeys">(S)</span>
+            </el-button>
+            <el-button class="right-button" @click="move('right')" :disabled="isRightObstacle || playerX === gridSize - 1">
+                往东<span class="shortcutKeys">(D)</span>
+            </el-button>
         </div>
         <el-drawer v-model="fishingShow" @close="endGame" title="钓鱼" direction="rtl" class="strengthen">
             <div class="game-container">
@@ -55,7 +67,9 @@
                         </div>
                     </div>
                 </div>
-                <el-button @click="moveButton" :disabled="fishing.disabled" class="button">钓鱼</el-button>
+                <el-button @mousedown="startFishing" @mouseup="stopFishing" @mouseleave="stopFishing" @click="moveButton('click')" :disabled="fishing.disabled" class="button">
+                    钓鱼<span class="shortcutKeys">({{ holdingId ? '松开' : '长按'}})</span>
+                </el-button>
             </div>
         </el-drawer>
         <el-drawer v-model="npcShow" :title="npcInfo.name" direction="rtl" class="strengthen">
@@ -108,6 +122,8 @@
     // npc
     import npc from '@/plugins/npc';
     import tag from '@/components/tag.vue';
+    // 怪物
+    import monster from '@/plugins/monster';
 
     export default {
         data () {
@@ -148,6 +164,8 @@
                     progressPercentage: '0%',
                     // 向下移动的动画ID
                     moveDownAnimationId: '',
+                    // 父容器的动画ID
+                    moveParentContainerId: ''
                 },
                 npcShow: false,
                 // 地图的大小
@@ -155,6 +173,8 @@
                 giftShow: false,
                 // NPC的数量
                 npcCount: 10,
+                // 是否正在长按
+                holdingId: null,
                 // 钓鱼点坐标
                 fishingMap: [],
                 // 钓鱼弹窗
@@ -228,17 +248,26 @@
             }
         },
         mounted () {
+            // 游戏数据
             const store = this.$store;
+            // 玩家数据
             this.player = store.player;
+            // 地图数据
             const mapData = store.mapData;
             if (mapData.map.length) {
+                // 恢复地图数据
                 this.grid = mapData.map;
+                // 玩家所在Y轴
                 this.playerY = mapData.y;
+                // 玩家所在X轴
                 this.playerX = mapData.x;
             } else {
+                // 初始化地图数据
                 this.initializeGrid();
             }
+            // 恢复玩家滚动条位置
             if (store.mapScroll) this.$nextTick(() => this.updateScroll(store.mapScroll))
+            // 添加键盘监听
             window.addEventListener('keydown', this.move);
         },
         beforeUnmount () {
@@ -246,14 +275,6 @@
             this.clearAllTiming();
             // 移除键盘监听
             window.removeEventListener('keydown', this.move);
-        },
-        watch: {
-            fishingMap: {
-                handler: function (val) {
-                    console.log('fishingMap changed:', val);
-                },
-                deep: true
-            }
         },
         methods: {
             // 回家
@@ -263,8 +284,7 @@
                     this.$store.mapData = { y: 0, x: 0, map: [] };
                     // 重置所有钓鱼数据
                     this.resetFishingData(false);
-                    // 清空所有定时
-                    this.clearAllTiming();
+                    // 重置玩家所在行
                     this.$store.setMapScroll(0);
                 }
             },
@@ -373,16 +393,21 @@
                 });
                 let placed = 0;
                 const arr = [];
+                // 用来存储每个钓鱼点周围的5x5区域
+                const restrictedZone = new Set();
                 while (placed < count) {
                     const index = Math.floor(Math.random() * this.totalCells);
-                    // 确保新生成的障碍物不在安全区域内且为空
-                    if (!excludeSet.has(index) && this.grid[index].type === 'empty') {
+                    const arrIndex = Math.floor(Math.random() * 25);
+                    // 检查是否新生成的位置在安全区域或禁区内，并且该格子为空
+                    if (!excludeSet.has(index) && !restrictedZone.has(index) && this.grid[index].type === 'empty') {
                         this.grid[index].type = type;
                         placed++;
-                        // 存储钓鱼点坐标
+                        // 如果是钓鱼点，存储钓鱼点坐标，并生成其周围的5x5禁区
                         if (type === 'fishing') {
                             arr.push(index);
                             this.$store.setFishingMap(arr);
+                            // 将钓鱼点周围的5x5区域添加到禁区
+                            this.addToRestrictedZone(index, restrictedZone);
                         }
                         // 生成障碍物后立即检查路径是否可行
                         if (!this.isPathAvailable()) {
@@ -428,6 +453,20 @@
                             // 如果阻塞路径，回溯这个 NPC 的生成
                             this.grid[index].type = 'empty';
                             placed--;
+                        }
+                    }
+                }
+            },
+            // 将目标的5x5范围改为禁区
+            addToRestrictedZone (index, restrictedZone) {
+                const gridX = index % this.gridSize;
+                const gridY = Math.floor(index / this.gridSize);
+                // 遍历钓鱼点周围的5x5区域
+                for (let y = gridY - 2; y <= gridY + 2; y++) {
+                    for (let x = gridX - 2; x <= gridX + 2; x++) {
+                        if (y >= 0 && y < this.gridSize && x >= 0 && x < this.gridSize) {
+                            // 将坐标转换为一维索引并添加到禁区集合中
+                            restrictedZone.add(y * this.gridSize + x);
                         }
                     }
                 }
@@ -540,14 +579,32 @@
                 this.$store.setMapData({
                     y: this.playerY,
                     x: this.playerX,
-                    map: this.grid,
+                    map: this.grid
                 });
                 // 20%概率遇怪
                 const rand = this.isLucky(20);
                 if (rand && playerIndex != 0) {
+                    // 玩家境界
+                    let level = this.player.level == 0 ? 1 : this.player.level;
+                    // 怪物难度根据玩家最高境界 + 转生次数
+                    const monsterLv = level * this.player.reincarnation + level;
+                    // 添加怪物数据
+                    this.$store.setMonster({
+                        // 名称
+                        name: monster.monster_Names(monsterLv),
+                        // 气血
+                        health: monster.monster_Health(monsterLv),
+                        // 攻击
+                        attack: monster.monster_Attack(monsterLv),
+                        // 防御
+                        defense: monster.monster_Defense(monsterLv),
+                        // 闪避率
+                        dodge: monster.monster_Criticalhitrate(monsterLv),
+                        // 暴击
+                        critical: monster.monster_Criticalhitrate(monsterLv)
+                    });
+                    // 跳转对战
                     this.$router.push('/explore');
-                    // 移除键盘监听
-                    window.removeEventListener('keydown', this.move);
                 }
                 // 每次更新玩家位置后调用
                 if (playerIndex != 0) this.updateScroll(playerIndex);
@@ -569,31 +626,51 @@
                 let newY = this.playerY;
                 direction = typeof direction === 'string' ? direction : direction.key;
                 switch (direction) {
+                    case 'q':
+                        this.goHome();
+                        return;
                     case 'w':
                     case 'up':
                     case 'ArrowUp':
-                        if (newY > 0) newY--;
+                        if (newY > 0) {
+                            newY--;
+                            this.goPlayerXY(newY, newX);
+                        }
                         break;
                     case 's':
                     case 'down':
                     case 'ArrowDown':
-                        if (newY < this.gridSize - 1) newY++;
+                        if (newY < this.gridSize - 1) {
+                            newY++;
+                            this.goPlayerXY(newY, newX);
+                        }
                         break;
                     case 'a':
                     case 'left':
                     case 'ArrowLeft':
-                        if (newX > 0) newX--;
+                        if (newX > 0) {
+                            newX--;
+                            this.goPlayerXY(newY, newX);
+                        }
                         break;
                     case 'd':
                     case 'right':
                     case 'ArrowRight':
-                        if (newX < this.gridSize - 1) newX++;
+                        if (newX < this.gridSize - 1) {
+                            newX++;
+                            this.goPlayerXY(newY, newX);
+                        }
                         break;
-                    case 'Enter':
+                    case 'e':
+                        if (!this.isNpc && !this.isFishing) return;
                         if (this.isNpc) this.talkToNpc();
-                        break;
-                    default: return;
+                        else this.startGame();
+                        return;
+                    default:
+                        return;
                 }
+            },
+            goPlayerXY (newY, newX) {
                 const newIndex = newY * this.gridSize + newX;
                 // 仅在目标位置为空地时移动玩家
                 if (this.grid[newIndex].type === 'empty') {
@@ -602,7 +679,7 @@
                 }
                 this.updatePlayerPosition();
             },
-            // 自动滚动到玩家所在行
+            // 滚动条自动滚动到玩家所在行
             updateScroll (playerIndex) {
                 const playerCell = this.$refs[`cell-${playerIndex}`][0];
                 if (playerCell) {
@@ -633,7 +710,21 @@
                 // 检查碰撞
                 this.checkCollision();
             },
-            // 移动父容器（钓鱼容器）
+            // 启动长按上浮逻辑
+            startFishing () {
+                if (!this.holdingId) {
+                    this.moveButton();
+                    this.holdingId = setInterval(this.moveButton, 100);
+                }
+            },
+            // 停止上浮并启动自动下滑
+            stopFishing () {
+                if (this.holdingId) {
+                    clearInterval(this.holdingId);
+                    this.holdingId = null;
+                }
+            },
+            // 移动鱼的位置
             moveParentContainer () {
                 if (!this.fishingShow) return;
                 if (!this.$refs.movingContainer) return;
@@ -650,16 +741,20 @@
                     }
                     // 随机生成新的Y轴位置
                     const newY = Math.random() * maxY;
-                    this.$refs.movingContainer.style.transition = `top ${speed}ms ease`;
                     // 设置新的位置
+                    this.$refs.movingContainer.style.transition = `top ${speed}ms ease`;
                     this.$refs.movingContainer.style.top = `${newY}px`;
-                    // 定时再次调用移动函数
-                    this.fishing.timerIds.push(setInterval(move, speed));
+                    // 在动画结束后调用下一次移动
+                    setTimeout(() => {
+                        if (!this.fishing.timeExpired) {
+                            this.fishing.moveParentContainerId = requestAnimationFrame(move);
+                        }
+                    }, speed);
                 }
                 // 启动移动
                 move();
             },
-            // 自动向下移动内部容器
+            // 鱼钩自动向下移动
             autoMoveDown () {
                 const step = () => {
                     const outerHeight = this.$refs.outerContainer.clientHeight;
@@ -683,6 +778,22 @@
                 }
                 // 启动自动向下移动
                 this.fishing.moveDownAnimationId = requestAnimationFrame(step);
+            },
+            // 平滑向上移动鱼钩的位置
+            smoothMoveUp () {
+                // 目标位置
+                const targetPosition = Math.min(this.fishing.innerPosition + 10, this.$refs.outerContainer.clientHeight - this.$refs.innerContainer.clientHeight);
+                const step = () => {
+                    if (this.fishing.innerPosition < targetPosition) {
+                        // 向上移动
+                        this.fishing.innerPosition += 2;
+                        this.$refs.innerContainer.style.bottom = `${this.fishing.innerPosition}px`;
+                        // 请求下一帧动画
+                        this.fishing.moveUpAnimationId = requestAnimationFrame(step);
+                    }
+                }
+                // 启动平滑向上移动
+                this.fishing.moveUpAnimationId = requestAnimationFrame(step);
             },
             // 检查碰撞
             checkCollision () {
@@ -748,7 +859,10 @@
                         }).then(() => {
                             // 结束游戏
                             this.endGame();
-                        }).catch(() => { });
+                        }).catch(() => {
+                            // 结束游戏
+                            this.endGame();
+                        });
                     }
                 }, 1000);
                 this.fishing.timerIds.push(timer);
@@ -760,10 +874,12 @@
                 this.clearAllTiming();
                 // 移除钓鱼点
                 const index = this.$store.fishingMap.find(index => this.nearbyIndices.includes(index));
-                console.log(this.$store.fishingMap, index)
                 this.grid[index].type = 'empty';
+                // 结束所有动画
                 cancelAnimationFrame(this.fishing.moveUpAnimationId);
                 cancelAnimationFrame(this.fishing.moveDownAnimationId);
+                cancelAnimationFrame(this.fishing.moveParentContainerId);
+                // 重置钓鱼数据
                 this.resetFishingData(true);
             },
             // 开始游戏
@@ -773,22 +889,6 @@
                 this.$nextTick(() => this.moveParentContainer())
                 this.autoMoveDown();
                 this.startTimer();
-            },
-            // 平滑向上移动内部容器
-            smoothMoveUp () {
-                // 目标位置
-                const targetPosition = Math.min(this.fishing.innerPosition + 10, this.$refs.outerContainer.clientHeight - this.$refs.innerContainer.clientHeight);
-                const step = () => {
-                    if (this.fishing.innerPosition < targetPosition) {
-                        // 向上移动
-                        this.fishing.innerPosition += 2;
-                        this.$refs.innerContainer.style.bottom = `${this.fishing.innerPosition}px`;
-                        // 请求下一帧动画
-                        this.fishing.moveUpAnimationId = requestAnimationFrame(step);
-                    }
-                }
-                // 启动平滑向上移动
-                this.fishing.moveUpAnimationId = requestAnimationFrame(step);
             },
             // 重置所有钓鱼数据
             resetFishingData (bool) {
@@ -1175,6 +1275,18 @@
         padding: 10px 20px;
         font-size: 16px;
         width: 100%;
+    }
+
+    /* 移动按钮 */
+    .shortcutKeys {
+        color: rgba(169, 169, 169, 0.4);
+        margin-left: 2px;
+    }
+
+    @media only screen and (max-width: 750px) {
+        .shortcutKeys {
+            display: none;
+        }
     }
 </style>
 

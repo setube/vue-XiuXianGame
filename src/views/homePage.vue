@@ -55,7 +55,7 @@
                         </el-icon>
                     </div>
                     <div class="tag attribute" @click="$notifys({title: '获得方式', message: '每转生一次可以增加50容量'})">
-                        背包总容量: {{ player.backpackCapacity }}
+                        背包容量: {{ player.inventory.length }} / {{ player.backpackCapacity }}
                         <el-icon>
                             <Warning />
                         </el-icon>
@@ -1700,17 +1700,19 @@
             },
             // 分解装备
             inventoryClose (item) {
-                this.$confirm(`你确定要分解<span class="el-tag el-tag--${item.quality}">${this.$levels[item.quality]}${item.name}(${this.$genre[item.type]})</span>吗?`, '装备分解通知', {
+                const num = item.level + Math.floor(item.level * this.player.reincarnation / 10);
+                this.$confirm(`你确定要分解<span class="el-tag el-tag--${item.quality}">${this.$levels[item.quality]}${item.name}(${this.$genre[item.type]})</span>吗?<br /><label style="font-size:x-small;color:#909399;">本次分解可得 ${num} 枚炼器石</label>`, '装备分解通知', {
                     center: true,
                     cancelButtonText: '取消分解',
                     confirmButtonText: '确定分解',
                     dangerouslyUseHTMLString: true
                 }).then(() => {
-                    const num = item.level + Math.floor(item.level * this.player.reincarnation / 10);
                     // 增加炼器石数量
                     this.player.props.strengtheningStone += num;
                     // 删除背包装备
                     this.player.inventory = this.player.inventory.filter(obj => obj.id !== item.id);
+                    // 与批量分解保持一致，单独分解时也增加灵石
+                    this.player.props.money += 1;
                     // 关闭装备信息弹窗
                     this.inventoryShow = false;
                     // 更新玩家存档

@@ -13,28 +13,28 @@
         </div>
         <div class="actions">
             <div class="action">
-                <el-button class="item" @click="startFight" :disabled="isEnd">
-                    发起战斗
+                <el-button class="item" @click="operate('startFight')" :disabled="isEnd">
+                    发起战斗<span class="shortcutKeys">(Q)</span>
                 </el-button>
             </div>
             <div class="action">
-                <el-button class="item" @click="harvestPet(monster)" :disabled="isCaptureFailed">
-                    收服对方
+                <el-button class="item" @click="operate('harvestPet')" :disabled="isCaptureFailed">
+                    收服对方<span class="shortcutKeys">(E)</span>
                 </el-button>
             </div>
             <div class="action">
-                <el-button class="item" @click="runAway" :disabled="isFailedRetreat">
-                    立马撤退
+                <el-button class="item" @click="operate('runAway')" :disabled="isFailedRetreat">
+                    立马撤退<span class="shortcutKeys">(R)</span>
                 </el-button>
             </div>
             <div class="action">
-                <el-button class="item" @click="$router.push('/map')" :disabled="player.health <= 0" v-if="isEnd">
-                    继续探索
+                <el-button class="item" @click="operate('explore')" :disabled="player.health <= 0" v-if="isEnd">
+                    继续探索<span class="shortcutKeys">(F)</span>
                 </el-button>
             </div>
             <div class="action">
-                <el-button class="item" @click="goHome" v-if="isEnd">
-                    回家疗伤
+                <el-button class="item" @click="operate('goHome')" v-if="isEnd">
+                    回家疗伤<span class="shortcutKeys">(G)</span>
                 </el-button>
             </div>
         </div>
@@ -74,16 +74,59 @@
         },
         beforeUnmount () {
             this.stopFight();
+            // 移除键盘监听
+            window.removeEventListener('keydown', this.operate);
         },
         mounted () {
             this.player = this.$store.player;
             this.encounterMonster();
+            window.addEventListener('keydown', this.operate);
         },
         methods: {
+            // 玩家操作(绑定快捷键)
+            operate(oprName){
+                oprName = typeof oprName === 'string' ? oprName : oprName.key;
+                console.log(oprName)
+                switch (oprName) {
+                    // 发起战斗
+                    case 'q':
+                    case 'startFight':
+                        if(!this.isEnd) this.startFight()
+                        break;
+                    // 收服对方
+                    case 'e':
+                    case 'harvestPet':
+                        if (!this.isEnd && !this.isCaptureFailed) this.harvestPet(this.monster)
+                        break;
+                    // 立马撤退
+                    case 'r':
+                    case 'runAway':
+                        if (!this.isEnd && !this.isFailedRetreat) this.runAway()
+                        break;
+                    // 回家疗伤
+                    case 'g':
+                    case 'goHome':
+                        if (this.isEnd) this.goHome()
+                        break;
+                    // 继续探索
+                    case 'f':
+                    case 'explore':
+                        if (this.isEnd){
+                            this.$router.push('/map');
+                            // 移除键盘监听
+                            window.removeEventListener('keydown', this.operate);
+                        }
+                        break;
+                    default:
+                        return;
+                }
+            },
             // 回家疗伤
             goHome () {
                 this.$store.mapData = { y: 0, x: 0, map: [] };
                 this.$router.push('/home');
+                // 移除键盘监听
+                window.removeEventListener('keydown', this.operate);
                 this.$store.setMapScroll(0);
             },
             // 怪物信息
@@ -457,5 +500,10 @@
     .actions .action {
         width: calc(33.333% - 10px);
         margin: 5px;
+    }
+
+    .shortcutKeys{
+        color:rgba(169, 169, 169, 0.4);
+        margin-left: 2px;
     }
 </style>

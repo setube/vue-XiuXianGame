@@ -67,7 +67,7 @@
                         </div>
                     </div>
                 </div>
-                <el-button @mousedown="startFishing" @mouseup="stopFishing" @mouseleave="stopFishing" @click="moveButton('click')" :disabled="fishing.disabled" class="button">
+                <el-button @touchstart="startFishing" @touchend="stopFishing" @mousedown="startFishing" @mouseup="stopFishing" @mouseleave="stopFishing" @click="moveButton('click')" :disabled="fishing.disabled" class="button">
                     钓鱼<span class="shortcutKeys">({{ holdingId ? '松开' : '长按'}})</span>
                 </el-button>
             </div>
@@ -799,21 +799,25 @@
             checkCollision () {
                 // 如果游戏结束或时间到，停止检查
                 if (this.fishing.gameOver || this.fishing.timeExpired) return;
-                // 获取钓鱼容器的矩形区域
+                // 获取鱼的矩形区域
                 const movingRect = this.$refs.movingContainer.getBoundingClientRect();
-                // 获取内部容器的矩形区域
+                // 获取鱼钩的矩形区域
                 const innerRect = this.$refs.innerContainer.getBoundingClientRect();
+                // 判断鱼钩是否触底
+                const isTouchingBottom = this.fishing.innerPosition <= 0;
                 // 判断是否有重叠
-                this.fishing.overlap = !(
-                    movingRect.bottom < innerRect.top ||
-                    movingRect.top > innerRect.bottom ||
-                    movingRect.right < innerRect.left ||
-                    movingRect.left > innerRect.right
+                const isOverlap = !(
+                    movingRect.bottom < innerRect.top ||  // 鱼钩底部在鱼上方
+                    movingRect.top > innerRect.bottom ||  // 鱼钩顶部在鱼下方
+                    movingRect.right < innerRect.left ||  // 鱼钩右边在鱼左边
+                    movingRect.left > innerRect.right     // 鱼钩左边在鱼右边
                 );
-                // 更新分数
-                this.fishing.score = this.fishing.overlap ? this.fishing.score += 0.1 : Math.max(this.fishing.score - 0.2, 0);
-                // 更新进度条
+                // 根据鱼钩的触底和重叠状态更新分数
+                this.fishing.score = isOverlap ? Math.min(this.fishing.score + 0.1, 100) : isTouchingBottom ? Math.max(this.fishing.score - 0.2, 0) : Math.max(this.fishing.score - 0.2, 0);
+                // 更新分数后更新进度条
                 this.updateProgressBar(this.fishing.score);
+                // 更新重叠状态
+                this.fishing.overlap = isOverlap;
             },
             // 更新进度条
             updateProgressBar () {

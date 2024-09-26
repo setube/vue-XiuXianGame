@@ -66,7 +66,8 @@ export const useMainStore = defineStore('main', {
             reincarnation: 0,
             maxCultivation: 100,
             backpackCapacity: 50,
-            sellingEquipmentData: []
+            sellingEquipmentData: [],
+            highestTowerFloor: 1,
         },
         // 怪物信息
         monster: {

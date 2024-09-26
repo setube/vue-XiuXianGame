@@ -4,6 +4,7 @@ import home from '../views/homePage.vue';
 import index from '../views/indexPage.vue';
 import explore from '../views/explorePage.vue';
 import cultivate from '../views/cultivatePage.vue';
+import EndlessTower from '@/views/EndlessTower.vue'
 import { createRouter, createWebHashHistory } from 'vue-router';
 
 const routes = [
@@ -54,6 +55,11 @@ const routes = [
             keepAlive: false
         },
         component: boss
+    },
+    {
+        path: '/EndlessTower ',
+        name: 'EndlessTower ',
+        component: EndlessTower 
     }
 ];
 const router = createRouter({

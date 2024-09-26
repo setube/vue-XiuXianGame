@@ -837,7 +837,8 @@
                     // 背包总容量
                     backpackCapacity: 50,
                     // 批量分解装备设置
-                    sellingEquipmentData: []
+                    sellingEquipmentData: [],
+                    highestTowerFloor: 1,
                 },
                 actions: [],
                 isLevel: false,

@@ -1,8 +1,8 @@
 {
     "name": "xiuxian-game",
     "private": true,
-    "version": "0.8.92",
-    "versionlog": "修复移动端无法长按钓鱼问题\n修复鱼钩触底后不扣分问题",
+    "version": "0.9.0",
+    "versionlog": "新增玩家名字\n新增玩家年纪\n新增玩家名字编辑功能\n新增脚本导入功能\n新增脚本删除功能\n新增无尽塔功能, 支持自动对战, 挂机扫荡\n修改首页按钮布局, 批量修改移动到游戏设置内\n修改修炼页面UI\n优化对战相关日志代码\n修复BOSS掉落防具无防御数值问题",
     "type": "module",
     "scripts": {
         "dev": "vite --open",

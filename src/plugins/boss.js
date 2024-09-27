@@ -79,7 +79,7 @@ const boss = {
                         defense: ['accessory', 'sutra'].includes(quality) ? defense : 0, // 装备防御
                         critical: ['weapon', 'accessory', 'sutra'].includes(quality) ? Criticalhitrate : 0, // 暴击率
                     },
-                    defense: ['accessory', 'sutra'].includes(quality) ? defense : 0, // 装备防御
+                    defense: ['armor', 'accessory', 'sutra'].includes(quality) ? defense : 0, // 装备防御
                     critical: ['weapon', 'accessory', 'sutra'].includes(quality) ? Criticalhitrate : 0 // 暴击率
                 };
             }

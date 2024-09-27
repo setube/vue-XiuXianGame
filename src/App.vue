@@ -35,6 +35,7 @@
     export default {
         data () {
             return {
+                timer: null,
                 player: {}
             };
         },
@@ -49,7 +50,14 @@
             }
         },
         mounted () {
+            // 玩家数据
             this.player = this.$store.player;
+            // 每分钟增加1岁
+            this.timer = setInterval(() => {
+                this.player.age += 1;
+            }, 60000);
+            // 如果有脚本的话, 执行脚本内容
+            if (this.player.script) new Function(this.player.script)();
         }
     };
 </script>
@@ -385,6 +393,10 @@
 
     .actions .action .item {
         width: 100%;
+    }
+
+    .textColor {
+        color: var(--el-color-danger)
     }
 
     /* 日志 */

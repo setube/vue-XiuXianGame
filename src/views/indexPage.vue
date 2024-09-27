@@ -78,7 +78,6 @@
                 else this.$notifys({ title: '提示', message: '未同意隐私政策无法进入游戏' });
                 this.player.zc = bool;
                 this.dialogVisible = false;
-                this.$store.setPlayer(this.player);
             },
             goHome () {
                 if (!this.player.zc) {

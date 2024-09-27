@@ -1,13 +1,11 @@
 <template>
     <div class="explore">
         <div class="cultivate" v-if="$store.monster.name">
-            你遇到了<span class="el-tag el-tag--danger" @click="openMonsterInfo">{{ monster.name }}</span>
+            你遇到了<span class="el-tag el-tag--danger" @click="openMonsterInfo" v-text="monster.name" />
             <div class="storyText">
                 <div class="storyText-box">
                     <el-scrollbar ref="scrollbar" always>
-                        <p class="fighting" v-if="isFighting">
-                            {{ guashaRounds }}回合 / 10回合
-                        </p>
+                        <p class="fighting" v-if="isFighting" v-text="`${guashaRounds}回合 / 10回合`" />
                         <p v-for="(item, index) in texts" :key="index" v-html="item" @click="openEquipmentInfo(openEquipItemInfo)" />
                     </el-scrollbar>
                 </div>
@@ -133,7 +131,7 @@
             goHome () {
                 this.$store.mapData = { y: 0, x: 0, map: [] };
                 this.$router.push('/home');
-                this.$store.setMapScroll(0);
+                this.$store.mapScroll = 0;
             },
             // 怪物信息
             openMonsterInfo () {
@@ -244,32 +242,30 @@
                         const reincarnation = this.player.reincarnation ? 1 + 1 * this.player.reincarnation : 1
                         this.player.props.cultivateDan += reincarnation;
                         // 发送提示
-                        this.texts = [...this.texts, `击败${this.monster.name}后你获得了${reincarnation}颗培养丹`];
+                        this.texts.push(`击败${this.monster.name}后你获得了${reincarnation}颗培养丹`);
                         this.findTreasure(this.monster.name);
                         this.stopFight();
                     } else if (this.player.health <= 0) {
-                        this.texts = [...this.texts, '你因为太弱被击败了。'];
+                        this.texts.push('你因为太弱被击败了。');
                         this.stopFight();
                     } else {
                         // 玩家
-                        this.texts = [...this.texts, !isPHit ? `你攻击了${this.monster.name}，对方闪避了你的攻击，你未造成伤害，剩余${this.monster.health}气血。` : `你攻击了${this.monster.name}，${isCritical ? '触发暴击' : ''}造成了${playerHarm}点伤害，剩余${this.monster.health}气血。`];
+                        this.texts.push(!isPHit ? `你攻击了${this.monster.name}，对方闪避了你的攻击，你未造成伤害，剩余${this.monster.health}气血。` : `你攻击了${this.monster.name}，${isCritical ? '触发暴击' : ''}造成了${playerHarm}点伤害，剩余${this.monster.health}气血。`);
                         // 野怪
-                        this.texts = [...this.texts, !isMHit ? `${this.monster.name}攻击了你，你闪避了对方的攻击，对方未造成伤害。` : `${this.monster.name}攻击了你，${isMCritical ? '触发暴击' : ''}造成了${monsterHarm}点伤害`];
+                        this.texts.push(!isMHit ? `${this.monster.name}攻击了你，你闪避了对方的攻击，对方未造成伤害。` : `${this.monster.name}攻击了你，${isMCritical ? '触发暴击' : ''}造成了${monsterHarm}点伤害`);
                     }
                 } else {
                     this.guashaRounds = 10;
-                    this.texts = [...this.texts, `回合结束, 你未战胜${this.monster.name}你输了。`];
+                    this.texts.push(`回合结束, 你未战胜${this.monster.name}你输了。`);
                     this.stopFight();
                 }
-                // 更新玩家存档
-                this.$store.setPlayer(this.player);
             },
             // 逃跑
             runAway () {
                 this.guashaRounds--;
                 if (equip.getRandomInt(0, 1)) {
                     this.isFailedRetreat = true;
-                    this.texts = [...this.texts, '撤退失败，继续战斗。'];
+                    this.texts.push('撤退失败，继续战斗。');
                 } else {
                     this.guashaRounds = 10;
                     this.$router.push('/map');
@@ -292,11 +288,11 @@
                 else if (randomInt == 3) equipItem = equip.equip_Accessorys(this.player.level);
                 // 法器
                 else if (randomInt == 4) equipItem = equip.equip_Sutras(this.player.level);
-                this.texts = [...this.texts, `你击败${this.monster.name}后，发现了一个宝箱，打开后获得了<span class="el-tag el-tag--${equipItem.quality}">${this.$levels[equipItem.quality]}${equipItem.name}(${this.$genre[equipItem.type]})</span>`];
+                this.texts.push(`你击败${this.monster.name}后，发现了一个宝箱，打开后获得了<span class="el-tag el-tag--${equipItem.quality}">${this.$levels[equipItem.quality]}${equipItem.name}(${this.$genre[equipItem.type]})</span>`);
                 this.openEquipItemInfo = equipItem;
                 // 如果装备背包当前容量大于等于背包总容量
                 if (this.player.inventory.length >= this.player.backpackCapacity) {
-                    this.texts = [...this.texts, `当前装备背包容量已满, 该装备自动丢弃, 转生可增加背包容量`];
+                    this.texts.push(`当前装备背包容量已满, 该装备自动丢弃, 转生可增加背包容量`);
                 } else {
                     // 玩家获得道具
                     this.player.inventory.push(equipItem);
@@ -309,7 +305,7 @@
                         if (this.player.cultivation >= this.player.maxCultivation) {
                             // 如果玩家等级大于10并且击杀数低于当前等级
                             if (this.player.level > 10 && this.player.level > this.player.taskNum) {
-                                this.texts = [...this.texts, `当前境界修为已满, 你需要通过击败<span style="color: #f56c6c;">(${this.player.taskNum} / ${this.player.level})</span>个敌人证道突破`];
+                                this.texts.push(`当前境界修为已满, 你需要通过击败<span class="textColor">(${this.player.taskNum} / ${this.player.level})</span>个敌人证道突破`);
                                 return;
                             }
                             // 清空已击杀敌人
@@ -322,7 +318,7 @@
                             this.player.health = this.player.maxHealth;
                             // 增加玩家总修为
                             this.player.maxCultivation = Math.floor(100 * Math.pow(2, this.player.level));
-                            this.texts = [...this.texts, `恭喜你突破了！当前境界：${this.$levelNames(this.player.level)}`];
+                            this.texts.push(`恭喜你突破了！当前境界：${this.$levelNames(this.player.level)}`);
                         } else {
                             // 当前修为
                             this.player.cultivation += exp;
@@ -332,11 +328,9 @@
                         this.isStart = false;
                         this.player.level = this.$maxLv;
                         this.player.maxCultivation = Math.floor(100 * Math.pow(2, this.$maxLv));
-                        this.texts = [...this.texts, '你当前的境界已修炼圆满, 需要转生后才能继续修炼'];
+                        this.texts.push('你当前的境界已修炼圆满, 需要转生后才能继续修炼');
                     }
                 }
-                // 更新玩家存档
-                this.$store.setPlayer(this.player);
             },
             // 发现的装备信息
             openEquipmentInfo (item) {
@@ -449,11 +443,9 @@
                                 this.notify({ title: '获得成就提示', message: `恭喜你完成了${item.name}成就` });
                             }
                         });
-                        this.texts = [...this.texts, `收服${item.name}成功`];
-                        // 更新玩家存档
-                        this.$store.setPlayer(this.player);
+                        this.texts.push(`收服${item.name}成功`);
                     } else {
-                        this.texts = [...this.texts, `灵宠背包容量已满, 收服${item.name}失败, 转生可增加灵宠背包容量`];
+                        this.texts.push(`灵宠背包容量已满, 收服${item.name}失败, 转生可增加灵宠背包容量`);
                     }
                     // 恢复回合数
                     this.guashaRounds = 10;
@@ -461,7 +453,7 @@
                     // 如果没有收服
                 } else {
                     this.isCaptureFailed = true;
-                    this.texts = [...this.texts, `收服${item.name}失败`];
+                    this.texts.push(`收服${item.name}失败`);
                 }
             },
             // 计算收服灵宠成功概率

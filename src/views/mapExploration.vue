@@ -19,7 +19,7 @@
         </div>
         <div class="map">
             <div class="grid-container">
-                <div v-for="(cell, index) in grid" :key="index" :ref="'cell-' + index" :class="['grid-item', cell.type, `x-${index % this.gridSize}`, `y-${Math.floor(index / this.gridSize)}`]" :style="{ backgroundColor: cell.his }" @click="gridInfo(index, cell)"></div>
+                <div v-for="(cell, index) in grid" :key="index" :ref="'cell-' + index" :class="['grid-item', cell.type, `x-${index % this.gridSize}`, `y-${Math.floor(index / this.gridSize)}`]" :style="{ backgroundColor: cell.his }" @click="gridInfo(index, cell)" />
             </div>
         </div>
         <div class="controls">
@@ -47,7 +47,7 @@
                 <div class="time">倒计时: {{ fishing.timeLeft }}秒</div>
                 <div class="outer-wrapper">
                     <div class="progress-bar-container">
-                        <div class="progress-bar" ref="progressBar" :style="{ height: fishing.progressPercentage }"></div>
+                        <div class="progress-bar" ref="progressBar" :style="{ height: fishing.progressPercentage }" />
                         <div class="progress-text">{{ fishing.progressText }}%</div>
                     </div>
                     <div class="outer-container" ref="outerContainer" :style="{ border: fishing.overlap ? '2px solid var(--el-color-warning)' : '2px solid var(--el-border-color)'}">
@@ -119,9 +119,10 @@
 </template>
 
 <script>
+    // tag组件
+    import tag from '@/components/tag.vue';
     // npc
     import npc from '@/plugins/npc';
-    import tag from '@/components/tag.vue';
     // 怪物
     import monster from '@/plugins/monster';
 
@@ -285,7 +286,7 @@
                     // 重置所有钓鱼数据
                     this.resetFishingData(false);
                     // 重置玩家所在行
-                    this.$store.setMapScroll(0);
+                    this.$store.mapScroll = 0;
                 }
             },
             // 清空所有定时
@@ -405,7 +406,7 @@
                         // 如果是钓鱼点，存储钓鱼点坐标，并生成其周围的5x5禁区
                         if (type === 'fishing') {
                             arr.push(index);
-                            this.$store.setFishingMap(arr);
+                            this.$store.fishingMap = arr;
                             // 将钓鱼点周围的5x5区域添加到禁区
                             this.addToRestrictedZone(index, restrictedZone);
                         }
@@ -447,7 +448,6 @@
                         arr.push(npcData);
                         this.player.npcs = arr;
                         placed++;
-                        this.$store.setPlayer(this.player);
                         // 生成 NPC 后立即检查路径是否可行
                         if (!this.isPathAvailable()) {
                             // 如果阻塞路径，回溯这个 NPC 的生成
@@ -504,8 +504,6 @@
                         this.npcInfo.favorability = 0;
                         this.$notifys({ title: '提示', message: '对方拒绝了你的邀请, 好感度清空', position: 'top-left' });
                     }
-                    // 更新玩家存档
-                    this.$store.setPlayer(this.player);
                 }).catch(() => { });
             },
             // 礼物信息
@@ -536,8 +534,6 @@
                     this.player.props.flying += index;
                     // 增加情缘点
                     this.player.props.qingyuan += index;
-                    // 更新玩家存档
-                    this.$store.setPlayer(this.player);
                     this.$notifys({ title: '赠送提示', message: `赠送成功, ${this.npcInfo.name}对你的好感度增加了, 并赠与了你${index}张传送符和${index}点情缘`, position: 'top-left' });
                 }).catch(() => { });
             },
@@ -576,11 +572,11 @@
                 const playerIndex = this.playerY * this.gridSize + this.playerX;
                 this.grid[playerIndex].type = 'player';
                 // 更新地图数据
-                this.$store.setMapData({
+                this.$store.mapData = {
                     y: this.playerY,
                     x: this.playerX,
                     map: this.grid
-                });
+                };
                 // 20%概率遇怪
                 const rand = this.isLucky(20);
                 if (rand && playerIndex != 0) {
@@ -589,7 +585,7 @@
                     // 怪物难度根据玩家最高境界 + 转生次数
                     const monsterLv = level * this.player.reincarnation + level;
                     // 添加怪物数据
-                    this.$store.setMonster({
+                    this.$store.monster = {
                         // 名称
                         name: monster.monster_Names(monsterLv),
                         // 气血
@@ -602,7 +598,7 @@
                         dodge: monster.monster_Criticalhitrate(monsterLv),
                         // 暴击
                         critical: monster.monster_Criticalhitrate(monsterLv)
-                    });
+                    };
                     // 跳转对战
                     this.$router.push('/explore');
                 }
@@ -683,7 +679,7 @@
             updateScroll (playerIndex) {
                 const playerCell = this.$refs[`cell-${playerIndex}`][0];
                 if (playerCell) {
-                    this.$store.setMapScroll(playerIndex);
+                    this.$store.mapScroll = playerIndex;
                     playerCell.scrollIntoView({ block: 'center', inline: 'center', behavior: 'smooth' });
                 }
             },

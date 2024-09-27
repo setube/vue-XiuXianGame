@@ -9,9 +9,7 @@
         <div class="storyText">
             <div class="storyText-box">
                 <el-scrollbar ref="scrollbar" always>
-                    <p class="fighting" v-if="isFighting">
-                        {{ guashaRounds }}回合 / 50回合
-                    </p>
+                    <p class="fighting" v-if="isFighting" v-text="`${guashaRounds}回合 / 50回合`" />
                     <p v-for="(item, index) in texts" :key="index" v-html="item" @click="openEquipmentInfo(equipmentInfo)" />
                 </el-scrollbar>
             </div>
@@ -110,11 +108,11 @@
                 if (this.player.level < this.$maxLv) {
                     this.isEnd = true;
                     this.stopFightBoss();
-                    this.texts = [...this.texts, `你的境界尚未达到${this.$levelNames(this.$maxLv)}, ${this.boss.name}对于你的挑战不屑一顾`];
+                    this.texts.push(`你的境界尚未达到${this.$levelNames(this.$maxLv)}, ${this.boss.name}对于你的挑战不屑一顾`);
                     return;
                 }
                 if (this.boss.health <= 0 || !this.boss.health) {
-                    this.texts = [...this.texts, 'BOSS刷新时间还未到'];
+                    this.texts.push('BOSS刷新时间还未到');
                     return;
                 }
                 this.isFighting = true;
@@ -168,22 +166,19 @@
                         const equipItem = boss.boss_Equip(this.$maxLv);
                         this.isequipment = true;
                         this.equipmentInfo = equipItem;
-                        this.texts = [...this.texts, `你击败${this.boss.name}后，获得了<span class="el-tag el-tag--${equipItem.quality}">${this.$levels[equipItem.quality]}${equipItem.name}(${this.$genre[equipItem.type]})</span>`];
+                        this.texts.push(`你击败${this.boss.name}后，获得了<span class="el-tag el-tag--${equipItem.quality}">${this.$levels[equipItem.quality]}${equipItem.name}(${this.$genre[equipItem.type]})</span>`);
                         // 如果装备背包当前容量大于等于背包总容量
-                        if (this.player.inventory.length >= this.player.backpackCapacity) {
-                            this.texts = [...this.texts, `当前装备背包容量已满, 该装备自动丢弃, 转生可增加背包容量`];
-                        } else {
-                            // 玩家获得道具
-                            this.player.inventory.push(equipItem);
-                        }
+                        if (this.player.inventory.length >= this.player.backpackCapacity) this.texts.push(`当前装备背包容量已满, 该装备自动丢弃, 转生可增加背包容量`);
+                        // 玩家获得道具
+                        else this.player.inventory.push(equipItem);
                         // 增加悟性丹
                         this.player.props.rootBone += 1;
                         // 获得悟性丹通知
-                        this.texts = [...this.texts, '你获得了1颗悟性丹'];
+                        this.texts.push('你获得了1颗悟性丹');
                         // 增加鸿蒙石
                         this.player.props.currency += this.currency;
                         // 获得鸿蒙石通知
-                        this.texts = [...this.texts, `你获得了${this.currency}块鸿蒙石`];
+                        this.texts.push(`你获得了${this.currency}块鸿蒙石`);
                         // 修改按钮状态
                         this.isEnd = true;
                         // 修改boss状态
@@ -191,18 +186,17 @@
                         this.boss.health = 0;
                         this.boss.conquer = true;
                         this.stopFightBoss();
-                        this.$store.setBoss(this.boss);
                     } else if (this.player.health <= 0) {
                         this.isEnd = true;
                         // 恢复boss血量
                         this.boss.health = this.boss.maxhealth;
-                        this.texts = [...this.texts, '你因为太弱被击败了。'];
-                        this.texts = [...this.texts, `${this.boss.text}`];
+                        this.texts.push('你因为太弱被击败了。');
+                        this.texts.push(`${this.boss.text}`);
                         this.stopFightBoss();
                         this.guashaRounds = 50;
                     } else {
-                        this.texts = [...this.texts, isPlayerHit ? `你攻击了${this.boss.name}，${isCritical ? '触发暴击' : ''}造成了${playerHarm}点伤害，剩余${this.boss.health}气血。` : `你攻击了${this.boss.name}，对方闪避了你的攻击，你未造成伤害，剩余${this.boss.health}气血。 `];
-                        this.texts = [...this.texts, isBHit ? `${this.boss.name}攻击了你，${isMCritical ? '触发暴击' : ''}造成了${monsterHarm}点伤害` : `${this.boss.name}攻击了你，你闪避了对方的攻击，对方未造成伤害，你剩余${this.player.health}气血。 `];
+                        this.texts.push(isPlayerHit ? `你攻击了${this.boss.name}，${isCritical ? '触发暴击' : ''}造成了${playerHarm}点伤害，剩余${this.boss.health}气血。` : `你攻击了${this.boss.name}，对方闪避了你的攻击，你未造成伤害，剩余${this.boss.health}气血。 `);
+                        this.texts.push(isBHit ? `${this.boss.name}攻击了你，${isMCritical ? '触发暴击' : ''}造成了${monsterHarm}点伤害` : `${this.boss.name}攻击了你，你闪避了对方的攻击，对方未造成伤害，你剩余${this.player.health}气血。 `);
                     }
                 } else {
                     // 恢复默认回合数
@@ -210,11 +204,9 @@
                     this.stopFightBoss();
                     // 恢复boss血量
                     this.boss.health = this.boss.maxhealth;
-                    this.texts = [...this.texts, `回合结束, 你未战胜${this.boss.name}你输了。`];
-                    this.texts = [...this.texts, `${this.boss.text}`];
+                    this.texts.push(`回合结束, 你未战胜${this.boss.name}你输了。`);
+                    this.texts.push(`${this.boss.text}`);
                 }
-                // 更新玩家存档
-                this.$store.setPlayer(this.player);
             },
             openEquipmentInfo (item) {
                 if (!this.isequipment) return;
@@ -254,19 +246,15 @@
                     if (time >= 5) {
                         // boss没有血量但时间大于等于5分钟，重新生成boss  
                         this.boss = boss.drawPrize(bossLv);
-                        // 存档boss信息  
-                        this.$store.setBoss(this.boss);
                     }
                     // 如果boss没有血量  
                 } else {
                     if (time >= 5 || this.boss.time == 0) {
                         // boss没有血量但时间大于等于5分钟，重新生成boss  
                         this.boss = boss.drawPrize(bossLv);
-                        // 存档boss信息  
-                        this.$store.setBoss(this.boss);
                     } else {
                         this.isEnd = true;
-                        this.texts = [...this.texts, 'BOSS还未刷新，请等待5分钟后再次挑战'];
+                        this.texts.push('BOSS还未刷新，请等待5分钟后再次挑战');
                         return;
                     }
                 }

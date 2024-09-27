@@ -6,6 +6,15 @@
             </div>
             <div class="attributes">
                 <div class="attribute-box">
+                    <div class="tag attribute" @click="editUserName">
+                        <span class="user-name">名字: {{ player.name }}</span>
+                        <el-icon>
+                            <EditPen />
+                        </el-icon>
+                    </div>
+                    <div class="tag attribute">
+                        年纪: {{ player.age }}岁
+                    </div>
                     <div class="tag attribute" @click="isLevel = true">
                         境界: {{ $levelNames(player.level) }} ({{ player.reincarnation || 0 }}转)
                         <el-icon>
@@ -232,7 +241,7 @@
                 </div>
                 <div class="action">
                     <el-button class="item" @click="show = true">
-                        数据管理
+                        游戏设置
                     </el-button>
                 </div>
             </div>
@@ -633,11 +642,9 @@
                 </el-button>
             </div>
         </el-dialog>
-        <el-dialog v-model="show" width="600px">
-            <template #header>
-                <span class="el-dialog__title">当前游戏版本为: {{ ver }}</span>
-            </template>
+        <el-dialog v-model="show" title="游戏设置" width="350px">
             <div class="dialog-footer">
+                <el-divider>存档相关</el-divider>
                 <el-button type="info" class="dialog-footer-button" @click="exportData">
                     导出存档
                 </el-button>
@@ -649,10 +656,24 @@
                 <el-button type="danger" class="dialog-footer-button" @click="deleteData">
                     删除存档
                 </el-button>
+                <el-divider>脚本相关</el-divider>
+                <el-upload action="#" class="dialog-upload" :before-upload="scriptBeforeUpload" :show-file-list="false" accept=".txt,.js">
+                    <el-button type="danger" class="dialog-footer-button">
+                        导入脚本
+                    </el-button>
+                </el-upload>
+                <el-button type="warning" class="dialog-footer-button" @click="deleteScriptData">
+                    删除脚本
+                </el-button>
+                <el-divider>其他相关</el-divider>
+                <el-button class="dialog-footer-button" @click="sellingEquipmentBox">
+                    批量处理
+                </el-button>
                 <el-button type="primary" class="dialog-footer-button" @click="copyContent('qq')">
                     官方群聊
                 </el-button>
                 <el-button type="success" class="dialog-footer-button" @click="copyContent('url')">开源地址</el-button>
+                <el-divider>当前版本为: {{ ver }}</el-divider>
             </div>
         </el-dialog>
         <el-drawer title="图鉴与成就" v-model="equipAllShow" direction="rtl" class="equipAll">
@@ -727,6 +748,12 @@
                 <el-button type="primary" class="inventory-button" @click="newBieInfoBox = false">确定</el-button>
             </div>
         </el-dialog>
+        <el-dialog v-model="errBox" title="错误信息" width="420px">
+            <el-input v-model="err" :rows="10" type="textarea" />
+            <div class="dialog-footer">
+                <el-button type="primary" class="inventory-button" @click="errBox = false">确定</el-button>
+            </div>
+        </el-dialog>
     </div>
 </template>
 
@@ -749,97 +776,14 @@
     export default {
         data () {
             return {
-                ver: 0.8,
+                ver: 0.9,
+                // 错误信息
+                err: '',
                 show: false,
+                // 错误信息弹窗
+                errBox: false,
                 // 玩家属性
-                player: {
-                    // 当前携带的灵宠
-                    pet: {},
-                    // 已收服的灵宠
-                    pets: [],
-                    // 当前跟随的道侣
-                    wife: {},
-                    // 已拥有的道侣
-                    wifes: [],
-                    // 道具
-                    props: {
-                        // 灵石
-                        money: 0,
-                        // 传送符
-                        flying: 0,
-                        // 情缘
-                        qingyuan: 0,
-                        // 悟性丹
-                        rootBone: 0,
-                        // 鸿蒙石数量
-                        currency: 0,
-                        // 培养丹数量
-                        cultivateDan: 0,
-                        // 炼器石数量
-                        strengtheningStone: 0,
-                    },
-                    // 人物评分
-                    score: 0,
-                    // 境界
-                    level: 0,
-                    // 闪避率
-                    dodge: 0,
-                    // 点数
-                    points: 0,
-                    // 攻击
-                    attack: 10,
-                    // 当前气血
-                    health: 100,
-                    // 防御
-                    defense: 10,
-                    // 已击杀数量
-                    taskNum: 0,
-                    // 暴击率
-                    critical: 0,
-                    // 是否已领取新手礼包
-                    isNewbie: false,
-                    // 商店数据
-                    shopData: [],
-                    // 总气血
-                    maxHealth: 100,
-                    // 背包道具
-                    inventory: [],
-                    // 装备
-                    equipment: {
-                        // 法器
-                        sutra: {},
-                        // 护甲
-                        armor: {},
-                        // 神兵
-                        weapon: {},
-                        // 灵宝
-                        accessory: {}
-                    },
-                    // 成就
-                    achievement: {
-                        pet: [
-                            { id: 1, state: false },
-                            { id: 2, state: false },
-                            { id: 3, state: false },
-                            { id: 4, state: false },
-                            { id: 5, state: false },
-                            { id: 6, state: false },
-                        ],
-                        monster: [],
-                        equipment: []
-                    },
-                    // 当前修为
-                    cultivation: 0,
-                    // 转生次数
-                    reincarnation: 0,
-                    // 下个境界所需修为
-                    maxCultivation: 100,
-                    // 背包总容量
-                    backpackCapacity: 50,
-                    // 批量分解装备设置
-                    sellingEquipmentData: [],
-                    highestTowerFloor: 1,
-                },
+                player: {},
                 actions: [],
                 isLevel: false,
                 // 灵宠信息弹窗
@@ -850,6 +794,8 @@
                 protect: false,
                 // 炼器增幅
                 increase: false,
+                // 修改昵称
+                editName: false,
                 levelsNum: {
                     info: 1,
                     pink: 7,
@@ -870,6 +816,8 @@
                 activeName: 'illustrations',
                 /// 新手礼包装备信息
                 newBieItem: {},
+                // 上传的脚本文件
+                scriptFile: '',
                 // 灵宠信息弹窗
                 petItemShow: false,
                 backPackItem: [
@@ -929,10 +877,8 @@
             inventoryActive (type) {
                 if (type == 'shop' && !this.player.shopData.length) {
                     this.player.shopData = shop.drawPrize(this.$maxLv);
-                    // 更新玩家存档
-                    this.$store.setPlayer(this.player);
                 }
-                return type;
+                if (type == 'props') this.$notifys({ title: '提示', message: '点击道具可以获取道具相关信息' });
             },
             'player.attack': function (val) {
                 if (isNaN(val)) this.reset();
@@ -967,24 +913,13 @@
                 }
             },
         },
+        created () {
+            this.boss = this.$store.boss;
+            this.player = this.$store.player;
+            this.achievementAll = achievement.all();
+            this.illustrationsItems = equipAll.drawPrize(this.$maxLv);
+        },
         mounted () {
-            // 判断本地有没有玩家存档数据
-            const local = this.$store;
-            if (localStorage.vuex) {
-                const vuex = JSON.parse(localStorage.vuex);
-                const player = crypto.decryption(vuex.player);
-                const version = player.version ? player.version : 0;
-                if (!version || version < 0.8) {
-                    this.clearSave();
-                    return;
-                }
-            }
-            if (local) {
-                this.boss = local.boss;
-                this.player = local.player;
-                this.achievementAll = achievement.all();
-                this.illustrationsItems = equipAll.drawPrize(this.$maxLv);
-            }
             // 初始化游戏
             this.startGame();
         },
@@ -1007,18 +942,83 @@
                             this.$router.push('/map');
                         }
                     },
-                    { text: '批量处理', handler: this.sellingEquipmentBox },
                     {
                         text: '图鉴与成就', handler: () => {
                             this.equipAllShow = true;
                         }
                     },
+                    { text: '挑战无尽塔', handler: () => this.$router.push('/endlesstower') },
                     { text: '世界BOSS', handler: () => this.$router.push('/boss') }
                 ];
                 // 初始化玩家当前气血
                 this.player.health = this.player.maxHealth;
-                // 更新玩家存档
-                this.$store.setPlayer(this.player);
+            },
+            // 删除脚本
+            deleteScriptData () {
+                // 清空玩家导入的脚本
+                this.player.script = '';
+                // 发送提示
+                this.$notifys({ title: '提示', message: '脚本删除成功' });
+                // 刷新页面
+                location.reload(1);
+            },
+            // 在上传脚本之前触发
+            scriptBeforeUpload (file) {
+                // 保存当前文件
+                this.scriptFile = file;
+                // 显示确认对话框
+                this.uploadScript();
+                // 阻止上传
+                return false;
+            },
+            // 导入脚本
+            uploadScript () {
+                this.$confirm('', '脚本导入须知', {
+                    center: true,
+                    message: '导入前请确认脚本可用并备份存档<br>如因导入错误脚本导致的存档游戏出现任何问题<br>作者概不负责',
+                    cancelButtonText: '考虑一下',
+                    confirmButtonText: '我会为自己的行为负责',
+                    dangerouslyUseHTMLString: true
+                }).then(() => {
+                    const file = this.scriptFile;
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        try {
+                            const script = e.target.result;
+                            // 保存玩家导入的脚本
+                            this.player.script = script;
+                            // 发送提示
+                            this.$notifys({ title: '提示', message: '脚本导入成功' });
+                            // 刷新页面
+                            location.reload(1);
+                        } catch (err) {
+                            this.err = err;
+                            this.errBox = true;
+                            this.$notifys({ title: '脚本导入失败', message: '复制错误信息到QQ群内' });
+                        }
+                    };
+                    reader.readAsText(file);
+                }).catch(() => { });
+            },
+            // 修改名字
+            editUserName () {
+                this.$prompt('每次修改名字需要花费100灵石', '修改名字', {
+                    inputPattern: /^(?=\S).*/,
+                    cancelButtonText: '取消修改',
+                    confirmButtonText: '确定修改',
+                    inputErrorMessage: '名字不可为空'
+                }).then(({ value }) => {
+                    if (this.player.props.money < 100) {
+                        this.$notifys({ title: '提示', message: '灵石不足, 名字修改失败' });
+                        return;
+                    }
+                    // 修改名字
+                    this.player.name = value;
+                    // 扣除灵石
+                    this.player.props.money -= 100;
+                    // 发送通知
+                    this.$notifys({ title: '提示', message: '修改成功' });
+                }).catch(() => { });
             },
             // 清空存档
             clearSave () {
@@ -1076,7 +1076,6 @@
                 this.player.props.cultivateDan += cultivateDanTotal;
                 // 清空背包内所有未锁定灵宠
                 this.player.pets = pets.filter(item => item.lock);
-                this.$store.setPlayer(this.player);
                 this.$notifys({ title: '灵宠放生提示', message: `所有非锁定灵宠已成功放生, 他们临走前一起赠与了你${cultivateDanTotal}个培养丹` });
             },
             // 批量分解装备
@@ -1111,14 +1110,11 @@
                 this.player.props.strengtheningStone += strengtheningStoneTotal;
                 // 清空背包内所有未锁定装备与选中分解的品阶
                 this.player.inventory = inventory.filter(item => !sellingEquipmen.includes(item.quality) || item.lock);
-                this.$store.setPlayer(this.player);
                 this.$notifys({ title: '背包装备分解提示', message: `背包内所有非锁定装备已成功分解, 你获得了${strengtheningStoneTotal}个炼器石和${selling.length}个灵石` });
             },
             // 修改玩家装备分解设置
             sellingEquipmentDataChange (val) {
                 this.player.sellingEquipmentData = val;
-                // 更新玩家存档
-                this.$store.setPlayer(this.player);
             },
             // 刷新商店
             refreshShop () {
@@ -1130,8 +1126,6 @@
                 this.player.props.money -= 500;
                 // 更新鸿蒙商店数据
                 this.player.shopData = shop.drawPrize(this.$maxLv);
-                // 更新玩家存档
-                this.$store.setPlayer(this.player);
                 this.$notifys({ title: '提示', message: '刷新成功' });
             },
             // 删档
@@ -1159,10 +1153,9 @@
                         // 刷新页面
                         location.reload(1);
                     } catch (err) {
-                        this.$notifys({
-                            title: '数据导入失败',
-                            message: `错误信息:${err}`
-                        });
+                        this.err = err;
+                        this.errBox = true;
+                        this.$notifys({ title: '脚本导入失败', message: '复制错误信息到QQ群内' });
                     }
                 };
                 reader.readAsText(file);
@@ -1211,15 +1204,11 @@
                 type = '';
                 // 关闭道具信息弹窗
                 this.inventoryShow = false;
-                // 更新玩家存档
-                this.$store.setPlayer(this.player);
             },
             // 道具锁定or道具解锁
             inventoryLock (id) {
                 let inventoryItem = this.getObjectById(id, this.player.inventory);
                 inventoryItem.lock = !inventoryItem.lock;
-                // 更新玩家存档
-                this.$store.setPlayer(this.player);
                 this.$notifys({
                     title: !inventoryItem.lock ? '装备解锁提示' : '装备锁定提示',
                     message: !inventoryItem.lock ? '装备解锁成功' : '装备锁定成功'
@@ -1245,8 +1234,6 @@
                 this.playerAttribute(petItem.dodge, petItem.attack, petItem.health, petItem.critical, petItem.defense);
                 // 从灵宠背包中移除这个灵宠
                 this.player.pets = this.player.pets.filter(i => i.id !== item.id);
-                // 更新玩家存档
-                this.$store.setPlayer(this.player);
             },
             // 放生灵宠
             petClose (item) {
@@ -1266,8 +1253,6 @@
                     this.player.props.cultivateDan += num;
                     // 删除道具
                     this.player.pets = this.player.pets.filter(obj => obj.id !== item.id);
-                    // 更新玩家存档
-                    this.$store.setPlayer(this.player);
                     // 装备分解通知
                     this.$notifys({
                         title: `${item.name}已成功放生`,
@@ -1278,8 +1263,6 @@
             // 道具锁定or道具解锁
             petLock (item) {
                 item.lock = !item.lock;
-                // 更新玩家存档
-                this.$store.setPlayer(this.player);
                 this.$notifys({
                     title: !item.lock ? '灵宠解锁提示' : '灵宠锁定提示',
                     message: !item.lock ? '灵宠解锁成功' : '灵宠锁定成功'
@@ -1377,8 +1360,6 @@
                     }
                     // 扣除炼器石
                     this.player.props.strengtheningStone -= calculateCost;
-                    // 更新玩家存档
-                    this.$store.setPlayer(this.player);
                 }).catch(() => { });
             },
             // 计算炼器所需消耗的道具数量
@@ -1494,8 +1475,6 @@
                     this.player.pet.score = equip.calculateEquipmentScore(this.player.pet.dodge, this.player.pet.attack, this.player.pet.health, this.player.pet.critical, this.player.pet.defense);
                     // 扣除培养丹
                     this.player.props.cultivateDan -= consume;
-                    // 更新玩家存档
-                    this.$store.setPlayer(this.player);
                 }).catch(() => { });
             },
             // 道侣升级
@@ -1528,8 +1507,6 @@
                     this.playerAttribute(0, attack, health, 0, defense);
                     // 扣除情缘点
                     this.player.props.qingyuan -= consume;
-                    // 更新玩家存档
-                    this.$store.setPlayer(this.player);
                 }).catch(() => { });
             },
             // 计算灵宠升级所需消耗
@@ -1546,14 +1523,9 @@
                     // 扣除鸿蒙石
                     this.player.props.currency -= this.shopPrice;
                     // 如果装备背包当前容量大于等于背包总容量
-                    if (this.player.inventory.length >= this.player.backpackCapacity) {
-                        this.storyText = `当前装备背包容量已满, 该装备自动丢弃, 转生可增加背包容量`;
-                    } else {
-                        // 添加到背包
-                        this.player.inventory.push(item);
-                    }
-                    // 更新玩家存档
-                    this.$store.setPlayer(this.player);
+                    if (this.player.inventory.length >= this.player.backpackCapacity) this.storyText = `当前装备背包容量已满, 该装备自动丢弃, 转生可增加背包容量`;
+                    // 添加到背包
+                    else this.player.inventory.push(item);
                     // 跳转背包相关页
                     this.inventoryActive = item.type;
                     this.$notifys({ title: '购买提示', message: `您成功花费${this.shopPrice}鸿蒙石购买${item.name}` });
@@ -1576,8 +1548,6 @@
                 this.playerAttribute(item.dodge, item.attack, item.health, item.critical, item.defense);
                 // 从道侣背包中移除这个道侣
                 this.player.wifes = this.player.wifes.filter(i => i.name !== item.name);
-                // 更新玩家存档
-                this.$store.setPlayer(this.player);
             },
             // 道侣收回
             wifeRevoke () {
@@ -1587,8 +1557,6 @@
                 // 收回当前跟随的道侣
                 this.player.wife = {};
                 this.player.wifes.push(item);
-                // 更新玩家存档
-                this.$store.setPlayer(this.player);
             },
             // 道侣信息
             wifeItemInfo (item) {
@@ -1694,8 +1662,6 @@
                     this.newBieData = [];
                     // 修改礼包领取状态
                     this.player.isNewbie = true;
-                    // 更新玩家存档
-                    this.$store.setPlayer(this.player);
                     this.$notifys({ title: '新手礼包领取提示', message: '新手礼包领取成功!' });
                 }).catch(() => { });
             },
@@ -1714,8 +1680,6 @@
                     this.player.inventory = this.player.inventory.filter(obj => obj.id !== item.id);
                     // 关闭装备信息弹窗
                     this.inventoryShow = false;
-                    // 更新玩家存档
-                    this.$store.setPlayer(this.player);
                     // 装备分解通知
                     this.$notifys({ title: '背包装备售卖提示', message: `${item.name}已成功卖出, 你获得了${num}个炼器石` });
                 }).catch(() => { });
@@ -1746,8 +1710,6 @@
                 this.player.pets.push(item);
                 // 收回当前出战的灵宠
                 this.player.pet = {};
-                // 更新玩家存档
-                this.$store.setPlayer(this.player);
             },
             // 计算灵宠等级
             computePetsLevel (lv) {
@@ -1792,8 +1754,6 @@
                 inventory.push(equipment[type]);
                 // 清空身上当前类型的装备
                 equipment[type] = {};
-                // 更新玩家存档
-                this.$store.setPlayer(this.player);
             },
             // 装备信息
             equipmentInfo (type) {
@@ -1833,8 +1793,6 @@
                     else if (type == 'health') this.playerAttribute(0, 0, numText, 0, 0);
                     // 扣除点数
                     this.player.points--;
-                    // 更新玩家存档
-                    this.$store.setPlayer(this.player);
                     this.$notifys({ title: '加点提示', message: `加点成功${typeNames[type]}增加了${numText}点` });
                 }
             },
@@ -1938,6 +1896,10 @@
         flex-wrap: wrap;
     }
 
+    .user-name {
+        margin-right: 5px;
+    }
+
     .equip-box {
         padding: 0 3px;
         margin-top: 4px;
@@ -1973,12 +1935,24 @@
     }
 
     .dialog-footer {
+        margin-top: 10px;
         display: flex;
+        flex-direction: column;
         justify-content: center;
     }
 
     .dialog-upload {
-        margin: 0 10px;
+        margin: 0;
+    }
+
+    .dialog-footer-button {
+        margin: 10px 0 0 0 !important;
+        width: 100%;
+    }
+
+    .dialog-footer-button:nth-child(2+n) {
+        margin-top: 10px;
+        width: 100%;
     }
 
     /* 炼器弹窗 */
@@ -2114,30 +2088,6 @@
             min-width: 356px;
         }
 
-        .dialog-footer {
-            flex-direction: column;
-        }
-
-        .dialog-footer-button {
-            margin: 10px 0 0 0 !important;
-            width: 100%;
-        }
-
-        /* .dialog-footer-button:nth-child(2),
-        .dialog-footer-button:nth-child(5) {
-            position: relative;
-            right: 10px;
-        } */
-
-        .dialog-footer-button:nth-child(2+n) {
-            margin-top: 10px;
-            width: 100%;
-        }
-
-        .dialog-upload {
-            margin: 0;
-        }
-
         .equip-box {
             padding: 0 5px;
         }
@@ -2181,5 +2131,14 @@
     .el-collapse-item div[role='tab'] {
         display: flex;
         justify-content: center;
+    }
+
+    .el-message-box--center {
+        text-align: center;
+    }
+
+    /* 上传按钮 */
+    .el-upload {
+        width: 100%;
     }
 </style>

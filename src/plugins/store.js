@@ -21,7 +21,9 @@ export const useMainStore = defineStore('main', {
         // 玩家属性
         player: {
             zc: false,
+            age: 1,
             pet: {},
+            name: '玩家',
             dark: false,
             npcs: [],
             wife: {},
@@ -62,12 +64,13 @@ export const useMainStore = defineStore('main', {
                 monster: [],
                 equipment: []
             },
+            script: '',
             cultivation: 0,
             reincarnation: 0,
             maxCultivation: 100,
             backpackCapacity: 50,
             sellingEquipmentData: [],
-            highestTowerFloor: 1,
+            highestTowerFloor: 1
         },
         // 怪物信息
         monster: {
@@ -91,26 +94,6 @@ export const useMainStore = defineStore('main', {
         mapScroll: 0,
         fishingMap: [],
     }),
-    actions: {
-        setBoss (data) {
-            this.boss = data;
-        },
-        setPlayer (data) {
-            this.player = data;
-        },
-        setMonster (data) {
-            this.monster = data;
-        },
-        setMapData (data) {
-            this.mapData = data;
-        },
-        setMapScroll (data) {
-            this.mapScroll = data;
-        },
-        setFishingMap (data) {
-            this.fishingMap = data;
-        }
-    },
     persist: {
         key: 'vuex',
         paths: ['boss', 'player'],

@@ -3,7 +3,7 @@ name: 自动化创建Docker镜像
 on:
   push:
     branches:
-      - dev
+      - main
 
 jobs:
   build:

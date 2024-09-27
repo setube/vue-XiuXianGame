@@ -3,7 +3,7 @@ name: 自动化创建发行包
 on:
   push:
     branches:
-      - dev
+      - main
 
 jobs:
   build:

@@ -106,7 +106,35 @@ const achievement = {
     },
     // 打怪相关成就
     monster () {
-        return [];
+        return [
+            {
+                id: 7,
+                name: '挑战者',
+                award: 1000,
+                desc: "通过无尽塔50层",
+                condition: {
+                    highestTowerFloor: 51,
+                }
+            },
+            {
+                id: 8,
+                name: '征服者',
+                award: 1000,
+                desc: "通过无尽塔1000层",
+                condition: {
+                    highestTowerFloor: 1001,
+                }
+            },
+            {
+                id: 9,
+                name: '人仙',
+                award: 1000,
+                desc: "寿元达到1000",
+                condition: {
+                    age: 1000,
+                }
+            }
+        ];
     }
 };
 export default achievement;

@@ -1829,22 +1829,25 @@
                     }
                 }).catch(() => { });
             },
-            getTagClass (type, index) {
+            getTagClass(type, index) {
                 const achievements1 = this.$store.player.achievement[type] || [];
                 return Array.isArray(achievements1) && achievements1.some(ach => ach.id === index);
             },
             // 成就详细
-            achievementInfo (item) {
-                this.$confirm('', `${item.name}`, {
-                    center: true,
-                    message: `<div class="monsterinfo">
-                        <div class="monsterinfo-box">
-                            <p>气血: ${item.condition.health}</p>
+            achievementInfo(item) {
+                let message = `                            <p>气血: ${item.condition.health}</p>
                             <p>攻击: ${item.condition.attack}</p>
                             <p>防御: ${item.condition.defense}</p>
                             <p>闪避率: ${(item.condition.dodge * 100).toFixed(2)}%</p>
                             <p>暴击率: ${(item.condition.critical * 100).toFixed(2)}%</p>
-                            <p>完成奖励: ${item.award}培养丹</p>
+                            <p>完成奖励: ${item.award}培养丹</p>`
+
+                if (item.desc) message = `                            <p>${item.desc}</p>`
+                this.$confirm('', `${item.name}`, {
+                    center: true,
+                    message: `<div class="monsterinfo">
+                        <div class="monsterinfo-box">
+${message}
                         </div>
                     </div>`,
                     showCancelButton: false,

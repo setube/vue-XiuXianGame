@@ -65,7 +65,9 @@
                     // 获得的灵石
                     moneyGain: 0,
                     // 获得的装备数量
-                    equipmentGained: 0
+                    equipmentGained: 0,
+                    // 获得的培养丹数量
+                    cultivationPillsGained: 0
                 },
                 // 玩家气血状态
                 playerStatus: 'success',
@@ -83,9 +85,9 @@
         },
         created () {
             // 玩家数据
-            this.player = this.$store.player;
+            this.player = this. $store.player;
             // 当前层数
-            this.currentFloor = this.player.highestTowerFloor > 1 ? this.player.highestTowerFloor - 1 : 1
+            this.currentFloor = this.player.highestTowerFloor > 1 ? this.player.highestTowerFloor - 1 : 1;
         },
         mounted () {
             // 生成日志
@@ -127,14 +129,15 @@
                     { name: '获得修为', suffix: `${this.$formatNumberToChineseUnit(this.sweepResults.expGain)}点` },
                     { name: '获得灵石', suffix: `${this.$formatNumberToChineseUnit(this.sweepResults.moneyGain)}块` },
                     { name: '获得装备', suffix: `${this.$formatNumberToChineseUnit(this.sweepResults.equipmentGained)}件` },
+                    { name: '获得培养丹', suffix: `${this.$formatNumberToChineseUnit(this.sweepResults.cultivationPillsGained)}个` },
                 ];
             },
             // 按钮
             buttonData () {
                 return [
-                    { text: this.isAutoFighting ? '停止对战' : '自动对战', click: () => this.toggleAutoFight(), disabled: this.isSweeping || this.player.health <= 0 },
-                    { text: '进行对战', click: () => this.fight(), disabled: this.isSweeping || this.isAutoFighting || !this.monster || this.player.health <= 0 },
-                    { text: this.isSweeping ? '停止扫荡' : '开始扫荡', click: () => this.toggleSweep(), disabled: this.isAutoFighting || this.player.health <= 0 },
+                    { text: this.isAutoFighting ? '停止对战' : '自动对战', click: () => this.toggleAutoFight(), disabled: this.isSweeping || this.player.health <= 0 || this.player.energy < 10 },
+                    { text: '进行对战', click: () => this.fight(), disabled: this.isSweeping || this.isAutoFighting || !this.monster || this.player.health <= 0 || this.player.energy < 1 },
+                    { text: this.isSweeping ? '停止扫荡' : '开始扫荡', click: () => this.toggleSweep(), disabled: this.isAutoFighting || this.player.health <= 0 || this.player.energy < 10 },
                     { text: '撤退回家', click: () => this.retreat(), disabled: false }
                 ];
             },
@@ -193,10 +196,11 @@
             openInfo (type) {
                 const isPlayer = type == 'player';
                 const info = isPlayer ? this.player : this.monster;
-                this.$confirm('', isPlayer ? this.player.name : info.name, {
+                this. $confirm('', isPlayer ? this.player.name : info.name, {
                     center: true,
                     message: `<div class="monsterinfo">
                         <div class="monsterinfo-box">
+                                           ${ isPlayer?`<p>精力: ${this.$formatNumberToChineseUnit(info.energy)}</p>`:""}
                             <p>气血: ${this.$formatNumberToChineseUnit(info.health)}</p>
                             <p>攻击: ${this.$formatNumberToChineseUnit(info.attack)}</p>
                             <p>防御: ${this.$formatNumberToChineseUnit(info.defense)}</p>
@@ -212,7 +216,8 @@
             // 进行战斗
             fight () {
                 // 被击败
-                if (this.player.health <= 0) {
+                if (this.player.health <= 0 || this.player.energy < 1) {
+                    this.player.energy--;
                     this.handlePlayerDefeat();
                     return;
                 }
@@ -221,6 +226,7 @@
                     this.generateMonster();
                     return;
                 }
+                // 消耗精力
                 // 玩家攻击怪物
                 const playerDamage = Math.max(1, this.player.attack - this.monster.defense); // 计算玩家造成的伤害
                 this.monster.health = Math.max(0, this.monster.health - playerDamage); // 减少怪物气血
@@ -228,6 +234,7 @@
                 // 检查怪物是否被击败
                 if (this.monster.health <= 0) {
                     this.handleMonsterDefeat();
+                    this.player.energy--;
                     return;
                 }
                 // 怪物攻击玩家
@@ -256,6 +263,8 @@
                 this.currentFloor++;
                 // 如果当前层数大于最高层数
                 if (this.currentFloor > this.player.highestTowerFloor) this.player.highestTowerFloor = this.currentFloor;
+                // 奖励培养丹
+                this.player.props.cultivateDan += 2;
                 // 日志
                 this.battleLogs.push(`成功通过第 ${this.currentFloor - 1} 层，自动前往第 ${this.currentFloor} 层`);
                 // 生成新的怪物（下一层）
@@ -277,6 +286,10 @@
             },
             // 切换自动战斗状态
             toggleAutoFight () {
+                if (this.player.energy < 10) {
+                    this.battleLogs.push('精力不足，无法开始自动战斗！');
+                    return;
+                }                
                 // 切换自动战斗状态
                 this.isAutoFighting = !this.isAutoFighting;
                 // 启动自动战斗
@@ -326,13 +339,17 @@
             },
             // 切换扫荡状态
             toggleSweep () {
+                if (this.player.energy < 10) {
+                    this.battleLogs.push('精力不足，无法开始扫荡！');
+                    return;
+                }
                 // 扫荡状态
                 this.isSweeping = !this.isSweeping;
                 if (this.isSweeping) {
                     // 重置扫荡时间
                     this.sweepTime = 0;
                     // 重置扫荡结果
-                    this.sweepResults = { expGain: 0, moneyGain: 0, equipmentGained: 0 };
+                    this.sweepResults = { expGain: 0, moneyGain: 0, equipmentGained: 0, cultivationPillsGained: 0 };
                     // 设定每秒更新扫荡时间
                     this.sweepInterval = setInterval(this.sweep, 1000);
                     // 每30秒进行一次战斗
@@ -354,10 +371,17 @@
                 // 增加扫荡时间
                 this.sweepTime++;
                 // 60秒更新一次日志
-                if (this.sweepTime % 60 === 0) this.battleLogs.push(`扫荡结果：目前已扫荡${this.formatTime(this.sweepTime)}，恭喜你获得了${this.sweepResults.expGain}点修为，${this.sweepResults.moneyGain}灵石和${this.sweepResults.equipmentGained}件装备。`);
+                if (this.sweepTime % 60 === 0) this.battleLogs.push(`扫荡结果：目前已扫荡${this.formatTime(this.sweepTime)}，恭喜你获得了${this.sweepResults.expGain}点修为，${this.sweepResults.moneyGain}灵石，${this.sweepResults.equipmentGained}件装备和${this.sweepResults.cultivationPillsGained}个培养丹。`);
             },
             // 扫荡战斗
             sweepFight () {
+                if (this.player.energy < 10) {
+                    this.battleLogs.push('精力不足，扫荡自动停止！');
+                    this.stopSweep();
+                    this.isSweeping = false;
+                    return;
+                }               
+                this.player.energy -= 1;
                 // 根据当前层数计算获得经验值
                 const expGain = Math.floor(this.currentFloor * 10);
                 // 根据当前层数计算获得灵石
@@ -378,8 +402,15 @@
                     this.getRandomEquipment();
                     this.sweepResults.equipmentGained++;
                 }
+                    this.player.props.cultivateDan += 1;
+                    this.sweepResults.cultivationPillsGained += 1;
+                // 增加层数
+                this.currentFloor++;
+                if (this.currentFloor > this.player.highestTowerFloor) {
+                    this.player.highestTowerFloor = this.currentFloor;
+                }
                 // 日志
-                this.battleLogs.push(`扫荡结果：恭喜你获得了${expGain}点修为，${moneyGain}块灵石${equipmentGained ? '和1件装备' : '。'}`);
+                this.battleLogs.push(`扫荡结果：恭喜你获得了${expGain}点修为，${moneyGain}块灵石${equipmentGained ? '，1件装备' : ''}${this.sweepResults.cultivationPillsGained > 0 ? `，${this.sweepResults.cultivationPillsGained}个培养丹` : ''}。`);
             },
             setupObserver () {
                 const element = this.$refs.scrollbar.wrapRef;
@@ -412,6 +443,7 @@
         }
     }
 </script>
+
 
 
 <style scoped>
@@ -470,7 +502,6 @@
     }
 
     @media (max-width: 768px) {
-
         .player-info,
         .monster-info {
             width: 100%;

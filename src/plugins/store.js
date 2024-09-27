@@ -49,6 +49,7 @@ export const useMainStore = defineStore('main', {
             taskNum: 0,
             version: 0.8,
             currency: 0,
+            energy: 100,
             maxHealth: 100,
             inventory: [],
             isNewbie: false,

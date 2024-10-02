@@ -367,7 +367,9 @@ export default {
     },
     /* 检查是否可以领取离线奖励 */
     handleOffline() {
+      if(!this.player.offlineTime) return; // 没有离线时间
       this.offline.diff = (new Date().getTime() - this.player.offlineTime).toFixed(2)
+      if(typeof this.offline.diff !== "number" || this.offline.diff > 1000 * 60 * 60 * 24 * 365 * 30 || this.offline.diff < 0) return; // 离线时间格式错误
       const hasExceed = this.offline.diff > 1000 * 60 * 60 * 24; // 超过24小时
       this.offline.diff = hasExceed ? 1000 * 60 * 60 * 24 : this.offline.diff;
       this.offline.diffText = formatTime((this.offline.diff / 1000).toFixed(2)) + (hasExceed ? '(最长离线时间为24小时)' : "")

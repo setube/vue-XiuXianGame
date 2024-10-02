@@ -50,7 +50,7 @@
             },
             cultivationPercentage () {
                 const { cultivation, maxCultivation } = this.$store.player;
-                return Math.min(100, (cultivation / maxCultivation) * 100);
+                return Math.min(100, (cultivation / maxCultivation) * 100).toFixed(2);
             }
         },
         mounted () {

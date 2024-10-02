@@ -46,7 +46,7 @@
                     <p>感谢您游玩本游戏！我们承诺将继续努力，为您带来安全、愉快的游戏体验。</p>
                 </el-collapse>
             </div>
-            <span slot="footer" class="dialog-footer">
+            <span slot="footer" class="offline-footer">
                 <el-button @click="zhengce(false)">拒 绝</el-button>
                 <el-button type="primary" @click="zhengce(true)">同 意</el-button>
             </span>

@@ -28,7 +28,7 @@ const equips = {
                 const defense = ['armor', 'accessory', 'sutra'].includes(type) ? Math.floor(this.equip_Attack(lv) * multiplier) : 0;
                 const critical = ['weapon', 'accessory', 'sutra'].includes(type) ? this.equip_Criticalhitrate(lv) : 0;
                 const baseEquip = {
-                    id: Date.now(), // 装备ID
+                    id: Math.random().toString(36).substring(2) + Math.random().toString(36).substring(2), // 随机生成装备ID
                     name: names[Math.floor(Math.random() * names.length)], //装备名字
                     type, // 装备类型
                     lock: false,

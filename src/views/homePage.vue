@@ -1441,8 +1441,8 @@ export default {
             reader.onload = (e) => {
                 try {
                     // 导入存档
-                    const vuex = JSON.stringify(Object.assign(JSON.parse(localStorage.getItem("vuex")), JSON.parse(e.target.result))) /* 防止有重大更新时导入旧存档会导致存档损坏 */
-                    localStorage.setItem('vuex', vuex);
+                    window.removeEventListener("beforeunload", dataManager.handleBeforeunloadFn);
+                    localStorage.setItem('vuex', e.target.result);
                     // 刷新页面
                     location.reload(1);
                 } catch (err) {

@@ -374,7 +374,7 @@ export default {
       const hasExceed = this.offline.diff > 1000 * 60 * 60 * 24; // 超过24小时
       this.offline.diff = hasExceed ? 1000 * 60 * 60 * 24 : this.offline.diff;
       this.offline.diffText = formatTime((this.offline.diff / 1000).toFixed(2)) + (hasExceed ? '(最长离线时间为24小时)' : "")
-      if (this.offline.diff >= 1000 * 60 /* 离线时间超过1分钟 */) {
+      if (this.offline.diff >= 1000 /* 离线时间超过1分钟 */) {
         const { exp, money, equipNum } = this.calculateOfflineRewards(this.offline.diff);
         this.offline.showOfflineBox = true
         this.offline.isReceiveAwarded = false

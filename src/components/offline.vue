@@ -336,6 +336,7 @@ export default {
   methods: {
     handleBeforeUnload() {
       this.player.offlineTime = new Date().getTime()
+      localStorage.setItem("time", new Date());
     },
     // 计算离线收益
     calculateOfflineRewards(offlineDuration) {
@@ -349,9 +350,9 @@ export default {
 
       // 计算基础奖励
       const base = (baseReward + (offlineDuration * 2)) * randomFactor(); // 离线时间增加奖励
-      console.log("re",this.player.reincarnation / 1000)
+      console.log("re", this.player.reincarnation / 1000)
       const expReward = Math.floor((base * EXPWeight) * (1 + this.player.reincarnation)); // 修为奖励乘以转生奖励
-      const moneyReward = Math.floor((base * moneyWeight) * (this.player.highestTowerFloor/100) * (1 + this.player.reincarnation * 2)); // 灵石奖励乘以最高层塔奖励
+      const moneyReward = Math.floor((base * moneyWeight) * (this.player.highestTowerFloor / 100) * (1 + this.player.reincarnation * 2)); // 灵石奖励乘以最高层塔奖励
 
       // 计算装备数量
       const equipNum = Math.floor(base * 0.0000036); // 装备数量
@@ -368,9 +369,9 @@ export default {
     /* 检查是否可以领取离线奖励 */
     handleOffline() {
       this.offline.isReceiveAwarded = true // 假设已经领取
-      if(!this.player.offlineTime) return; // 没有离线时间
-      this.offline.diff = (new Date().getTime() - this.player.offlineTime).toFixed(2)
-      if(typeof this.offline.diff !== "number" || this.offline.diff > 1000 * 60 * 60 * 24 * 365 * 30 || this.offline.diff < 0) return; // 离线时间格式错误
+      if (!this.player.offlineTime) return; // 没有离线时间
+      this.offline.diff = +(new Date().getTime() - this.player.offlineTime).toFixed(2)
+      if (typeof +this.offline.diff !== "number" || this.offline.diff > 1000 * 60 * 60 * 24 * 365 * 30 || this.offline.diff < 0) return; // 离线时间格式错误
       const hasExceed = this.offline.diff > 1000 * 60 * 60 * 24; // 超过24小时
       this.offline.diff = hasExceed ? 1000 * 60 * 60 * 24 : this.offline.diff;
       this.offline.diffText = formatTime((this.offline.diff / 1000).toFixed(2)) + (hasExceed ? '(最长离线时间为24小时)' : "")

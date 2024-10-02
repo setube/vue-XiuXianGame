@@ -169,11 +169,11 @@ export default {
         },
         // 玩家血量进度条
         playerProgress() {
-            return ((this.player.health / this.player.maxHealth) * 100).toFixed(2);
+            return +(((this.player.health / this.player.maxHealth) * 100).toFixed(2));
         },
         // 怪物血量进度条
         monsterProgress() {
-            return ((this.monster.health / this.monster.maxHealth) * 100).toFixed(2);
+            return +(((this.monster.health / this.monster.maxHealth) * 100).toFixed(2));
         }
     },
     methods: {

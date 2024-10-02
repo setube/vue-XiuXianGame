@@ -336,7 +336,6 @@ export default {
   methods: {
     handleBeforeUnload() {
       this.player.offlineTime = new Date().getTime()
-      localStorage.setItem("time", new Date());
     },
     // 计算离线收益
     calculateOfflineRewards(offlineDuration) {

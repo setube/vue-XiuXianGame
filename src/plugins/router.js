@@ -5,6 +5,7 @@ import index from '../views/indexPage.vue';
 import explore from '../views/explorePage.vue';
 import cultivate from '../views/cultivatePage.vue';
 import endlesstower from '../views/endlessPage.vue'
+import game from '../views/game/game.vue'
 import { createRouter, createWebHashHistory } from 'vue-router';
 
 const routes = [
@@ -63,7 +64,15 @@ const routes = [
             keepAlive: false
         },
         component: endlesstower
-    }
+    },
+    {
+        path: '/game',
+        name: 'game',
+        meta: {
+            keepAlive: false
+        },
+        component: game
+    },
 ];
 const router = createRouter({
     history: createWebHashHistory(),

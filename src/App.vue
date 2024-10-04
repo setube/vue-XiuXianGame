@@ -148,6 +148,10 @@
 </style>
 
 <style>
+    * {
+        user-select: none;
+    }
+
     html {
         background: #fff;
         overflow: auto;

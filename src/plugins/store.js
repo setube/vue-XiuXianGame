@@ -41,6 +41,7 @@ export const useMainStore = defineStore('main', {
             score: 0,
             level: 0,
             dodge: 0,
+            script: '',
             points: 0,
             attack: 10,
             health: 100,
@@ -49,29 +50,29 @@ export const useMainStore = defineStore('main', {
             taskNum: 0,
             version: 0.8,
             currency: 0,
-            maxHealth: 100,
-            inventory: [],
+            gameWins: 0,
             isNewbie: false,
             shopData: [],
+            maxHealth: 100,
+            inventory: [],
             equipment: {
                 sutra: {},
                 armor: {},
                 weapon: {},
                 accessory: {}
             },
+            gameLosses: 0,
+            checkinDays: 0,
             achievement: {
                 pet: [],
                 monster: [],
                 equipment: []
             },
-            script: '',
+            // 离线时间
+            offlineTime: 0,
             cultivation: 0,
             reincarnation: 0,
-            maxCultivation: 100,
-            backpackCapacity: 50,
-            sellingEquipmentData: [],
-            highestTowerFloor: 1,
-            rewardedTowerFloors: [],
+            checkinStreak: 0,
             nextGameTimes: {
                 rps: null,
                 dice: null,
@@ -79,12 +80,16 @@ export const useMainStore = defineStore('main', {
                 secretrealm: 0,
                 gamblingStone: null
             },
-            gameWins: 0,
-            gameLosses: 0,
-            checkinDays: 0,
-            checkinStreak: 0,
+            maxCultivation: 100,
             lastCheckinDate: null,
-            fortuneTellingDate: null
+            backpackCapacity: 50,
+            isReceiveAwarded: false,
+            highestTowerFloor: 1,
+            fortuneTellingDate: null,
+            rewardedTowerFloors: [],
+            sellingEquipmentData: [],
+            isShowReceiveAwardedBox: false,
+            offlinesellingEquipmentData: []
         },
         // 怪物信息
         monster: {
@@ -106,7 +111,7 @@ export const useMainStore = defineStore('main', {
             map: []
         },
         mapScroll: 0,
-        fishingMap: [],
+        fishingMap: []
     }),
     persist: {
         key: 'vuex',

@@ -85,6 +85,11 @@ export const useMainStore = defineStore('main', {
             fortuneTellingDate: null,
             gameWins: 0,
             gameLosses: 0,
+            // 离线时间
+            offlineTime: 0,
+            offlinesellingEquipmentData: [],
+            isReceiveAwarded:false,
+            isShowReceiveAwardedBox:false,
         },
         // 怪物信息
         monster: {

@@ -64,8 +64,7 @@ app.config.globalProperties.$genre = {
     sutra: '法器',
     armor: '护甲',
     weapon: '神兵',
-    accessory: '灵宝',
-    pet: '灵宠'
+    accessory: '灵宝'
 };
 
 app.config.globalProperties.$isAPP = location.host == 'appassets.androidplatform.net';

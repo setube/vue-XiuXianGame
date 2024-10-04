@@ -239,6 +239,11 @@
                         {{ action.text }}
                     </el-button>
                 </div>
+                <div class="action">
+                    <el-button class="item" @click="show = true">
+                        游戏设置
+                    </el-button>
+                </div>
             </div>
         </div>
         <el-drawer title="修仙境界表" v-model="isLevel" direction="ltr" class="levels">
@@ -608,7 +613,7 @@
                     </div>
                 </el-collapse-item>
             </el-collapse>
-            <div class="dialog-footer" v-if="equipmentType == 'equipment'">
+            <div class="dialog-footer">
                 <el-button plain class="inventory-button" @click="inventoryClose(inventoryInfo)">
                     装备分解
                 </el-button>
@@ -661,7 +666,7 @@
                     删除脚本
                 </el-button>
                 <el-divider>其他相关</el-divider>
-                <el-button class="dialog-footer-button" @click="breakItAllDown('equipment')">
+                <el-button class="dialog-footer-button" @click="sellingEquipmentBox">
                     批量处理
                 </el-button>
                 <el-button type="primary" class="dialog-footer-button" @click="copyContent('qq')">
@@ -749,52 +754,6 @@
                 <el-button type="primary" class="inventory-button" @click="errBox = false">确定</el-button>
             </div>
         </el-dialog>
-        <el-drawer v-model="offline.showOfflineBox" title="离线奖励" direction="rtl" class="strengthen">
-            <el-text class="offline-title">在您离线的{{ offline.diffText }}内<br>您通过修炼神魂获得了如下物品</el-text>
-            <el-divider>装备({{ offline.equipItems.length }}件)</el-divider>
-            <div class="offline-content-container">
-                <div class="offline-content">
-                    <el-scrollbar max-height="300px" style="width: 100%;" always>
-                        <tag class="inventory-item" v-for="item in offline.equipItems" :key="item.id" :type="item.quality" @click="inventory(item.id, 'offline')">
-                            {{ item?.name }}
-                        </tag>
-                    </el-scrollbar>
-                </div>
-            </div>
-            <el-divider>资源</el-divider>
-            <el-row>
-                <el-col :span="12">
-                    <div class="el-statistic">
-                        <div class="el-statistic__head">修为</div>
-                        <div class="el-statistic__content">
-                            <span class="el-statistic__number">{{ $formatNumberToChineseUnit(offline.expGain) }}</span>
-                        </div>
-                    </div>
-                </el-col>
-                <el-col :span="12">
-                    <div class="el-statistic">
-                        <div class="el-statistic__head">灵石</div>
-                        <div class="el-statistic__content">
-                            <span class="el-statistic__number">{{ $formatNumberToChineseUnit(offline.moneyGain) }}</span>
-                        </div>
-                    </div>
-                </el-col>
-                <el-col :span="24">
-                    <div class="el-statistic">
-                        <div class="el-statistic__head">培养丹</div>
-                        <div class="el-statistic__content">
-                            <span class="el-statistic__number">{{ $formatNumberToChineseUnit(offline.cultivateDan) }}</span>
-                        </div>
-                    </div>
-                </el-col>
-            </el-row>
-            <template #footer>
-                <div class="offline-footer">
-                    <el-button type="primary" @click="breakItAllDown('offline')">批量分解</el-button>
-                    <el-button type="primary" @click="handleReceiveAward">领取奖励</el-button>
-                </div>
-            </template>
-        </el-drawer>
     </div>
 </template>
 
@@ -833,17 +792,6 @@
                 petInfo: {},
                 // 炼器保护
                 protect: false,
-                // 离线数据
-                offline: {
-                    diff: '',
-                    diffText: '',
-                    expGain: 0,
-                    moneyGain: 0,
-                    equipItems: [],
-                    cultivateDan: 0,
-                    showOfflineBox: false,
-                    isReceiveAwarded: false
-                },
                 // 炼器增幅
                 increase: false,
                 // 修改昵称
@@ -892,8 +840,6 @@
                 newBieLoading: false,
                 // 装备信息弹窗
                 inventoryShow: false,
-                // 装备类型
-                equipmentType: 'equipment',
                 // 炼器弹窗
                 strengthenShow: false,
                 // 炼器的信息
@@ -907,8 +853,6 @@
                 AllEquipmenType: ['info', 'success', 'primary', 'purple', 'warning', 'danger', 'pink'],
                 // 灵宠转生勾选状态
                 petReincarnation: false,
-                // 分解类型
-                decompositionType: 'equipment',
                 achievementActive: 'pet',
                 inventoryCollapse: '',
                 petDropdownActive: '',
@@ -978,11 +922,6 @@
         mounted () {
             // 初始化游戏
             this.startGame();
-            this.handleOffline();
-            window.addEventListener('beforeunload', this.handleBeforeUnload);
-        },
-        beforeUnmount () {
-            window.removeEventListener('beforeunload', this.handleBeforeUnload);
         },
         methods: {
             // 初始化游戏
@@ -1010,175 +949,19 @@
                     },
                     { text: '挑战无尽塔', handler: () => this.$router.push('/endlesstower') },
                     { text: '世界BOSS', handler: () => this.$router.push('/boss') },
-                    { text: '休闲娱乐', handler: () => this.$router.push('/game') },
-                    {
-                        text: '离线奖励', handler: () => {
-                            this.offline.showOfflineBox = true;
-                        }
-                    },
-                    {
-                        text: '游戏设置', handler: () => {
-                            this.show = true;
-                        }
-                    }
+                    { text: '休闲娱乐', handler: () => this.$router.push('/game') }
                 ];
                 // 初始化玩家当前气血
                 this.player.health = this.player.maxHealth;
             },
-            breakItAllDown (type) {
-                this.show = false;
-                this.decompositionType = type;
-                this.sellingEquipmentShow = true;
-            },
-            // 重置离线时间
-            handleBeforeUnload () {
-                // 离线奖励未领取
-                if (!this.player.isReceiveAwarded) return;
-                // 重置离线时间
-                this.player.offlineTime = new Date().getTime();
-            },
-            // 计算离线收益
-            calculateOfflineRewards (offlineDuration) {
-                // 0到1的随机数，用于引入不确定性
-                const randomFactor = equip.getRandomFloatInRange.bind(this, 0.96, 1.02);
-                // 修为奖励乘以转生奖励
-                const exp = Math.floor((this.player.highestTowerFloor / 2 * equip.getRandomInt(126, 130)) * (this.player.reincarnation + 1) * (offlineDuration / 1000) * randomFactor());
-                // 灵石奖励乘以转生奖励
-                const money = Math.floor((this.player.highestTowerFloor / 10 * 10) * (this.player.reincarnation + 1) * (offlineDuration / 1000) * randomFactor());
-                // 培养丹奖励乘以转生奖励
-                const cultivateDan = Math.floor((this.player.reincarnation + 1) * (offlineDuration / 1000) * 0.26 * randomFactor());
-                // 计算装备数量
-                const equipNum = Math.floor((offlineDuration / 1000) * 0.1 * 0.4 * randomFactor());
-                // 汇总所有奖励
-                return { exp, money, equipNum, cultivateDan };
-            },
-            // 检查是否可以领取离线奖励
-            handleOffline () {
-                // 已经领取过奖励
-                if (this.player.isReceiveAwarded) return;
-                // 假设已经领取
-                this.player.isReceiveAwarded = true;
-                // 没有领取过新手奖励之前不能领取离线奖励
-                if (!this.player.isNewbie) return;
-                // 没有离线时间
-                if (!this.player.offlineTime) return;
-                this.offline.diff = +(new Date().getTime() - this.player.offlineTime).toFixed(2);
-                // 离线时间格式错误
-                if (typeof +this.offline.diff !== 'number' || this.offline.diff > 1000 * 60 * 60 * 24 * 365 * 30 || this.offline.diff < 0) return;
-                // 超过24小时
-                const hasExceed = this.offline.diff > 1000 * 60 * 60 * 24;
-                this.offline.diff = hasExceed ? 1000 * 60 * 60 * 24 : this.offline.diff;
-                this.offline.diffText = this.formatTime((this.offline.diff / 1000).toFixed(2)) + (hasExceed ? '(最长离线时间为24小时)' : '')
-                // 如果离线超过1分钟
-                if (this.offline.diff >= 1000) {
-                    const { exp, money, equipNum, cultivateDan } = this.calculateOfflineRewards(this.offline.diff);
-                    // 避免重复弹出离线奖励框(从home进入到别的页面再回来时不需要弹出,只在每次进入游戏时才弹出)
-                    if (!this.player.isShowReceiveAwardedBox) {
-                        this.offline.showOfflineBox = true;
-                        this.player.isShowReceiveAwardedBox = true;
-                    } else {
-                        this.offline.showOfflineBox = false;
-                    }
-                    this.player.isReceiveAwarded = false;
-                    // 计算装备
-                    for (let i = 0; i < equipNum; i++) {
-                        const randomInt = equip.getRandomInt(1, 4);
-                        let equipItem = {};
-                        // 神兵
-                        if (randomInt == 1) equipItem = equip.equip_Weapons(this.player.level);
-                        // 护甲
-                        else if (randomInt == 2) equipItem = equip.equip_Armors(this.player.level);
-                        // 灵宝
-                        else if (randomInt == 3) equipItem = equip.equip_Accessorys(this.player.level);
-                        // 法器
-                        else if (randomInt == 4) equipItem = equip.equip_Sutras(this.player.level);
-                        this.offline.equipItems.push(equipItem)
-                    }
-                    // 增加离线奖励修为
-                    this.offline.expGain += exp;
-                    // 增加离线奖励灵石
-                    this.offline.moneyGain += money;
-                    // 增加培养丹
-                    this.offline.cultivateDan += cultivateDan;
-                }
-            },
-            // 领取离线奖励
-            handleReceiveAward () {
-                // 玩家获取装备
-                this.offline.equipItems.forEach(equipItem => {
-                    if (this.player.inventory.length < this.player.backpackCapacity) this.player.inventory.push(equipItem);
-                })
-                // 增加修为
-                this.breakThrough(this.offline.expGain);
-                // 增加灵石
-                this.player.props.money += this.offline.moneyGain;
-                // 增加培养丹
-                this.player.props.cultivateDan += this.offline.cultivateDan;
-                this.offline.showOfflineBox = false;
-                this.player.isReceiveAwarded = true;
-                // 重置离线时间
-                this.handleBeforeUnload();
-                this.$notifys({ title: '领取离线奖励', message: `你获得了${this.offline.expGain}点修为和${this.offline.moneyGain}个灵石以及${this.offline.cultivateDan}个培养丹` });
-                // 清空离线奖励
-                this.offline.expGain = 0;
-                this.offline.moneyGain = 0;
-                this.offline.cultivateDan = 0;
-                this.offline.equipItems = [];
-            },
-            breakThrough (exp) {
-                const reincarnation = this.player.reincarnation ? this.player.reincarnation + 1 : 1;
-                if (this.player.level < this.$maxLv) {
-                    if (this.player.cultivation >= this.player.maxCultivation) {
-                        if (this.player.level > 10 && this.player.level > this.player.taskNum) {
-                            this.storyText = `当前境界修为已满, 你需要通过击败<span class="textColor">(${this.player.taskNum} / ${this.player.level})</span>个敌人证道突破`;
-                            return;
-                        }
-                        this.player.level++;
-                        this.player.taskNum = 0;
-                        this.player.points += 3;
-                        this.player.health = this.player.maxHealth;
-                        this.player.maxCultivation = Math.floor(100 * Math.pow(2, this.player.level * reincarnation));
-                        this.storyText = `恭喜你突破了！当前境界：${this.$levelNames(this.player.level)}`;
-                    } else {
-                        this.player.cultivation += exp;
-                    }
-                } else {
-                    this.player.level = this.$maxLv;
-                    this.player.maxCultivation = Math.floor(100 * Math.pow(2, this.$maxLv * reincarnation));
-                }
-            },
-            // 时间格式转换
-            formatTime (seconds) {
-                seconds = Math.floor(seconds);
-                if (seconds < 60) {
-                    return `${seconds}秒`;
-                } else if (seconds < 3600) {
-                    const minutes = Math.floor(seconds / 60);
-                    const remainingSeconds = Math.floor(seconds % 60);
-                    return `${minutes}分钟${remainingSeconds}秒`;
-                } else {
-                    const hours = Math.floor(seconds / 3600);
-                    seconds %= 3600;
-                    const minutes = Math.floor(seconds / 60);
-                    const remainingSeconds = Math.floor(seconds % 60);
-                    return `${hours}小时${minutes}分钟${remainingSeconds}秒`;
-                }
-            },
             // 删除脚本
             deleteScriptData () {
-                // 如果脚本内容为空
-                if (!this.player.script) {
-                    // 发送提示
-                    this.$notifys({ title: '提示', message: '请导入脚本后再删除' });
-                    return;
-                } else {
-                    // 清空玩家导入的脚本
-                    this.player.script = '';
-                    // 发送提示
-                    this.$notifys({ title: '提示', message: '脚本删除成功' });
-                    // 刷新页面
-                    location.reload(1);
-                }
+                // 清空玩家导入的脚本
+                this.player.script = '';
+                // 发送提示
+                this.$notifys({ title: '提示', message: '脚本删除成功' });
+                // 刷新页面
+                location.reload(1);
             },
             // 在上传脚本之前触发
             scriptBeforeUpload (file) {
@@ -1299,7 +1082,7 @@
             // 批量分解装备
             sellingEquipment () {
                 // 获取玩家背包装备
-                const inventory = this.decompositionType == 'offline' ? this.offline.equipItems : this.player.inventory;
+                const inventory = this.player.inventory;
                 // 获取玩家装备分解设置
                 const sellingEquipmen = this.player.sellingEquipmentData;
                 // 检查是否选择了需要分解的品阶
@@ -1327,8 +1110,7 @@
                 // 增加炼器石数量
                 this.player.props.strengtheningStone += strengtheningStoneTotal;
                 // 清空背包内所有未锁定装备与选中分解的品阶
-                if (this.decompositionType == 'offline') this.offline.equipItems = inventory.filter(item => !sellingEquipmen.includes(item.quality) || item.lock);
-                else this.player.inventory = inventory.filter(item => !sellingEquipmen.includes(item.quality) || item.lock);
+                this.player.inventory = inventory.filter(item => !sellingEquipmen.includes(item.quality) || item.lock);
                 this.$notifys({ title: '背包装备分解提示', message: `背包内所有非锁定装备已成功分解, 你获得了${strengtheningStoneTotal}个炼器石和${selling.length}个灵石` });
             },
             // 修改玩家装备分解设置
@@ -1354,7 +1136,6 @@
                     cancelButtonText: '我点错了',
                     confirmButtonText: '确定以及肯定'
                 }).then(() => {
-                    // 发送提示
                     this.$notifys({ title: '提示', message: '存档删除成功' });
                     // 清空存档
                     localStorage.removeItem('vuex');
@@ -1595,7 +1376,7 @@
                 // 最终所需消耗道具数量
                 return (baseCost + incrementPerLevel) * protect * increase;
             },
-            // 计算炼器成功概率
+            // 计算炼器成功概率  
             calculateEnhanceSuccessRate (item) {
                 // 基础成功率
                 let baseSuccessRate = 1;
@@ -1745,24 +1526,7 @@
                     // 如果装备背包当前容量大于等于背包总容量
                     if (this.player.inventory.length >= this.player.backpackCapacity) this.storyText = `当前装备背包容量已满, 该装备自动丢弃, 转生可增加背包容量`;
                     // 添加到背包
-                    else {
-                        // 如果购买的是灵宠就添加到灵宠背包并初始化数据
-                        if (item.type === 'pet') {
-                            item.id = Date.now();
-                            // 初始数据
-                            item.initial.rootBone = 100
-                            // 初始悟性
-                            item.rootBone = 100;
-                            // 初始好感度
-                            item.favorability = 0;
-                            // 初始转生次数
-                            item.reincarnation = 0;
-                            // 添加到灵宠背包
-                            this.player.pets.push(item);
-                        }
-                        // 否则添加到装备
-                        else this.player.inventory.push(item);
-                    }
+                    else this.player.inventory.push(item);
                     // 跳转背包相关页
                     this.inventoryActive = item.type;
                     this.$notifys({ title: '购买提示', message: `您成功花费${this.shopPrice}鸿蒙石购买${item.name}` });
@@ -1862,7 +1626,7 @@
                 else return;
                 // 将装备添加到库存
                 if (JSON.stringify(equipItem) != '{}') this.newBieData.push(equipItem);
-                // 更新剩余次数
+                // 更新剩余次数  
                 timesLeft--;
                 // 设置延时以便下一次调用
                 setTimeout(() => {
@@ -1914,7 +1678,6 @@
                     // 增加炼器石数量
                     this.player.props.strengtheningStone += num;
                     // 删除背包装备
-                    console.log(type)
                     this.player.inventory = this.player.inventory.filter(obj => obj.id !== item.id);
                     // 关闭装备信息弹窗
                     this.inventoryShow = false;
@@ -1927,9 +1690,8 @@
                 return arr.find(obj => obj.id === id);
             },
             // 道具信息
-            inventory (id, type) {
-                this.equipmentType = type != 'offline' ? 'equipment' : 'offline';
-                this.inventoryInfo = this.getObjectById(id, type == 'offline' ? this.offline.equipItems : this.player.inventory);
+            inventory (id) {
+                this.inventoryInfo = this.getObjectById(id, this.player.inventory);
                 this.inventoryShow = true;
             },
             // 灵宠信息
@@ -2044,9 +1806,6 @@
                 return `${num3.toFixed(2)}%`
             },
             copyContent (type) {
-                /* 
-                    修改须知: 可修改群号和开源地址但是需要留下源项目地址
-                */
                 const content = type == 'qq' ? '920930589' : 'https://github.com/setube/vue-XiuXianGame';
                 this.$prompt('', type == 'qq' ? '官方群聊' : '开源地址', {
                     inputValue: content,

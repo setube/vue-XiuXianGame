@@ -1,5 +1,5 @@
 class DataManager {
-  handleBeforeunloadFn
+    handleBeforeunloadFn
 }
 const dataManager = new DataManager();
 export default dataManager;

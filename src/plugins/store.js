@@ -84,7 +84,12 @@ export const useMainStore = defineStore('main', {
             checkinDays: 0,
             checkinStreak: 0,
             lastCheckinDate: null,
-            fortuneTellingDate: null
+            fortuneTellingDate: null,
+            // 离线时间
+            offlineTime: 0,
+            offlinesellingEquipmentData: [],
+            isReceiveAwarded:false,
+            isShowReceiveAwardedBox:false,
         },
         // 怪物信息
         monster: {

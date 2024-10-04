@@ -28,6 +28,13 @@
         </div>
         <div class="wm_bg_1" v-if="!player.dark" />
         <div class="wm_bg_2" v-if="!player.dark" />
+
+        <el-dialog v-model="errBox" title="错误信息" width="420px">
+            <el-input v-model="err" :rows="10" type="textarea" />
+            <div class="dialog-footer">
+                <el-button type="primary" class="inventory-button" @click="errBox = false">确定</el-button>
+            </div>
+        </el-dialog>
     </div>
 </template>
 
@@ -36,7 +43,9 @@
         data () {
             return {
                 timer: null,
-                player: {}
+                player: {},
+                errBox: false,
+                err: ''
             };
         },
         watch: {
@@ -52,12 +61,23 @@
         mounted () {
             // 玩家数据
             this.player = this.$store.player;
+            // 重置玩家离线奖励领取状态
+            this.player.isReceiveAwarded = false;
+            this.player.isShowReceiveAwardedBox = false;
             // 每分钟增加1岁
             this.timer = setInterval(() => {
                 this.player.age += 1;
             }, 60000);
-            // 如果有脚本的话, 执行脚本内容
-            if (this.player.script) new Function(this.player.script)();
+            // try catch 捕获脚本执行错误,避免因脚本错误导致存档损坏
+            try {
+                // 如果有脚本的话, 执行脚本内容
+                if (this.player.script) new Function(this.player.script)();
+            } catch (e) {
+                // 脚本执行错误
+                this.err = e.message;
+                this.errBox = true;
+                this.$notifys({ title: '脚本执行错误', message: '请确认自己导入的是脚本(.js文件或.txt文件)而不是存档(.json文件或.txt文件),如没有问题,请复制错误信息到QQ群里联系脚本作者' });
+            }
         }
     };
 </script>

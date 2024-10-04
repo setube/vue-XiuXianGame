@@ -754,6 +754,8 @@
                 <el-button type="primary" class="inventory-button" @click="errBox = false">确定</el-button>
             </div>
         </el-dialog>
+        <!-- 离线 -->
+        <offline />
     </div>
 </template>
 
@@ -772,6 +774,10 @@
     import equipAll from '@/plugins/equipAll';
     // 成就
     import achievement from '@/plugins/achievement';
+    // 离线
+    import offline from '@/components/offline.vue';
+    // 数据管理中心(非响应式的全局数据管理)
+    import dataManager from '@/utils/dataManager';
 
     export default {
         data () {
@@ -864,7 +870,8 @@
             }
         },
         components: {
-            tag
+            tag,
+            offline
         },
         computed: {
             // 道具背包对象转数组
@@ -1136,6 +1143,9 @@
                     cancelButtonText: '我点错了',
                     confirmButtonText: '确定以及肯定'
                 }).then(() => {
+                    // 移除旧的事件监听(防止旧存档数据在页面刷新前覆盖新存档数据)
+                    window.removeEventListener("beforeunload", dataManager.handleBeforeunloadFn);
+                    // 发送提示
                     this.$notifys({ title: '提示', message: '存档删除成功' });
                     // 清空存档
                     localStorage.removeItem('vuex');
@@ -1149,6 +1159,8 @@
                 const reader = new FileReader();
                 reader.onload = (e) => {
                     try {
+                        // 移除旧的事件监听(防止旧存档数据在页面刷新前覆盖新存档数据)
+                        window.removeEventListener("beforeunload", dataManager.handleBeforeunloadFn);
                         // 导入存档
                         localStorage.setItem('vuex', e.target.result);
                         // 刷新页面
@@ -1376,7 +1388,7 @@
                 // 最终所需消耗道具数量
                 return (baseCost + incrementPerLevel) * protect * increase;
             },
-            // 计算炼器成功概率  
+            // 计算炼器成功概率
             calculateEnhanceSuccessRate (item) {
                 // 基础成功率
                 let baseSuccessRate = 1;
@@ -1526,7 +1538,24 @@
                     // 如果装备背包当前容量大于等于背包总容量
                     if (this.player.inventory.length >= this.player.backpackCapacity) this.storyText = `当前装备背包容量已满, 该装备自动丢弃, 转生可增加背包容量`;
                     // 添加到背包
-                    else this.player.inventory.push(item);
+                    else {
+                        // 如果购买的是灵宠就添加到灵宠背包并初始化数据
+                        if (item.type === 'pet') {
+                            item.id = Date.now();
+                            // 初始数据
+                            item.initial.rootBone = 100
+                            // 初始悟性
+                            item.rootBone = 100;
+                            // 初始好感度
+                            item.favorability = 0;
+                            // 初始转生次数
+                            item.reincarnation = 0;
+                            // 添加到灵宠背包
+                            this.player.pets.push(item);
+                        }
+                        // 否则添加到装备
+                        else this.player.inventory.push(item);
+                    }
                     // 跳转背包相关页
                     this.inventoryActive = item.type;
                     this.$notifys({ title: '购买提示', message: `您成功花费${this.shopPrice}鸿蒙石购买${item.name}` });
@@ -1626,7 +1655,7 @@
                 else return;
                 // 将装备添加到库存
                 if (JSON.stringify(equipItem) != '{}') this.newBieData.push(equipItem);
-                // 更新剩余次数  
+                // 更新剩余次数
                 timesLeft--;
                 // 设置延时以便下一次调用
                 setTimeout(() => {

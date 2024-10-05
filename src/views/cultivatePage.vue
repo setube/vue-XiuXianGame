@@ -251,14 +251,11 @@
     }
 
     .actions {
-        display: flex;
-        justify-content: space-between;
         width: 100%;
     }
 
     .action {
-        flex: 1;
-        margin: 0 5px;
+        width: calc(25% - 10px);
     }
 
     .item {
@@ -271,12 +268,8 @@
     }
 
     @media (max-width: 768px) {
-        .actions {
-            flex-direction: column;
-        }
-
         .action {
-            margin: 5px 0;
+            width: calc(50% - 10px);
         }
     }
 </style>

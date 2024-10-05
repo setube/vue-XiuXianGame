@@ -8,7 +8,7 @@
                 <div class="attribute-box">
                     <div class="tag attribute" @click="editUserName">
                         名字: {{ player.name }}
-  <span v-if="player.currentTitle" style="color: red;"> {{ player.currentTitle }}</span>
+                        <el-text v-if="player.currentTitle" type="danger">[{{ player.currentTitle }}]</el-text>
                         <el-icon>
                             <EditPen />
                         </el-icon>
@@ -700,8 +700,7 @@
                     <el-tabs v-model="achievementActive" :stretch="true">
                         <el-tab-pane :label="i.name" :name="i.type" v-for="(i, k) in achievementAll" :key="k">
                             <div class="achievement-content" v-if="i.data.length > 0">
-                                <div class="achievement-item" v-for="(item, index) in i.data" :key="index"
-                                    @click="achievementInfo(i.type, item)">
+                                <div class="achievement-item" v-for="(item, index) in i.data" :key="index" @click="achievementInfo(i.type, item)">
                                     <tag :type="getTagClass(i.type, item.id) ? 'success' : 'info'">
                                         {{ item.name }}
                                         ({{ getTagClass(i.type, item.id) ? '已完成' : '未完成' }})
@@ -1808,6 +1807,10 @@
                 return `${num3.toFixed(2)}%`
             },
             copyContent (type) {
+                /* 
+                    修改须知 
+                    可以修改群号但是必须留下地址
+                */
                 const content = type == 'qq' ? '920930589' : 'https://github.com/setube/vue-XiuXianGame';
                 this.$prompt('', type == 'qq' ? '官方群聊' : '开源地址', {
                     inputValue: content,
@@ -1837,16 +1840,14 @@
                 return Array.isArray(achievements1) && achievements1.some(ach => ach.id === index);
             },
             // 成就详细
-            achievementInfo(type, item) {
+            achievementInfo (type, item) {
                 let message = '';
-
                 if (item.condition.health || item.condition.attack || item.condition.defense || item.condition.dodge || item.condition.critical) {
-                    message = `
-      <p>气血: ${item.condition.health || '无要求'}</p>
-      <p>攻击: ${item.condition.attack || '无要求'}</p>
-      <p>防御: ${item.condition.defense || '无要求'}</p>
-      <p>闪避率: ${item.condition.dodge ? (item.condition.dodge * 100).toFixed(2) + '%' : '无要求'}</p>
-      <p>暴击率: ${item.condition.critical ? (item.condition.critical * 100).toFixed(2) + '%' : '无要求'}</p>`;
+                    message = `<p>气血: ${item.condition.health || '无要求'}</p>
+                    <p>攻击: ${item.condition.attack || '无要求'}</p>
+                    <p>防御: ${item.condition.defense || '无要求'}</p>
+                    <p>闪避率: ${item.condition.dodge ? (item.condition.dodge * 100).toFixed(2) + '%' : '无要求'}</p>
+                    <p>暴击率: ${item.condition.critical ? (item.condition.critical * 100).toFixed(2) + '%' : '无要求'}</p>`;
                 } else if (item.condition.level) {
                     message = `<p>达到等级: ${item.condition.level}</p>`;
                 } else if (item.condition.monstersDefeated) {
@@ -1854,71 +1855,56 @@
                 } else if (item.condition.money) {
                     message = `<p>累积灵石: ${this.$formatNumberToChineseUnit(item.condition.money)}</p>`;
                 }
-
                 if (item.desc) {
                     message += `<p>描述: ${item.desc}</p>`;
                 }
-
                 message += `<p>完成奖励: ${item.award}培养丹</p>`;
                 message += `<p>称号加成: ${this.formatTitleBonus(item.titleBonus)}</p>`;
                 const isCompleted = this.getTagClass(type, item.id);
                 const isWearing = this.player.currentTitle === item.name;
-                // console.log()
                 this.$confirm('', `${item.name}`, {
                     center: true,
-                    message: `<div class="monsterinfo">
-      <div class="monsterinfo-box">
-        ${message}
-      </div>
-    </div>`,
+                    message: `<div class="monsterinfo"><div class="monsterinfo-box">${message}</div></div>`,
+                    cancelButtonText: '关闭',
                     showCancelButton: isCompleted,
                     confirmButtonText: isCompleted ? (isWearing ? '取消佩戴' : '佩戴称号') : '知道了',
-                    cancelButtonText: '关闭',
                     dangerouslyUseHTMLString: true
                 }).then(() => {
-                    if (isCompleted) {
-                        this.toggleTitle(item);
-                    }
+                    if (isCompleted) this.toggleTitle(item);
                 }).catch(() => { });
             },
-
             // 新增方法
-            formatTitleBonus(bonus) {
+            formatTitleBonus (bonus) {
                 return Object.entries(bonus).map(([key, value]) => {
-                    return `${key}: +${value}`;
+                    const num = value > 1 ? value : `${value * 100}%`;
+                    return `${this.$dropdownTypeObject[key]}+${num}`;
                 }).join(', ');
             },
-
-            toggleTitle(achievement) {
+            toggleTitle (achievement) {
                 if (this.player.currentTitle === achievement.name) {
                     // 取消佩戴称号
                     this.applyTitleBonus(achievement.titleBonus, false);
                     this.player.currentTitle = null;
                     this.$notifys({
                         title: '称号系统',
-                        message: `你取消佩戴了称号"${achievement.name}"`,
-                        type: 'info'
+                        message: `你取消佩戴了称号"${achievement.name}"`
                     });
                 } else {
                     // 佩戴新称号
                     if (this.player.currentTitle) {
                         // 如果已经佩戴了称号，先移除旧称号的加成
                         const oldAchievement = this.findAchievementByTitle(this.player.currentTitle);
-                        if (oldAchievement) {
-                            this.applyTitleBonus(oldAchievement.titleBonus, false);
-                        }
+                        if (oldAchievement) this.applyTitleBonus(oldAchievement.titleBonus, false);
                     }
                     this.applyTitleBonus(achievement.titleBonus, true);
                     this.player.currentTitle = achievement.name;
                     this.$notifys({
                         title: '称号系统',
-                        message: `你佩戴了称号"${achievement.name}"`,
-                        type: 'success'
+                        message: `你佩戴了称号"${achievement.name}"`
                     });
                 }
             },
-
-            applyTitleBonus(bonus, isApplying) {
+            applyTitleBonus (bonus, isApplying) {
                 const multiplier = isApplying ? 1 : -1;
                 let dodge = 0, attack = 0, health = 0, critical = 0, defense = 0;
                 Object.entries(bonus).forEach(([key, value]) => {
@@ -1941,13 +1927,10 @@
                         default:
                     }
                 });
-
                 this.playerAttribute(dodge, attack, health, critical, defense);
             },
-
-            findAchievementByTitle(title) {
-                return this.achievementAll.flatMap(category => category.data)
-                    .find(ach => ach.name === title);
+            findAchievementByTitle (title) {
+                return this.achievementAll.flatMap(category => category.data).find(ach => ach.name === title);
             },
             // 图鉴装备信息
             illustrationsInfo (i, ii) {
@@ -1972,7 +1955,7 @@
                     confirmButtonText: '知道了',
                     dangerouslyUseHTMLString: true
                 }).catch(() => { });
-            },
+            }
         }
     }
 </script>
@@ -1985,7 +1968,7 @@
     .attribute {
         width: calc(50% - 8px);
         margin: 4px;
-        overflow: auto;
+        overflow: auto hidden;
     }
 
     .attribute-box {
@@ -2175,7 +2158,7 @@
         margin-bottom: 10px;
     }
 
-    @media only screen and (max-width: 750px) {
+    @media only screen and (max-width: 768px) {
         .title {
             font-size: 20px;
         }
@@ -2213,7 +2196,7 @@
         width: 60% !important;
     }
 
-    @media only screen and (max-width: 750px) {
+    @media only screen and (max-width: 768px) {
         .equipAll {
             width: 100% !important;
         }

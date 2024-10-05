@@ -95,7 +95,7 @@
         min-height: 574px;
     }
 
-    @media only screen and (max-width: 750px) {
+    @media only screen and (max-width: 768px) {
         .index2 {
             display: grid;
             width: 100%;

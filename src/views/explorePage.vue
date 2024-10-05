@@ -498,7 +498,7 @@
         min-height: 770px;
     }
 
-    @media only screen and (max-width: 750px) {
+    @media only screen and (max-width: 768px) {
         .shortcutKeys {
             display: none;
         }

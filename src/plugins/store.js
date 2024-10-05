@@ -23,6 +23,7 @@ export const useMainStore = defineStore('main', {
             zc: false,
             age: 1,
             pet: {},
+            time: 0,
             name: '玩家',
             dark: false,
             npcs: [],

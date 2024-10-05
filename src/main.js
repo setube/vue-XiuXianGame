@@ -19,6 +19,7 @@ const store = useMainStore();
 
 app.config.productionTip = false;
 app.config.globalProperties.$store = store;
+store.player.enterGameTime = new Date().getTime();
 
 app.config.globalProperties.$notifys = (data) => {
     ElNotification.closeAll();

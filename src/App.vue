@@ -64,6 +64,9 @@
             // 重置玩家离线奖励领取状态
             this.player.isReceiveAwarded = false;
             this.player.isShowReceiveAwardedBox = false;
+            setInterval(() => {
+                this.player.lastGameTime = new Date().getTime();
+            }, 60000);
             // 每分钟增加1岁
             this.timer = setInterval(() => {
                 this.player.age += 1;

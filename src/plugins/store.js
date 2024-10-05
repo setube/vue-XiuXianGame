@@ -71,6 +71,9 @@ export const useMainStore = defineStore('main', {
             // 离线时间
             offlineTime: 0,
             cultivation: 0,
+            lastGameTime:0,
+            enterGameTime:0,
+            leaveGameTime:0,
             reincarnation: 0,
             checkinStreak: 0,
             nextGameTimes: {
@@ -89,6 +92,7 @@ export const useMainStore = defineStore('main', {
             rewardedTowerFloors: [],
             sellingEquipmentData: [],
             isShowReceiveAwardedBox: false,
+            howManyTimeLeaveCanOffline:3000,
             offlinesellingEquipmentData: []
         },
         // 怪物信息

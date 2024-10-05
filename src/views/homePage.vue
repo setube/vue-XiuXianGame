@@ -842,7 +842,6 @@
                     equipItems: [],
                     cultivateDan: 0,
                     showOfflineBox: false,
-                    isReceiveAwarded: false
                 },
                 // 炼器增幅
                 increase: false,
@@ -1033,7 +1032,9 @@
             // 重置离线时间
             handleBeforeUnload () {
                 // 离线奖励未领取
-                if (!this.player.isReceiveAwarded) return;
+                if (!this.player.isReceiveAwarded) {
+                    return
+                };
                 // 重置离线时间
                 this.player.offlineTime = new Date().getTime();
             },
@@ -1041,28 +1042,27 @@
             calculateOfflineRewards (offlineDuration) {
                 // 0到1的随机数，用于引入不确定性
                 const randomFactor = equip.getRandomFloatInRange.bind(this, 0.96, 1.02);
+                this.player.highestTowerFloor = 2000
                 // 修为奖励乘以转生奖励
-                const exp = Math.floor((this.player.highestTowerFloor / 2 * equip.getRandomInt(126, 130)) * (this.player.reincarnation + 1) * (offlineDuration / 1000) * randomFactor());
+                const exp = Math.floor((this.player.highestTowerFloor / 15 * equip.getRandomInt(126, 130)) * (this.player.reincarnation + 1) * (offlineDuration / 1000) * randomFactor());
                 // 灵石奖励乘以转生奖励
-                const money = Math.floor((this.player.highestTowerFloor / 10 * 10) * (this.player.reincarnation + 1) * (offlineDuration / 1000) * randomFactor());
+                const money = Math.floor((this.player.highestTowerFloor / 30 * 10) * (this.player.reincarnation + 1) * (offlineDuration / 1000) * randomFactor());
                 // 培养丹奖励乘以转生奖励
-                const cultivateDan = Math.floor((this.player.reincarnation + 1) * (offlineDuration / 1000) * 0.26 * randomFactor());
+                const cultivateDan = Math.floor((this.player.reincarnation + 1) * (offlineDuration / 1000) * 0.1 * randomFactor());
                 // 计算装备数量
-                const equipNum = Math.floor((offlineDuration / 1000) * 0.1 * 0.4 * randomFactor());
+                const equipNum = Math.floor((offlineDuration / 1000) * 0.1 * 0.1 * randomFactor());
                 // 汇总所有奖励
                 return { exp, money, equipNum, cultivateDan };
             },
             // 检查是否可以领取离线奖励
             handleOffline () {
-                // 已经领取过奖励
-                if (this.player.isReceiveAwarded) return;
                 // 假设已经领取
                 this.player.isReceiveAwarded = true;
                 // 没有领取过新手奖励之前不能领取离线奖励
                 if (!this.player.isNewbie) return;
                 // 没有离线时间
-                if (!this.player.offlineTime) return;
-                this.offline.diff = +(new Date().getTime() - this.player.offlineTime).toFixed(2);
+                if (!this.player.lastGameTime) return;
+                this.offline.diff = +(new Date().getTime() - this.player.lastGameTime).toFixed(2);
                 // 离线时间格式错误
                 if (typeof +this.offline.diff !== 'number' || this.offline.diff > 1000 * 60 * 60 * 24 * 365 * 30 || this.offline.diff < 0) return;
                 // 超过24小时
@@ -1070,7 +1070,7 @@
                 this.offline.diff = hasExceed ? 1000 * 60 * 60 * 24 : this.offline.diff;
                 this.offline.diffText = this.formatTime((this.offline.diff / 1000).toFixed(2)) + (hasExceed ? '(最长离线时间为24小时)' : '')
                 // 如果离线超过1分钟
-                if (this.offline.diff >= 1000) {
+                if (this.offline.diff >= 1000 * 60) {
                     const { exp, money, equipNum, cultivateDan } = this.calculateOfflineRewards(this.offline.diff);
                     // 避免重复弹出离线奖励框(从home进入到别的页面再回来时不需要弹出,只在每次进入游戏时才弹出)
                     if (!this.player.isShowReceiveAwardedBox) {
@@ -1117,7 +1117,7 @@
                 this.offline.showOfflineBox = false;
                 this.player.isReceiveAwarded = true;
                 // 重置离线时间
-                this.handleBeforeUnload();
+                // this.handleBeforeUnload();
                 this.$notifys({ title: '领取离线奖励', message: `你获得了${this.offline.expGain}点修为和${this.offline.moneyGain}个灵石以及${this.offline.cultivateDan}个培养丹` });
                 // 清空离线奖励
                 this.offline.expGain = 0;
@@ -1174,6 +1174,7 @@
                 } else {
                     // 清空玩家导入的脚本
                     this.player.script = '';
+
                     // 发送提示
                     this.$notifys({ title: '提示', message: '脚本删除成功' });
                     // 刷新页面
@@ -1248,6 +1249,7 @@
                     closeOnClickModal: false,
                     closeOnPressEscape: false
                 }).then(() => {
+                    window.removeEventListener('beforeunload', this.handleBeforeUnload);
                     // 清空存档
                     localStorage.removeItem('vuex');
                     // 刷新页面
@@ -1355,6 +1357,7 @@
                     confirmButtonText: '确定以及肯定'
                 }).then(() => {
                     // 发送提示
+                    window.removeEventListener('beforeunload', this.handleBeforeUnload);
                     this.$notifys({ title: '提示', message: '存档删除成功' });
                     // 清空存档
                     localStorage.removeItem('vuex');
@@ -1368,6 +1371,7 @@
                 const reader = new FileReader();
                 reader.onload = (e) => {
                     try {
+                        window.removeEventListener('beforeunload', this.handleBeforeUnload);
                         // 导入存档
                         localStorage.setItem('vuex', e.target.result);
                         // 刷新页面
@@ -2044,7 +2048,7 @@
                 return `${num3.toFixed(2)}%`
             },
             copyContent (type) {
-                /* 
+                /*
                     修改须知: 可修改群号和开源地址但是需要留下源项目地址
                 */
                 const content = type == 'qq' ? '920930589' : 'https://github.com/setube/vue-XiuXianGame';

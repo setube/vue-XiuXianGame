@@ -45,6 +45,7 @@ import equip from '@/plugins/equip';
 // 怪物
 import monsters from '@/plugins/monster';
 import combatSystem from '@/plugins/combat';
+import { checkAchievements } from '@/plugins/achievementChecker';
 export default {
     data() {
         return {
@@ -87,6 +88,14 @@ export default {
     created() {
         // 玩家数据
         this.player = this.$store.player;
+        //检查成就
+        const newAchievements = checkAchievements(this.player, 'monster');
+        newAchievements.forEach(achievement => {
+            this.$notifys({
+                title: '获得成就提示',
+                message: `恭喜你完成了${achievement.name}成就`
+            });
+        });
         // 当前层数
         this.currentFloor = this.player.highestTowerFloor > 1 ? this.player.highestTowerFloor - 1 : 1
     },
@@ -132,6 +141,7 @@ export default {
                 { name: '获得装备', suffix: `${this.$formatNumberToChineseUnit(this.sweepResults.equipmentGained)}件` },
             ];
         },
+
         // 按钮
         buttonData() {
             return [
@@ -261,7 +271,7 @@ export default {
             // 修为
             const expGain = Math.floor(this.monster.level * 100);
             // 灵石
-            const moneyGain = Math.floor(this.monster.level * 5);
+            const moneyGain = Math.floor(this.monster.level * 2);
             // 增加修为 
             this.player.cultivation += expGain;
             // 增加灵石

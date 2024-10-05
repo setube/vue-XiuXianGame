@@ -10,7 +10,7 @@
         </div>
         <el-input-number class="bet-amount" v-model="betAmount" :min="100" :step="100" :max="1000000" :disabled="!canBet" />
         <el-button @click="placeBet" :disabled="!canBet" v-text="'下注灵石'" v-if="canBet" />
-        <el-countdown :title="hasEnoughMoney ? '冷却中' : '灵石不足'" :value="nextGameTime" @finish="canBet = true" v-else />
+        <el-countdown :title="hasEnoughMoney ? '冷却中' : '灵石不足'" :value="nextGameTime" @finish="updateCanBet" v-else />
         <div :class="['dice', 'dice-' + diceNumber, { 'rolling': isRolling }]" />
     </div>
 </template>
@@ -36,14 +36,20 @@
             },
             nextGameTime () {
                 return this.player.nextGameTimes?.dice || 0;
-            }
+            },
         },
         created () {
-            this.canBet = Date.now() >= this.nextGameTime && this.hasEnoughMoney;
+            this.updateCanBet();
         },
         methods: {
+            updateCanBet() {
+                this.canBet = Date.now() >= this.nextGameTime && this.hasEnoughMoney;
+            },
             placeBet () {
-                if (!this.canBet) return;
+                if (!this.canBet || !this.hasEnoughMoney) {
+                    this.$notifys({ title: '无法下注', message: '灵石不足或正在冷却中' });
+                    return;
+                }
                 this.isRolling = true;
                 let rollCount = 0;
                 const rollInterval = setInterval(() => {
@@ -72,14 +78,27 @@
                         won = dice % 2 === 0;
                         break;
                 }
-                const reward = won ? this.betAmount * 2 : this.betAmount;
-                this.canBet = won;
+                const reward = won ? this.betAmount * 2 : 0;
+                this.canBet = false;
+                
+                if (won) {
+                    this.player.props.money += reward - this.betAmount;
+                } else {
+                    this.player.props.money -= this.betAmount;
+                }
+                
                 this.$notifys({ title: `骰子点数: ${dice}`, message: won ? `恭喜您赢得了${reward}灵石！` : '很遗憾，您输了。' });
                 this.$emit('game-result', { success: won, reward });
                 const newNextGameTime = Date.now() + 10 * 60 * 1000;
-                this.player.nextGameTimes.dice = newNextGameTime
+                this.player.nextGameTimes.dice = newNextGameTime;
                 this.$emit('update-next-game-time', { game: 'dice', time: newNextGameTime });
                 this.isRolling = false;
+                this.updateCanBet();
+            }
+        },
+        watch: {
+            betAmount() {
+                this.updateCanBet();
             }
         }
     }

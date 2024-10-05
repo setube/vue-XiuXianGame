@@ -1,7 +1,7 @@
 <template>
     <div class="rps-game">
         <div class="bet-amount">
-            <el-input-number v-model="betAmount" :min="100" :step="100" :max="10000000" :disabled="!canPlay" />
+            <el-input-number v-model="betAmount" :min="100" :step="100" :max="100000" :disabled="!canPlay" />
         </div>
         <div class="options">
             <el-button v-for="option in options" :key="option" @click="play(option)" :disabled="!canPlay" v-text="option" />
@@ -21,8 +21,9 @@
             <p>{{ result.message }}</p>
         </div>
         <div class="message">
-            <p v-text="canPlay ? '请选择' : '灵石不足'" :disabled="!canPlay" v-if="canPlay" />
-            <el-countdown title="冷却中" :value="nextGameTime" @finish="canPlay = true" v-else />
+            <p v-if="canPlay">请选择</p>
+            <p v-else-if="!hasEnoughMoney">灵石不足</p>
+            <el-countdown v-else title="冷却中" :value="nextGameTime" @finish="updateCanPlay" />
         </div>
     </div>
 </template>
@@ -39,42 +40,58 @@
                 },
                 result: null,
                 options: ['石头', '剪刀', '布'],
-                betAmount: 100
+                betAmount: 100,
+                canPlay: false
             }
         },
         computed: {
             player () {
                 return this.$store.player;
             },
-            canPlay () {
-                return Date.now() >= this.nextGameTime && this.hasEnoughMoney;
-            },
             nextGameTime () {
                 return this.player.nextGameTimes?.rps || 0;
             },
             hasEnoughMoney () {
                 return this.player.props.money >= this.betAmount;
-            }
+            },
+        },
+        created() {
+            this.updateCanPlay();
         },
         methods: {
+            updateCanPlay() {
+                this.canPlay = Date.now() >= this.nextGameTime && this.hasEnoughMoney;
+            },
             play (playerChoice) {
                 if (!this.canPlay) return;
                 const computerChoice = this.options[Math.floor(Math.random() * 3)];
                 const won = (playerChoice === '石头' && computerChoice === '剪刀') || (playerChoice === '剪刀' && computerChoice === '布') || (playerChoice === '布' && computerChoice === '石头');
-                const reward = won ? this.betAmount * 2 : this.betAmount;
+                const reward = won ? this.betAmount * 2 : 0;
                 this.result = {
                     message: won ? `恭喜您赢得了${reward}灵石！` : '很遗憾，您输了。',
                     playerChoice,
                     computerChoice
                 };
+                if (won) {
+                    this.player.props.money += reward - this.betAmount;
+                } else {
+                    this.player.props.money -= this.betAmount;
+                }
                 this.$emit('game-result', { success: won, reward });
                 const newNextGameTime = Date.now() + 10 * 60 * 1000;
-                this.player.nextGameTimes.rps = newNextGameTime
+                this.player.nextGameTimes.rps = newNextGameTime;
                 this.$emit('update-next-game-time', { game: 'rps', time: newNextGameTime });
+                this.canPlay = false;
+            }
+        },
+        watch: {
+            betAmount() {
+                this.updateCanPlay();
             }
         }
     }
 </script>
+
 
 <style scoped>
     .rps-game {

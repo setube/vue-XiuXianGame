@@ -1947,7 +1947,7 @@
 
             findAchievementByTitle(title) {
                 return this.achievementAll.flatMap(category => category.data)
-                    .find(ach => ach.title === title);
+                    .find(ach => ach.name === title);
             },
             // 图鉴装备信息
             illustrationsInfo (i, ii) {

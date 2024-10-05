@@ -1,8 +1,8 @@
 {
     "name": "xiuxian-game",
     "private": true,
-    "version": "0.9.5",
-    "versionlog": "新增修仙娱乐功能\n新增签到功能\n新增骰玩法\n新增猜拳玩法\n新增算卦玩法\n新增井棋玩法\n新增秘境玩法",
+    "version": "0.9.6",
+    "versionlog": "新增全新成就\n新增称号功能\n新增称号佩戴功能\n优化修炼界面按钮错位问题",
     "type": "module",
     "scripts": {
         "dev": "vite --open",

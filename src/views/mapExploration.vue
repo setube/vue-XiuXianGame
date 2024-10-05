@@ -1123,7 +1123,7 @@
         margin: 0 10px;
     }
 
-    @media only screen and (max-width: 750px) {
+    @media only screen and (max-width: 768px) {
         .legend {
             flex-wrap: wrap;
         }
@@ -1283,7 +1283,7 @@
         margin-left: 2px;
     }
 
-    @media only screen and (max-width: 750px) {
+    @media only screen and (max-width: 768px) {
         .shortcutKeys {
             display: none;
         }

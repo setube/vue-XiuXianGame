@@ -1,8 +1,7 @@
 import achievement from '@/plugins/achievement';
 
-export function checkAchievements(player, type, data) {
+export function checkAchievements (player, type, data) {
     const newAchievements = [];
-
     switch (type) {
         case 'pet':
             checkPetAchievements(player, data, newAchievements);
@@ -14,11 +13,10 @@ export function checkAchievements(player, type, data) {
             checkEquipmentAchievements(player, data, newAchievements);
             break;
     }
-
     return newAchievements;
 }
 
-function checkPetAchievements(player, pet, newAchievements) {
+function checkPetAchievements (player, pet, newAchievements) {
     const petAchievements = achievement.pet();
     petAchievements.forEach(item => {
         if (!player.achievement.pet.find(i => i.id === item.id) && checkCondition(item.condition, pet)) {
@@ -29,7 +27,7 @@ function checkPetAchievements(player, pet, newAchievements) {
     });
 }
 
-function checkMonsterAchievements(player) {
+function checkMonsterAchievements (player) {
     const monsterAchievements = achievement.monster();
     monsterAchievements.forEach(item => {
         if (!player.achievement.monster.find(i => i.id === item.id) && checkCondition(item.condition, player)) {
@@ -39,7 +37,7 @@ function checkMonsterAchievements(player) {
     });
 }
 
-function checkEquipmentAchievements(player, equipmentData, newAchievements) {
+function checkEquipmentAchievements (player, equipmentData, newAchievements) {
     const equipmentAchievements = achievement.equipment();
     equipmentAchievements.forEach(item => {
         if (!player.achievement.equipment.find(i => i.id === item.id) && checkCondition(item.condition, equipmentData)) {
@@ -50,7 +48,7 @@ function checkEquipmentAchievements(player, equipmentData, newAchievements) {
     });
 }
 
-function checkCondition(condition, data) {
+function checkCondition (condition, data) {
     for (const [key, value] of Object.entries(condition)) {
         if (data[key] === undefined || data[key] < value) {
             return false;

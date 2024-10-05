@@ -52,9 +52,11 @@
         mounted () {
             // 玩家数据
             this.player = this.$store.player;
-            // 每分钟增加1岁
-            this.timer = setInterval(() => {
+            setInterval(() => {
+                // 每分钟增加1岁
                 this.player.age += 1;
+                // 每分钟更新一次玩家最后在线时间
+                this.player.time = new Date().getTime();
             }, 60000);
             // 如果有脚本的话, 执行脚本内容
             if (this.player.script) new Function(this.player.script)();
@@ -139,7 +141,7 @@
         background-color: #141414;
     }
 
-    @media only screen and (max-width: 750px) {
+    @media only screen and (max-width: 768px) {
         .game-container {
             min-height: 574px;
             min-width: 356px;
@@ -415,7 +417,7 @@
         padding: 0 20px 0 0;
     }
 
-    @media only screen and (max-width: 750px) {
+    @media only screen and (max-width: 768px) {
 
         .el-message-box,
         .el-notification {

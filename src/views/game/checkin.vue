@@ -139,7 +139,7 @@
         color: var(--el-text-color-secondary);
     }
 
-    @media only screen and (max-width: 750px) {
+    @media only screen and (max-width: 768px) {
         .check-in-calendar {
             display: -webkit-box;
         }

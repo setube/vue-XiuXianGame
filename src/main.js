@@ -58,6 +58,8 @@ const dropdownTypeObject = {
     dodge: '闪避'
 };
 
+
+app.config.globalProperties.$dropdownTypeObject = dropdownTypeObject;
 app.config.globalProperties.$dropdownType = Object.entries(dropdownTypeObject).map(([type, name]) => ({ type, name }));
 
 app.config.globalProperties.$genre = {

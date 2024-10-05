@@ -1066,8 +1066,8 @@
                 // 离线时间格式错误
                 if (typeof +this.offline.diff !== 'number' || this.offline.diff > 1000 * 60 * 60 * 24 * 365 * 30 || this.offline.diff < 0) return;
                 // 超过24小时
-                const hasExceed = this.offline.diff > 1000 * 60 * 60 * 24;
-                this.offline.diff = hasExceed ? 1000 * 60 * 60 * 24 : this.offline.diff;
+                const hasExceed = this.offline.diff > 1000 * 60 * 60 * 7;
+                this.offline.diff = hasExceed ? 1000 * 60 * 60 * 7 : this.offline.diff;
                 this.offline.diffText = this.formatTime((this.offline.diff / 1000).toFixed(2)) + (hasExceed ? '(最长离线时间为24小时)' : '')
                 // 如果离线超过1分钟
                 if (this.offline.diff >= 1000 * 60) {

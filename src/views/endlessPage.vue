@@ -14,7 +14,7 @@
         <div class="actions">
             <el-button v-for="(item, index) in buttonData" :key="index" @click="item.click" :disabled="item.disabled" v-text="item.text" />
         </div>
-        <div class="sweep-info">
+        <div v-if="isSweepingData" class="sweep-info">
             <el-row>
                 <el-col :span="6" v-for="(item, index) in sweepData" :key="index">
                     <div class="el-statistic">
@@ -132,6 +132,10 @@
             tag
         },
         computed: {
+            // 是否在扫荡
+            isSweepingData () {
+                return this.isSweeping;
+            },
             // 扫荡相关信息
             sweepData () {
                 return [

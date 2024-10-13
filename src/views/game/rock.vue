@@ -66,16 +66,18 @@
                 if (!this.canPlay) return;
                 const computerChoice = this.options[Math.floor(Math.random() * 3)];
                 const won = (playerChoice === '石头' && computerChoice === '剪刀') || (playerChoice === '剪刀' && computerChoice === '布') || (playerChoice === '布' && computerChoice === '石头');
-                const reward = won ? this.betAmount * 2 : 0;
+                const draw = (playerChoice === computerChoice); 
+
+                const reward = won ? this.betAmount * 2 :(draw?0 :this.betAmount);
                 this.result = {
-                    message: won ? `恭喜您赢得了${reward}灵石！` : '很遗憾，您输了。',
+                    message: won ? `恭喜您赢得了${reward}灵石！` : (draw?'很遗憾，五五开!':'很遗憾，您输了。'),
                     playerChoice,
                     computerChoice
                 };
                 if (won) {
                     this.player.props.money += reward - this.betAmount;
                 } else {
-                    this.player.props.money -= this.betAmount;
+                    this.player.props.money -= reward;
                 }
                 this.$emit('game-result', { success: won, reward });
                 const newNextGameTime = Date.now() + 10 * 60 * 1000;

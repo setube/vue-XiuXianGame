@@ -89,6 +89,17 @@ export const useMainStore = defineStore('main', {
       fortuneTellingDate: null,
       checkedInToday: false
     },
+    // 玩家用户信息（微信登录相关）
+    user: {
+      isLoggedIn: false,
+      daoName: '无名修士',
+      phone: '',
+      uid: '',
+      avatar: '',
+      nickname: '',
+      openid: '',
+      loginTime: null
+    },
     // 怪物信息
     monster: {
       name: '',
@@ -113,21 +124,26 @@ export const useMainStore = defineStore('main', {
   }),
   persist: {
     key: 'vuex',
-    paths: ['boss', 'player'],
+    paths: ['boss', 'player', 'user'],
     storage: localStorage,
     serializer: {
       serialize: state => {
         return JSON.stringify({
           boss: crypto.encryption(state.boss),
-          player: crypto.encryption(state.player)
+          player: crypto.encryption(state.player),
+          user: crypto.encryption(state.user)
         })
       },
       deserialize: value => {
         const state = JSON.parse(value)
-        return {
+        const result = {
           boss: crypto.decryption(state.boss),
           player: crypto.decryption(state.player)
         }
+        if (state.user) {
+          result.user = crypto.decryption(state.user)
+        }
+        return result
       }
     }
   }

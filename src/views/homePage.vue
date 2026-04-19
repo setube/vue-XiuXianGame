@@ -1334,7 +1334,8 @@
       },
       { text: '挑战无尽塔', handler: () => router.push('/endlesstower') },
       { text: '世界BOSS', handler: () => router.push('/boss') },
-      { text: '休闲娱乐', handler: () => router.push('/game') }
+      { text: '休闲娱乐', handler: () => router.push('/game') },
+      { text: '好友排行榜', handler: () => router.push('/friends-rank'), type: 'success' }
     ]
     // 初始化玩家当前气血
     player.value.health = player.value.maxHealth

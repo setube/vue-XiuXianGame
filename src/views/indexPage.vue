@@ -1,9 +1,32 @@
 <template>
   <div class="index">
     <div class="index2">
-      <el-button class="button" @click="goHome">开始游戏</el-button>
-      <el-button class="button" @click="dialogVisible = true">隐私政策</el-button>
+      <div class="welcome-section">
+        <h1 class="game-title">修仙世界</h1>
+        <p class="game-subtitle">踏入修仙界，开启你的长生之路</p>
+      </div>
+      
+      <div class="login-section">
+        <el-button class="button primary-btn" type="primary" size="large" @click="goLogin">
+          <el-icon><Connection /></el-icon>
+          微信登录
+        </el-button>
+        
+        <div class="divider">
+          <span>或者</span>
+        </div>
+        
+        <el-button class="button guest-btn" size="large" @click="goHome">
+          <el-icon><User /></el-icon>
+          游客模式进入
+        </el-button>
+      </div>
+      
+      <el-button class="button policy-btn" text @click="dialogVisible = true">
+        查看隐私政策
+      </el-button>
     </div>
+    
     <el-dialog v-model="dialogVisible" :lock-scroll="false" title="隐私政策" width="420px">
       <div class="custom-html md-stream-desktop">
         <p>
@@ -56,8 +79,7 @@
       </div>
       <template #footer>
         <span class="dialog-footer">
-          <el-button @click="zhengce(false)">拒 绝</el-button>
-          <el-button type="primary" @click="zhengce(true)">同 意</el-button>
+          <el-button @click="dialogVisible = false">关 闭</el-button>
         </span>
       </template>
     </el-dialog>
@@ -65,7 +87,7 @@
 </template>
 
 <script setup>
-  import { ref, onMounted } from 'vue'
+  import { ref, onMounted, computed } from 'vue'
   import { useRouter } from 'vue-router'
   import { useMainStore } from '@/plugins/store'
   import { ElNotification } from 'element-plus'
@@ -73,52 +95,124 @@
   const router = useRouter()
   const local = useMainStore()
   const player = ref({})
+  const user = ref({})
   const activeName = ref('')
-  const dialogVisible = ref(true)
+  const dialogVisible = ref(false)
 
-  const zhengce = bool => {
-    if (bool) router.push('/home')
-    else ElNotification({ title: '提示', message: '未同意隐私政策无法进入游戏' })
-    player.value.zc = bool
-    dialogVisible.value = false
+  const goLogin = () => {
+    router.push('/login')
   }
 
   const goHome = () => {
-    if (!player.value.zc) {
-      ElNotification({ title: '提示', message: '未同意隐私政策无法进入游戏' })
-      return
-    }
     router.push('/home')
   }
 
   onMounted(() => {
     if (local) {
       player.value = local.player
-      player.value.zc = player.value.zc ? player.value.zc : false
-      dialogVisible.value = !player.value.zc
+      user.value = local.user
+      
+      player.value.zc = player.value.zc ? player.value.zc : true
+      
+      if (user.value.isLoggedIn) {
+        router.push('/home')
+        return
+      }
+      
+      if (location.host != 'appassets.androidplatform.net' && player.value.zc) {
+        return
+      }
     }
-    if (location.host != 'appassets.androidplatform.net' || player.value.zc) router.push('/home')
   })
 </script>
 <style scoped>
   .index {
     position: relative;
     min-height: 574px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .index2 {
+    width: 100%;
+    max-width: 400px;
+    padding: 40px 30px;
+    text-align: center;
+  }
+
+  .welcome-section {
+    margin-bottom: 40px;
+  }
+
+  .game-title {
+    margin: 0 0 10px 0;
+    font-size: 36px;
+    font-weight: 700;
+    color: var(--el-color-primary);
+    text-shadow: 2px 2px 4px rgba(64, 158, 255, 0.3);
+  }
+
+  .game-subtitle {
+    margin: 0;
+    font-size: 16px;
+    color: var(--el-text-color-secondary);
+  }
+
+  .login-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .login-section .button {
+    width: 100%;
+    height: 48px;
+    font-size: 16px;
+    border-radius: 8px;
+  }
+
+  .login-section .primary-btn {
+    margin-bottom: 0;
+  }
+
+  .divider {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    margin: 20px 0;
+  }
+
+  .divider::before,
+  .divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background-color: var(--el-border-color-lighter);
+  }
+
+  .divider span {
+    padding: 0 15px;
+    font-size: 14px;
+    color: var(--el-text-color-secondary);
+  }
+
+  .policy-btn {
+    margin-top: 30px;
+    font-size: 14px;
   }
 
   @media only screen and (max-width: 768px) {
     .index2 {
-      display: grid;
-      width: 100%;
-      position: absolute;
-      top: 50%;
-      transform: translateY(-50%);
+      padding: 30px 20px;
     }
 
-    .index2 .button {
-      margin-top: 50px;
-      width: 100%;
-      margin-left: 0;
+    .game-title {
+      font-size: 28px;
+    }
+
+    .game-subtitle {
+      font-size: 14px;
     }
   }
 </style>

@@ -1,6 +1,58 @@
 <template>
   <div class="game-container-wrapper" draggable="true">
     <div :class="['game-container', { dark: player.dark }]">
+      <div class="header" v-if="showHeader">
+        <div class="header-left">
+          <span class="game-title">修仙世界</span>
+        </div>
+        <div class="header-right">
+          <el-dropdown @command="handleDropdownCommand" trigger="click">
+            <div class="user-info">
+              <el-avatar 
+                :size="40" 
+                :src="user.avatar || defaultAvatar"
+                class="avatar"
+              >
+                <el-icon v-if="!user.avatar"><User /></el-icon>
+              </el-avatar>
+              <div class="user-text" v-if="user.isLoggedIn">
+                <span class="dao-name">{{ user.daoName || '无名修士' }}</span>
+                <span class="login-status">
+                  <el-tag :type="'success'" size="small" effect="plain">已登录</el-tag>
+                </span>
+              </div>
+              <div class="user-text" v-else>
+                <span class="dao-name">游客</span>
+                <span class="login-status">
+                  <el-tag :type="'info'" size="small" effect="plain">未登录</el-tag>
+                </span>
+              </div>
+              <el-icon class="dropdown-icon"><ArrowDown /></el-icon>
+            </div>
+            <template #dropdown>
+              <el-dropdown-menu>
+                <el-dropdown-item command="profile">
+                  <el-icon><User /></el-icon>
+                  <span>个人信息</span>
+                </el-dropdown-item>
+                <el-dropdown-item command="friendsRank">
+                  <el-icon><Trophy /></el-icon>
+                  <span>好友排行榜</span>
+                </el-dropdown-item>
+                <el-dropdown-item divided v-if="user.isLoggedIn" command="logout">
+                  <el-icon><SwitchButton /></el-icon>
+                  <span>退出登录</span>
+                </el-dropdown-item>
+                <el-dropdown-item divided v-else command="login">
+                  <el-icon><Connection /></el-icon>
+                  <span>微信登录</span>
+                </el-dropdown-item>
+              </el-dropdown-menu>
+            </template>
+          </el-dropdown>
+        </div>
+      </div>
+      
       <router-view v-slot="{ Component }">
         <keep-alive v-if="route.meta.keepAlive">
           <component :is="Component" :key="key" />
@@ -23,7 +75,7 @@
             <i class="el-icon">
               <svg viewBox="0 0 24 24" class="light-icon">
                 <path
-                  d="M6.05 4.14l-.39-.39a.993.993 0 0 0-1.4 0l-.01.01a.984.984 0 0 0 0 1.4l.39.39c.39.39 1.01.39 1.4 0l.01-.01a.984.984 0 0 0 0-1.4zM3.01 10.5H1.99c-.55 0-.99.44-.99.99v.01c0 .55.44.99.99.99H3c.56.01 1-.43 1-.98v-.01c0-.56-.44-1-.99-1zm9-9.95H12c-.56 0-1 .44-1 .99v.96c0 .55.44.99.99.99H12c.56.01 1-.43 1-.98v-.97c0-.55-.44-.99-.99-.99zm7.74 3.21c-.39-.39-1.02-.39-1.41-.01l-.39.39a.984.984 0 0 0 0 1.4l.01.01c.39.39 1.02.39 1.4 0l.39-.39a.984.984 0 0 0 0-1.4zm-1.81 15.1l.39.39a.996.996 0 1 0 1.41-1.41l-.39-.39a.993.993 0 0 0-1.4 0c-.4.4-.4 1.02-.01 1.41zM20 11.49v.01c0 .55.44.99.99.99H22c.55 0 .99-.44.99-.99v-.01c0-.55-.44-.99-.99-.99h-1.01c-.55 0-.99.44-.99.99zM12 5.5c-3.31 0-6 2.69-6 6s2.69 6 6 6s6-2.69 6-6s-2.69-6-6-6zm-.01 16.95H12c.55 0 .99-.44.99-.99v-.96c0-.55-.44-.99-.99-.99h-.01c-.55 0-.99.44-.99.99v.96c0 .55.44.99.99.99zm-7.74-3.21c.39.39 1.02.39 1.41 0l.39-.39a.993.993 0 0 0 0-1.4l-.01-.01a.996.996 0 0 0-1.41 0l-.39.39c-.38.4-.38 1.02.01 1.41z"
+                  d="M6.05 4.14l-.39-.39a.993.993 0 0 0-1.4 0l-.01.01a.984 0 0 0 0 1.4l.39.39c.39.39 1.01.39 1.4 0l.01-.01a.984 0 0 0 0-1.4zM3.01 10.5H1.99c-.55 0-.99.44-.99.99v.01c0 .55.44.99.99.99H3c.56.01 1-.43 1-.98v-.01c0-.56-.44-1-.99-1zm9-9.95H12c-.56 0-1 .44-1 .99v.96c0 .55.44.99.99.99H12c.56.01 1-.43 1-.98v-.97c0-.55-.44-.99-.99-.99zm7.74 3.21c-.39-.39-1.02-.39-1.41-.01l-.39.39a.984 0 0 0 0 1.4l.01.01c.39.39 1.02.39 1.4 0l.39-.39a.984 0 0 0 0-1.4zm-1.81 15.1l.39.39a.996 0 1 0 1.41-1.41l-.39-.39a.993 0 0 0-1.4 0c-.4.4-.4 1.02-.01 1.41zM20 11.49v.01c0 .55.44.99.99.99H22c.55 0 .99-.44.99-.99v-.01c0-.55-.44-.99-.99-.99h-1.01c-.55 0-.99.44-.99.99zM12 5.5c-3.31 0-6 2.69-6 6s2.69 6 6 6s6-2.69 6-6s-2.69-6-6-6zm-.01 16.95H12c.55 0 .99-.44.99-.99v-.96c0-.55-.44-.99-.99-.99h-.01c-.55 0-.99.44-.99.99v.96c0 .55.44.99.99.99zm-7.74-3.21c.39.39 1.02.39 1.41 0l-.39-.39a.993 0 0 0 0-1.4l-.01-.01a.996 0 0 0-1.41 0l-.39.39c-.38.4-.38 1.02.01 1.41z"
                   fill="currentColor"
                 />
               </svg>
@@ -38,13 +90,61 @@
 </template>
 
 <script setup>
-  import { useRoute } from 'vue-router'
+  import { useRoute, useRouter } from 'vue-router'
   import { ref, watch, computed, onMounted } from 'vue'
   import { useMainStore } from './plugins/store'
+  import { ElMessageBox } from 'element-plus'
 
-  const player = ref({})
+  const router = useRouter()
+  const store = useMainStore()
+  const player = computed(() => store.player)
+  const user = computed(() => store.user)
   const route = useRoute()
   const key = computed(() => route.path)
+  
+  const defaultAvatar = 'https://cube.elemecdn.com/3/7c/3ea6beec64369c2642b92c6726f1epng.png'
+
+  const showHeader = computed(() => {
+    return !['login'].includes(route.name)
+  })
+
+  const handleDropdownCommand = (command) => {
+    switch (command) {
+      case 'profile':
+        router.push('/profile')
+        break
+      case 'friendsRank':
+        router.push('/friends-rank')
+        break
+      case 'login':
+        router.push('/login')
+        break
+      case 'logout':
+        ElMessageBox.confirm(
+          '确定要退出登录吗？您的游戏进度将保留。',
+          '退出登录',
+          {
+            confirmButtonText: '确定退出',
+            cancelButtonText: '取消',
+            type: 'warning'
+          }
+        ).then(() => {
+          store.user = {
+            isLoggedIn: false,
+            daoName: '无名修士',
+            phone: '',
+            uid: '',
+            avatar: '',
+            nickname: '',
+            openid: '',
+            loginTime: null
+          }
+        }).catch(() => {
+          // 用户取消
+        })
+        break
+    }
+  }
 
   watch(
     () => player.value.dark,
@@ -54,20 +154,78 @@
   )
 
   onMounted(() => {
-    // 初始化玩家数据
-    player.value = useMainStore().player
     setInterval(() => {
-      // 每分钟增加1岁
-      player.value.age += 1
-      // 每分钟更新一次玩家最后在线时间
-      player.value.time = new Date().getTime()
+      store.player.age += 1
+      store.player.time = new Date().getTime()
     }, 60000)
-    // 如果有脚本的话, 执行脚本内容
-    if (player.value.script) new Function(player.value.script)()
+    
+    if (store.player.script) new Function(store.player.script)()
   })
 </script>
 
 <style scoped>
+  .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 20px;
+    margin-bottom: 10px;
+    border-bottom: 1px solid var(--el-border-color-lighter);
+  }
+
+  .header-left .game-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--el-color-primary);
+  }
+
+  .header-right {
+    display: flex;
+    align-items: center;
+  }
+
+  .user-info {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    padding: 5px 10px;
+    border-radius: 8px;
+    transition: background-color 0.2s ease;
+  }
+
+  .user-info:hover {
+    background-color: var(--el-fill-color-light);
+  }
+
+  .user-info .avatar {
+    border: 2px solid var(--el-color-primary-light-7);
+  }
+
+  .user-text {
+    display: flex;
+    flex-direction: column;
+    margin-left: 12px;
+    text-align: left;
+  }
+
+  .user-text .dao-name {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--el-text-color-primary);
+    line-height: 1.2;
+  }
+
+  .user-text .login-status {
+    margin-top: 4px;
+    line-height: 1;
+  }
+
+  .dropdown-icon {
+    margin-left: 8px;
+    color: var(--el-text-color-secondary);
+    font-size: 12px;
+  }
+
   .story {
     padding: 0 30px;
   }

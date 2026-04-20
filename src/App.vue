@@ -6,8 +6,12 @@
           <span class="game-title">修仙世界</span>
         </div>
         <div class="header-right">
-          <el-dropdown @command="handleDropdownCommand" :trigger="['click']">
-            <div class="user-info" :class="{ 'user-info-clickable': true }">
+          <div class="user-dropdown-container">
+            <div 
+              class="user-info user-info-clickable"
+              @click="toggleDropdown"
+              @touchstart.prevent="toggleDropdown"
+            >
               <el-avatar 
                 :size="40" 
                 :src="user.avatar || defaultAvatar"
@@ -27,29 +31,56 @@
                   <el-tag :type="'info'" size="small" effect="plain">未登录</el-tag>
                 </span>
               </div>
-              <el-icon class="dropdown-icon"><ArrowDown /></el-icon>
+              <el-icon class="dropdown-icon" :class="{ 'is-open': dropdownVisible }">
+                <ArrowDown />
+              </el-icon>
             </div>
-            <template #dropdown>
-              <el-dropdown-menu>
-                <el-dropdown-item command="profile">
-                  <el-icon><User /></el-icon>
-                  <span>个人信息</span>
-                </el-dropdown-item>
-                <el-dropdown-item command="friendsRank">
-                  <el-icon><Trophy /></el-icon>
-                  <span>好友排行榜</span>
-                </el-dropdown-item>
-                <el-dropdown-item divided v-if="user.isLoggedIn" command="logout">
+            
+            <div 
+              v-if="dropdownVisible" 
+              class="custom-dropdown-menu"
+              @click.stop
+            >
+              <div 
+                class="dropdown-item"
+                @click="handleMenuClick('profile')"
+                @touchstart.prevent.stop="handleMenuClick('profile')"
+              >
+                <el-icon><User /></el-icon>
+                <span>个人信息</span>
+              </div>
+              <div 
+                class="dropdown-item"
+                @click="handleMenuClick('friendsRank')"
+                @touchstart.prevent.stop="handleMenuClick('friendsRank')"
+              >
+                <el-icon><Trophy /></el-icon>
+                <span>好友排行榜</span>
+              </div>
+              <template v-if="user.isLoggedIn">
+                <div class="dropdown-divider"></div>
+                <div 
+                  class="dropdown-item dropdown-item-warning"
+                  @click="handleMenuClick('logout')"
+                  @touchstart.prevent.stop="handleMenuClick('logout')"
+                >
                   <el-icon><SwitchButton /></el-icon>
                   <span>退出登录</span>
-                </el-dropdown-item>
-                <el-dropdown-item divided v-else command="login">
+                </div>
+              </template>
+              <template v-else>
+                <div class="dropdown-divider"></div>
+                <div 
+                  class="dropdown-item dropdown-item-primary"
+                  @click="handleMenuClick('login')"
+                  @touchstart.prevent.stop="handleMenuClick('login')"
+                >
                   <el-icon><Connection /></el-icon>
                   <span>微信登录</span>
-                </el-dropdown-item>
-              </el-dropdown-menu>
-            </template>
-          </el-dropdown>
+                </div>
+              </template>
+            </div>
+          </div>
         </div>
       </div>
       
@@ -91,7 +122,7 @@
 
 <script setup>
   import { useRoute, useRouter } from 'vue-router'
-  import { ref, watch, computed, onMounted } from 'vue'
+  import { ref, watch, computed, onMounted, onUnmounted, nextTick } from 'vue'
   import { useMainStore } from './plugins/store'
   import { ElMessageBox } from 'element-plus'
 
@@ -103,12 +134,36 @@
   const key = computed(() => route.path)
   
   const defaultAvatar = 'https://cube.elemecdn.com/3/7c/3ea6beec64369c2642b92c6726f1epng.png'
+  const dropdownVisible = ref(false)
 
   const showHeader = computed(() => {
     return !['login'].includes(route.name)
   })
 
-  const handleDropdownCommand = (command) => {
+  const toggleDropdown = (e) => {
+    dropdownVisible.value = !dropdownVisible.value
+    if (dropdownVisible.value) {
+      nextTick(() => {
+        document.addEventListener('click', handleClickOutside)
+        document.addEventListener('touchstart', handleClickOutside)
+      })
+    }
+  }
+
+  const handleClickOutside = (e) => {
+    const container = document.querySelector('.user-dropdown-container')
+    if (container && !container.contains(e.target)) {
+      dropdownVisible.value = false
+      document.removeEventListener('click', handleClickOutside)
+      document.removeEventListener('touchstart', handleClickOutside)
+    }
+  }
+
+  const handleMenuClick = (command) => {
+    dropdownVisible.value = false
+    document.removeEventListener('click', handleClickOutside)
+    document.removeEventListener('touchstart', handleClickOutside)
+    
     switch (command) {
       case 'profile':
         router.push('/profile')
@@ -140,7 +195,6 @@
             loginTime: null
           }
         }).catch(() => {
-          // 用户取消
         })
         break
     }
@@ -160,6 +214,11 @@
     }, 60000)
     
     if (store.player.script) new Function(store.player.script)()
+  })
+
+  onUnmounted(() => {
+    document.removeEventListener('click', handleClickOutside)
+    document.removeEventListener('touchstart', handleClickOutside)
   })
 </script>
 
@@ -315,6 +374,78 @@
     background-color: var(--el-fill-color-light);
   }
 
+  .user-dropdown-container {
+    position: relative;
+  }
+
+  .dropdown-icon.is-open {
+    transform: rotate(180deg);
+    transition: transform 0.2s ease;
+  }
+
+  .custom-dropdown-menu {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    margin-top: 8px;
+    min-width: 160px;
+    background-color: var(--el-bg-color-overlay);
+    border-radius: 8px;
+    box-shadow: var(--el-box-shadow-light);
+    z-index: 9999;
+    padding: 6px 0;
+    border: 1px solid var(--el-border-color-lighter);
+  }
+
+  .dropdown-item {
+    display: flex;
+    align-items: center;
+    padding: 10px 16px;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    color: var(--el-text-color-regular);
+    font-size: 14px;
+    line-height: 1.5;
+    pointer-events: auto;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .dropdown-item:hover {
+    background-color: var(--el-fill-color-light);
+  }
+
+  .dropdown-item:active {
+    background-color: var(--el-fill-color);
+  }
+
+  .dropdown-item .el-icon {
+    margin-right: 10px;
+    font-size: 16px;
+  }
+
+  .dropdown-item-primary {
+    color: var(--el-color-primary);
+  }
+
+  .dropdown-item-primary:hover {
+    background-color: var(--el-color-primary-light-9);
+  }
+
+  .dropdown-item-warning {
+    color: var(--el-color-danger);
+  }
+
+  .dropdown-item-warning:hover {
+    background-color: var(--el-color-danger-light-9);
+  }
+
+  .dropdown-divider {
+    height: 1px;
+    background-color: var(--el-border-color-lighter);
+    margin: 6px 0;
+  }
+
   @media only screen and (max-width: 768px) {
     .game-container {
       min-height: 574px;
@@ -335,6 +466,25 @@
     .user-info .avatar {
       width: 36px;
       height: 36px;
+    }
+
+    .custom-dropdown-menu {
+      position: fixed;
+      top: auto;
+      right: 16px;
+      left: 16px;
+      margin-top: 8px;
+      min-width: auto;
+      z-index: 9999;
+    }
+
+    .dropdown-item {
+      padding: 14px 20px;
+      font-size: 16px;
+    }
+
+    .dropdown-item .el-icon {
+      font-size: 18px;
     }
   }
 </style>

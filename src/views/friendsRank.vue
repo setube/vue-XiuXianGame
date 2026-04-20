@@ -601,21 +601,143 @@ onUnmounted(() => {
 
 @media (max-width: 768px) {
   .top-three {
-    flex-direction: column;
-    align-items: center;
+    flex-direction: row;
+    align-items: flex-end;
+    justify-content: center;
+    margin-bottom: 15px;
+    padding: 10px 0;
   }
-  
+
   .rank-item {
-    order: 0 !important;
-    margin: 10px 0 !important;
+    padding: 8px 5px;
   }
-  
+
+  .rank-item .avatar {
+    border: 2px solid var(--el-border-color);
+  }
+
+  .rank-first .avatar {
+    border-color: #ffd700;
+  }
+
   .rank-first {
-    order: 0;
+    order: 2;
+    z-index: 2;
   }
-  
+
+  .rank-first .rank-badge {
+    width: 40px;
+    height: 40px;
+    font-size: 18px;
+  }
+
+  .rank-first .avatar {
+    width: 50px;
+    height: 50px;
+  }
+
+  .rank-second {
+    order: 1;
+    margin-right: -10px;
+  }
+
+  .rank-second .rank-badge {
+    width: 32px;
+    height: 32px;
+    font-size: 14px;
+  }
+
+  .rank-second .avatar {
+    width: 40px;
+    height: 40px;
+  }
+
+  .rank-third {
+    order: 3;
+    margin-left: -10px;
+  }
+
+  .rank-third .rank-badge {
+    width: 32px;
+    height: 32px;
+    font-size: 14px;
+  }
+
+  .rank-third .avatar {
+    width: 40px;
+    height: 40px;
+  }
+
+  .rank-item .name {
+    font-size: 12px;
+    margin: 6px 0 3px 0;
+  }
+
+  .rank-item .level {
+    font-size: 10px;
+    margin: 0 0 3px 0;
+  }
+
+  .rank-item .score {
+    font-size: 12px;
+    margin: 0;
+  }
+
+  .my-rank {
+    padding: 12px 14px;
+    margin-bottom: 15px;
+  }
+
+  .my-rank .rank-number {
+    width: 32px;
+    height: 32px;
+    font-size: 14px;
+    margin-right: 12px;
+  }
+
+  .my-rank .name {
+    font-size: 14px;
+  }
+
+  .my-rank .level {
+    font-size: 12px;
+  }
+
+  .my-rank .score {
+    font-size: 16px;
+  }
+
   .rank-list {
-    max-height: 400px;
+    max-height: 350px;
+  }
+
+  .rank-list-item {
+    padding: 12px 10px;
+    margin-bottom: 8px;
+  }
+
+  .rank-list-item .rank-number {
+    width: 32px;
+    height: 32px;
+    font-size: 13px;
+    margin-right: 10px;
+  }
+
+  .rank-list-item .avatar {
+    width: 40px;
+    height: 40px;
+  }
+
+  .rank-list-item .name {
+    font-size: 14px;
+  }
+
+  .rank-list-item .level {
+    font-size: 11px;
+  }
+
+  .rank-list-item .score {
+    font-size: 15px;
   }
 }
 </style>

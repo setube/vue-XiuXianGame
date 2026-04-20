@@ -13,123 +13,127 @@
       <h1 class="title">好友修仙榜</h1>
     </div>
 
-    <div class="top-three">
-      <div class="rank-item rank-second">
-        <div class="rank-badge badge-silver">
-          <span>2</span>
-        </div>
-        <el-avatar 
-          :size="60" 
-          :src="topList[1]?.avatar || defaultAvatar"
-          class="avatar"
-        />
-        <p class="name">{{ topList[1]?.daoName || '虚位以待' }}</p>
-        <p class="level">{{ topList[1]?.levelName || '-' }}</p>
-        <p class="score">{{ topList[1]?.scoreText || '0' }}</p>
-      </div>
-
-      <div class="rank-item rank-first">
-        <div class="rank-badge badge-gold">
-          <el-icon><Crown /></el-icon>
-        </div>
-        <el-avatar 
-          :size="70" 
-          :src="topList[0]?.avatar || defaultAvatar"
-          class="avatar"
-        />
-        <p class="name">{{ topList[0]?.daoName || '虚位以待' }}</p>
-        <p class="level">{{ topList[0]?.levelName || '-' }}</p>
-        <p class="score">{{ topList[0]?.scoreText || '0' }}</p>
-      </div>
-
-      <div class="rank-item rank-third">
-        <div class="rank-badge badge-bronze">
-          <span>3</span>
-        </div>
-        <el-avatar 
-          :size="60" 
-          :src="topList[2]?.avatar || defaultAvatar"
-          class="avatar"
-        />
-        <p class="name">{{ topList[2]?.daoName || '虚位以待' }}</p>
-        <p class="level">{{ topList[2]?.levelName || '-' }}</p>
-        <p class="score">{{ topList[2]?.scoreText || '0' }}</p>
-      </div>
+    <div v-if="!user.isLoggedIn" class="not-logged-section">
+      <el-empty description="您还未登录，无法查看好友排行榜">
+        <el-button type="primary" @click="goToLogin">立即登录</el-button>
+      </el-empty>
     </div>
 
-    <div class="my-rank" v-if="myRankInfo">
-      <div class="rank-number my-rank-num">
-        {{ myRankInfo.rank }}
-      </div>
-      <el-avatar 
-        :size="50" 
-        :src="myRankInfo.avatar || defaultAvatar"
-        class="avatar"
-      />
-      <div class="info">
-        <p class="name">
-          {{ myRankInfo.daoName }}
-          <el-tag type="primary" size="small" effect="plain">我</el-tag>
-        </p>
-        <p class="level">{{ myRankInfo.levelName }}</p>
-      </div>
-      <div class="score-section">
-        <p class="score-label">总体实力</p>
-        <p class="score">{{ myRankInfo.scoreText }}</p>
-      </div>
-    </div>
+    <template v-else>
+      <div class="top-three">
+        <div class="rank-item rank-second">
+          <div class="rank-badge badge-silver">
+            <span>2</span>
+          </div>
+          <el-avatar 
+            :size="60" 
+            :src="topList[1]?.avatar || defaultAvatar"
+            class="avatar"
+          />
+          <p class="name">{{ topList[1]?.daoName || '虚位以待' }}</p>
+          <p class="level">{{ topList[1]?.levelName || '-' }}</p>
+          <p class="score">{{ topList[1]?.scoreText || '0' }}</p>
+        </div>
 
-    <el-divider>排行榜</el-divider>
+        <div class="rank-item rank-first">
+          <div class="rank-badge badge-gold">
+            <span>1</span>
+          </div>
+          <el-avatar 
+            :size="70" 
+            :src="topList[0]?.avatar || defaultAvatar"
+            class="avatar"
+          />
+          <p class="name">{{ topList[0]?.daoName || '虚位以待' }}</p>
+          <p class="level">{{ topList[0]?.levelName || '-' }}</p>
+          <p class="score">{{ topList[0]?.scoreText || '0' }}</p>
+        </div>
 
-    <div 
-      class="rank-list" 
-      ref="listRef"
-      @scroll="handleScroll"
-    >
-      <div 
-        v-for="(item, index) in rankList" 
-        :key="`${item.uid}-${index}`"
-        class="rank-list-item"
-        :class="{ 'is-me': item.isMe }"
-      >
-        <div class="rank-number" :class="getRankClass(item.rank)">
-          <span v-if="item.rank <= 3">
-            <el-icon v-if="item.rank === 1"><Crown /></el-icon>
-            <span v-else>{{ item.rank }}</span>
-          </span>
-          <span v-else>{{ item.rank }}</span>
+        <div class="rank-item rank-third">
+          <div class="rank-badge badge-bronze">
+            <span>3</span>
+          </div>
+          <el-avatar 
+            :size="60" 
+            :src="topList[2]?.avatar || defaultAvatar"
+            class="avatar"
+          />
+          <p class="name">{{ topList[2]?.daoName || '虚位以待' }}</p>
+          <p class="level">{{ topList[2]?.levelName || '-' }}</p>
+          <p class="score">{{ topList[2]?.scoreText || '0' }}</p>
+        </div>
+      </div>
+
+      <div class="my-rank" v-if="myRankInfo">
+        <div class="rank-number my-rank-num">
+          {{ myRankInfo.rank }}
         </div>
         <el-avatar 
           :size="50" 
-          :src="item.avatar || defaultAvatar"
+          :src="myRankInfo.avatar || defaultAvatar"
           class="avatar"
         />
         <div class="info">
           <p class="name">
-            {{ item.daoName }}
-            <el-tag v-if="item.isMe" type="primary" size="small" effect="plain">我</el-tag>
+            {{ myRankInfo.daoName }}
+            <el-tag type="primary" size="small" effect="plain">我</el-tag>
           </p>
-          <p class="level">{{ item.levelName }}</p>
+          <p class="level">{{ myRankInfo.levelName }}</p>
         </div>
         <div class="score-section">
           <p class="score-label">总体实力</p>
-          <p class="score">{{ item.scoreText }}</p>
+          <p class="score">{{ myRankInfo.scoreText }}</p>
         </div>
       </div>
 
-      <div v-if="loading" class="loading-section">
-        <el-icon class="is-loading"><Loading /></el-icon>
-        <span>加载中...</span>
-      </div>
+      <el-divider>排行榜</el-divider>
 
-      <div v-if="!hasMore && rankList.length > 0" class="no-more">
-        <el-divider>已加载全部</el-divider>
-      </div>
+      <div 
+        class="rank-list" 
+        ref="listRef"
+        @scroll="handleScroll"
+      >
+        <div 
+          v-for="(item, index) in rankList" 
+          :key="`${item.uid}-${index}`"
+          class="rank-list-item"
+          :class="{ 'is-me': item.isMe }"
+        >
+          <div class="rank-number" :class="getRankClass(item.rank)">
+            <span>{{ item.rank }}</span>
+          </div>
+          <el-avatar 
+            :size="50" 
+            :src="item.avatar || defaultAvatar"
+            class="avatar"
+          />
+          <div class="info">
+            <p class="name">
+              {{ item.daoName }}
+              <el-tag v-if="item.isMe" type="primary" size="small" effect="plain">我</el-tag>
+            </p>
+            <p class="level">{{ item.levelName }}</p>
+          </div>
+          <div class="score-section">
+            <p class="score-label">总体实力</p>
+            <p class="score">{{ item.scoreText }}</p>
+          </div>
+        </div>
 
-      <div v-if="rankList.length === 0 && !loading" class="empty-section">
-        <el-empty description="暂无好友数据" />
+        <div v-if="loading" class="loading-section">
+          <el-icon class="is-loading"><Loading /></el-icon>
+          <span>加载中...</span>
+        </div>
+
+        <div v-if="!hasMore && rankList.length > 0" class="no-more">
+          <el-divider>已加载全部</el-divider>
+        </div>
+
+        <div v-if="rankList.length === 0 && !loading" class="empty-section">
+          <el-empty description="暂无好友数据" />
+        </div>
       </div>
-    </div>
+    </template>
   </div>
 </template>
 
@@ -141,6 +145,7 @@ import { levelNames, formatNumberToChineseUnit } from '@/plugins/game'
 
 const router = useRouter()
 const store = useMainStore()
+const user = computed(() => store.user)
 
 const listRef = ref(null)
 const loading = ref(false)
@@ -151,12 +156,14 @@ const pageSize = ref(10)
 const defaultAvatar = 'https://cube.elemecdn.com/3/7c/3ea6beec64369c2642b92c6726f1epng.png'
 
 const daoNames = [
-  '青云真人', '紫霞仙子', '凌霄道长', '玄天尊者', '玉虚真人',
+  '紫霞仙子', '凌霄道长', '玄天尊者', '玉虚真人',
   '太玄仙子', '无极道长', '清虚真人', '赤霞仙子', '丹霞真人',
   '青云子', '紫霞道人', '凌霄仙子', '玄天大帝', '玉虚子',
   '太玄真人', '无极仙子', '清虚道长', '赤霞真人', '丹霞仙子',
   '玄机子', '天璇真人', '天玑道长', '天权仙子', '玉衡真人',
-  '开阳子', '摇光真人', '天枢道长', '天璇仙子', '天玑真人'
+  '开阳子', '摇光真人', '天枢道长', '天璇仙子', '天玑真人',
+  '青莲剑仙', '紫府真人', '灵珠子', '太乙真人', '元始天尊',
+  '通天教主', '太上老君', '南极仙翁', '北斗星君', '东华帝君'
 ]
 
 const avatars = [
@@ -171,46 +178,49 @@ const rankList = ref([])
 
 const generateFriendData = () => {
   const data = []
+  
   for (let i = 0; i < 50; i++) {
     const level = Math.floor(Math.random() * 20)
-    const score = Math.floor(Math.random() * 10000000) + 1000
+    const score = Math.floor(Math.random() * 10000000) + 100000
     data.push({
       uid: `FRIEND_${String(i + 1).padStart(6, '0')}`,
-      daoName: daoNames[i % daoNames.length] + (i > daoNames.length ? `(${Math.floor(i / daoNames.length) + 1})` : ''),
+      daoName: daoNames[i % daoNames.length] + (i >= daoNames.length ? `(${Math.floor(i / daoNames.length) + 1})` : ''),
       avatar: avatars[i % avatars.length],
       level: level,
       levelName: levelNames(level),
       score: score,
       scoreText: formatNumberToChineseUnit(score),
-      rank: i + 1,
+      rank: 0,
       isMe: false
     })
   }
   
-  const user = store.user
-  const player = store.player
+  data.sort((a, b) => b.score - a.score)
+  
+  const userData = store.user
+  const playerData = store.player
   
   const myData = {
-    uid: user.uid || 'MY_UID',
-    daoName: user.daoName || player.name || '我',
-    avatar: user.avatar || defaultAvatar,
-    level: player.level,
-    levelName: levelNames(player.level),
-    score: player.score,
-    scoreText: formatNumberToChineseUnit(player.score),
+    uid: userData.uid || 'MY_UID',
+    daoName: userData.daoName || playerData.name || '我',
+    avatar: userData.avatar || defaultAvatar,
+    level: playerData.level,
+    levelName: levelNames(playerData.level),
+    score: playerData.score,
+    scoreText: formatNumberToChineseUnit(playerData.score),
     rank: 0,
     isMe: true
   }
   
-  const insertIndex = data.findIndex(item => item.score < myData.score)
+  let insertIndex = data.findIndex(item => item.score < myData.score)
   if (insertIndex === -1) {
     data.push(myData)
-    myData.rank = data.length
   } else {
     data.splice(insertIndex, 0, myData)
-    for (let i = insertIndex; i < data.length; i++) {
-      data[i].rank = i + 1
-    }
+  }
+  
+  for (let i = 0; i < data.length; i++) {
+    data[i].rank = i + 1
   }
   
   return data
@@ -235,6 +245,10 @@ const goBack = () => {
   router.back()
 }
 
+const goToLogin = () => {
+  router.push('/login')
+}
+
 const loadMoreData = () => {
   if (loading.value || !hasMore.value) return
   
@@ -249,7 +263,6 @@ const loadMoreData = () => {
     
     for (let i = start; i < end && i < baseData.length; i++) {
       const item = { ...baseData[i] }
-      item.rank = i + 1
       newData.push(item)
     }
     
@@ -280,12 +293,13 @@ const handleScroll = (e) => {
 }
 
 onMounted(() => {
-  baseFriendData.value = generateFriendData()
-  loadMoreData()
+  if (user.value.isLoggedIn) {
+    baseFriendData.value = generateFriendData()
+    loadMoreData()
+  }
 })
 
 onUnmounted(() => {
-  // 清理
 })
 </script>
 
@@ -311,6 +325,13 @@ onUnmounted(() => {
   font-size: 22px;
   font-weight: 600;
   color: var(--el-text-color-primary);
+}
+
+.not-logged-section {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 400px;
 }
 
 .top-three {

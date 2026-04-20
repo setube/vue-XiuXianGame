@@ -1,13 +1,13 @@
 <template>
-  <div class="game-container-wrapper" draggable="true">
+  <div class="game-container-wrapper">
     <div :class="['game-container', { dark: player.dark }]">
       <div class="header" v-if="showHeader">
         <div class="header-left">
           <span class="game-title">修仙世界</span>
         </div>
         <div class="header-right">
-          <el-dropdown @command="handleDropdownCommand" trigger="click">
-            <div class="user-info">
+          <el-dropdown @command="handleDropdownCommand" :trigger="['click']">
+            <div class="user-info" :class="{ 'user-info-clickable': true }">
               <el-avatar 
                 :size="40" 
                 :src="user.avatar || defaultAvatar"
@@ -240,6 +240,9 @@
     align-items: center;
     min-height: 90vh;
     -webkit-user-drag: none;
+    user-select: none;
+    -webkit-user-select: none;
+    touch-action: manipulation;
   }
 
   .game-container {
@@ -302,10 +305,36 @@
     background-color: #141414;
   }
 
+  .user-info-clickable {
+    pointer-events: auto;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .user-info-clickable:active {
+    background-color: var(--el-fill-color-light);
+  }
+
   @media only screen and (max-width: 768px) {
     .game-container {
       min-height: 574px;
       min-width: 356px;
+    }
+
+    .user-info {
+      pointer-events: auto;
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+      padding: 8px 12px;
+    }
+
+    .header {
+      padding: 12px 16px;
+    }
+
+    .user-info .avatar {
+      width: 36px;
+      height: 36px;
     }
   }
 </style>
